@@ -2,11 +2,14 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Footer from '../components/Footer';
+import artesano from "../assets/artesano-trabajando.jpg";
+
+
 
 const Home = ({ user, logout }) => {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+
 
   const handleLogout = () => {
     logout();
@@ -41,12 +44,6 @@ const Home = ({ user, logout }) => {
       }
     ]);
 
-    setCategories([
-      { id: 1, name: "Carteras", count: 15, icon: "👜" },
-      { id: 2, name: "Cinturones", count: 23, icon: "👔" },
-      { id: 3, name: "Billeteras", count: 18, icon: "💳" },
-      { id: 4, name: "Mochilas", count: 12, icon: "🎒" }
-    ]);
   }, []);
 
   // Contenido para usuarios no autenticados
@@ -114,11 +111,12 @@ const Home = ({ user, logout }) => {
                 </div>
               </div>
               <div className="bg-cream-100 rounded-lg p-8">
-                <img 
-                  src="/api/placeholder/500/400" 
-                  alt="Artesano trabajando cuero"
-                  className="w-full h-auto rounded-lg shadow-sm"
-                />
+               <img
+  src={artesano}
+  alt="Artesano trabajando cuero"
+  className="w-full h-auto rounded-lg shadow-sm"
+/>
+
               </div>
             </div>
           </div>

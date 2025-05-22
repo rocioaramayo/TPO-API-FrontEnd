@@ -10,11 +10,13 @@ const Footer = () => {
           {/* Logo y descripción */}
           <div className="md:col-span-1">
             <div className="flex items-center mb-4">
-              <div className="flex items-center justify-center w-10 h-10 bg-white rounded-lg mr-3">
-                <svg className="w-6 h-6 text-leather-800" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                </svg>
-              </div>
+             <div className="flex items-center justify-center w-12 h-12 bg-white rounded-lg mr-3">
+                <img
+                    src="/foto-toro-logo.png"
+                    alt="Logo"
+                    className="w-12 h-12 object-contain"
+                />
+                </div>
               <div>
                 <h3 className="text-lg font-serif font-bold">Cuero Argentino</h3>
                 <p className="text-xs text-leather-200">Artesanía Premium</p>

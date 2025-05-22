@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
+
 const Navigation = ({ user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -12,11 +13,14 @@ const Navigation = ({ user, onLogout }) => {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center group">
-              <div className="flex items-center justify-center w-10 h-10 bg-leather-800 rounded-lg shadow-sm mr-3 group-hover:shadow-lg transition-all duration-200">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                </svg>
-              </div>
+              <div className="bg-white flex items-center justify-center">
+              <img
+                src="/foto-toro-logo.png"
+                alt="Logo"
+                className="w-12 h-12 mr-2 object-contain"
+              />
+          </div>
+
               <div className="hidden sm:block">
                 <h1 className="text-xl font-serif font-bold text-leather-900 group-hover:text-leather-700 transition-colors duration-200">
                   Cuero Argentino
