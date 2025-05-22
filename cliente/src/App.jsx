@@ -67,7 +67,7 @@ const App = () => {
         />
       </Routes>
       
-      {/* Muestra la ruta actual como en el ejemplo de la profesora */}
+   
       <p className="text-center text-sm text-leather-500 mt-4">
         La ruta actual es: {location.pathname}
       </p>
