@@ -1,10 +1,78 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <title>Cuero Argentino - Artesanía Premium</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              leather: {
+                50: '#faf7f2',
+                100: '#f4ede2',
+                200: '#e8d9c4',
+                300: '#d9c19d',
+                400: '#c8a474',
+                500: '#bc9158',
+                600: '#af834c',
+                700: '#926b40',
+                800: '#785938',
+                900: '#624930',
+                950: '#332618',
+              },
+              cognac: {
+                50: '#fdf8f3',
+                100: '#faeee4',
+                200: '#f4dac8',
+                300: '#ecbfa2',
+                400: '#e19d74',
+                500: '#d98150',
+                600: '#cc6935',
+                700: '#aa542b',
+                800: '#884527',
+                900: '#6e3b23',
+                950: '#3b1d11',
+              },
+              cream: {
+                50: '#fefefe',
+                100: '#fefefd',
+                200: '#fdfcfa',
+                300: '#fbf8f6',
+                400: '#f7f1f0',
+                500: '#f2e9e7',
+                600: '#e6d1cc',
+                700: '#d4b5ad',
+                800: '#b8948a',
+                900: '#9c786c',
+                950: '#513e37',
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+              serif: ['Playfair Display', 'Georgia', 'serif'],
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-in-out',
+              'slide-up': 'slideUp 0.3s ease-out',
+              'scale-in': 'scaleIn 0.2s ease-out',
+            }
+          }
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
