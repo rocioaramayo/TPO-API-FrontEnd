@@ -6,6 +6,7 @@ import Register from './pages/Register.jsx';
 import Home from './pages/Home.jsx';
 import Navigation from './components/Navigation.jsx';
 import Productos from './pages/Productos.jsx';
+import ProductDetail from './pages/ProductDetail.jsx';
 const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -55,10 +56,16 @@ const App = () => {
             <Home user={user} logout={handleLogout} />
           } 
         />
+        {/* RUTAS DE PRODUCTOS */}
+         <Route 
+          path="/productos/:id" 
+          element={<ProductDetail />} 
+        />
         <Route 
           path="/productos" 
           element={<Productos />} 
         />
+       
       </Routes>
       {/*Este es solo para tener en claro en dd estamos, dsp borramos*/}
       <p className="text-center text-sm text-leather-500 mt-4">

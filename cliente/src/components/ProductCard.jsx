@@ -1,6 +1,10 @@
+import { useNavigate } from 'react-router-dom'; 
+
 const ProductCard = ({ id, nombre, descripcion, precio, stock, categoria, fotos, tipoCuero, color, pocoStock }) => {
   
-  // Función para formatear precio
+  const navigate = useNavigate(); 
+  
+  // formatear precio
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
@@ -8,8 +12,16 @@ const ProductCard = ({ id, nombre, descripcion, precio, stock, categoria, fotos,
     }).format(price);
   };
 
+  // funcion para ir al detalle
+  const handleClick = () => {
+    navigate(`/productos/${id}`);
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
+    <div 
+      className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer"
+      onClick={handleClick} 
+    >
       {/* Imagen del producto */}
       <div className="aspect-square bg-cream-100 relative">
         {fotos && fotos.length > 0 ? (
@@ -71,14 +83,6 @@ const ProductCard = ({ id, nombre, descripcion, precio, stock, categoria, fotos,
           <span className="text-xl font-bold text-leather-800">
             {formatPrice(precio)}
           </span>
-          
-          {/* solo un botón visual (no funcional xq no usamos localhosts) */}
-          <button 
-            className="bg-leather-800 text-white px-3 py-2 rounded text-sm hover:bg-leather-900 transition-colors"
-            onClick={() => alert('Funcionalidad de carrito próximamente')}
-          >
-            Ver detalles
-          </button>
         </div>
         
         <div className="mt-2 text-xs text-leather-500">
