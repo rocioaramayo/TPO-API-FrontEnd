@@ -3,7 +3,6 @@ import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 
 const Productos = () => {
-  // Estados para manejar los datos
   const [productos, setProductos] = useState([]);
   const URL = "http://localhost:8080/productos";
 
@@ -34,7 +33,7 @@ const Productos = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Grilla de productos */}
+        {/*  productos */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {productos.map((producto) => (
             <ProductCard 
@@ -58,6 +57,5 @@ const Productos = () => {
     </div>
   );
 };
-
 export default Productos;
 

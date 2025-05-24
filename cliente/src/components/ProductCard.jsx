@@ -14,9 +14,13 @@ const ProductCard = ({ id, nombre, descripcion, precio, stock, categoria, fotos,
       <div className="aspect-square bg-cream-100 relative">
         {fotos && fotos.length > 0 ? (
           <img
-            src={`data:${fotos[0].tipoContenido};base64,${fotos[0].contenidoBase64}`}
+            src={fotos[0].contenidoBase64}  
             alt={nombre}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              console.error("Error cargando imagen:", e);
+              console.log("URL intentada:", e.target.src);
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
