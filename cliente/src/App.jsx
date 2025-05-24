@@ -5,7 +5,7 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Home from './pages/Home.jsx';
 import Navigation from './components/Navigation.jsx';
-
+import Productos from './pages/Productos.jsx';
 const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,9 @@ const App = () => {
 
   return (
     <>
+    {/* Este esta afuera de routes para q aparesca simpre*/}
       <Navigation user={user} onLogout={handleLogout} />
+
       
       <Routes>
         <Route 
@@ -53,8 +55,12 @@ const App = () => {
             <Home user={user} logout={handleLogout} />
           } 
         />
+        <Route 
+          path="/productos" 
+          element={<Productos />} 
+        />
       </Routes>
-      
+      {/*Este es solo para tener en claro en dd estamos, dsp borramos*/}
       <p className="text-center text-sm text-leather-500 mt-4">
         La ruta actual es: {location.pathname}
       </p>
