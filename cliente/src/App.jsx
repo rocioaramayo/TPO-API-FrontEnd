@@ -64,7 +64,7 @@ const App = () => {
         />
         <Route 
           path="/productos" 
-          element={<Productos />} 
+          element={<Productos user={user} />} 
         />
         <Route 
           path="/nosotros" 

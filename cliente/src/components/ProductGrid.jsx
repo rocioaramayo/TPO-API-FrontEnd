@@ -1,8 +1,88 @@
 import ProductCard from './ProductCard';
+import { useState, useEffect } from 'react';
 
-const ProductGrid = ({ productos, loading, onLimpiarFiltros }) => {
-  
-  // Loading skeleton
+const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
+  const [favoritos, setFavoritos] = useState([]);
+
+  useEffect(() => {
+    if (user && user.token) {
+      // AGREGAR headers de Authorization
+      fetch('http://localhost:8080/api/v1/favoritos', {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Favoritos cargados:', data); // Debug
+          const ids = data.map(f => f.producto.id);
+          setFavoritos(ids);
+        })
+        .catch(error => {
+          console.error('Error al cargar favoritos:', error);
+        });
+    }
+  }, [user]);
+
+  const handleFavoriteClick = (productoId) => {
+    if (!user) {
+      alert('Debes iniciar sesión para usar favoritos.');
+      return;
+    }
+
+  const esFavorito = favoritos.includes(productoId);
+    const method = esFavorito ? 'DELETE' : 'POST';
+    const url = esFavorito
+      ? `http://localhost:8080/api/v1/favoritos/${productoId}`
+      : `http://localhost:8080/api/v1/favoritos`;
+
+    const options = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}` // ← ESTO ES CLAVE
+      },
+      ...(method === 'POST' && {
+        body: JSON.stringify({ productoId })
+      })
+    };
+
+    console.log('Haciendo request:', method, url); // Debug
+    console.log('Con token:', user.token ? 'SÍ' : 'NO'); // Debug
+
+    fetch(url, options)
+      .then(response => {
+        console.log('Response status:', response.status); // Debug
+        if (response.ok) {
+          if (method === 'DELETE') {
+            return { success: true };
+          } else {
+            return response.json();
+          }
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      })
+      .then(() => {
+        console.log('Favorito actualizado exitosamente'); // Debug
+        if (esFavorito) {
+          setFavoritos(prev => prev.filter(id => id !== productoId));
+        } else {
+          setFavoritos(prev => [...prev, productoId]);
+        }
+      })
+      .catch(error => {
+        console.error('Error al actualizar favorito:', error);
+        alert('Error: ' + error.message);
+      });
+  };
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -21,7 +101,6 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros }) => {
     );
   }
 
-  // Estado sin productos
   if (productos.length === 0) {
     return (
       <div className="text-center py-16">
@@ -40,22 +119,15 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros }) => {
     );
   }
 
-  // Grid normal de productos
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {productos.map((producto) => (
         <ProductCard 
           key={producto.id}
-          id={producto.id}
-          nombre={producto.nombre}
-          descripcion={producto.descripcion}
-          precio={producto.precio}
-          stock={producto.stock}
-          categoria={producto.categoria}
-          fotos={producto.fotos}
-          tipoCuero={producto.tipoCuero}
-          color={producto.color}
-          pocoStock={producto.pocoStock}
+          {...producto}
+          user={user}
+          isFavorite={favoritos.includes(producto.id)}
+          onFavoriteClick={handleFavoriteClick}
         />
       ))}
     </div>

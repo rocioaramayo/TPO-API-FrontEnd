@@ -4,7 +4,7 @@ import ProductFilters from '../components/ProductFilters';
 import ProductGrid from '../components/ProductGrid';
 import FilterTags from '../components/FilterTags';
 
-const Productos = () => {
+const Productos = ({ user }) => {
   // Estados principales
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -22,7 +22,11 @@ const Productos = () => {
     ordenarPor: 'nombre',
     orden: 'asc'
   });
-
+// En Productos.jsx, después de recibir user como prop
+useEffect(() => {
+  console.log('Usuario en Productos:', user);
+  console.log('¿Tiene token?', user?.token ? 'SÍ' : 'NO');
+}, [user]);
   // Opciones para ordenamiento
   const opcionesOrden = [
     { value: 'nombre_asc', label: 'Nombre A-Z', ordenarPor: 'nombre', orden: 'asc' },
@@ -168,10 +172,11 @@ const Productos = () => {
               onFiltroChange={handleFiltroChange}
             />
 
-            <ProductGrid
-              productos={productos}
-              loading={loading}
-              onLimpiarFiltros={limpiarFiltros}
+           <ProductGrid
+            productos={productos}
+            loading={loading}
+            onLimpiarFiltros={limpiarFiltros}
+            user={user}
             />
 
           </div>
