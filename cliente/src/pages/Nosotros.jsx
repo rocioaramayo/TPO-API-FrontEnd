@@ -4,6 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import artesano from "../assets/artesano-trabajando.jpg";
 
+import carrusel1 from "../assets/CARRUSEL_OFICIAL_1.jpg";
+import carrusel2 from "../assets/CARRUSEL_OFICIAL_FOTO2.jpg";
+import carrusel3 from "../assets/fot-3carruseñ.jpg";
+import carrusel4 from "../assets/costuraManual-carruse_4.jpg";
+import carrusel5 from "../assets/CARRUSEL_OFICIAL_FOTO52.jpg";
 const Nosotros = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -12,27 +17,27 @@ const Nosotros = () => {
     {
       titulo: "Selección del Cuero",
       descripcion: "Elegimos cuidadosamente los mejores cueros argentinos, priorizando la calidad y origen sustentable.",
-      imagen: "./assets/CARRUSEL_OFICIAL_1.jpg", // Placeholder temporal
+      imagen: carrusel1, 
     },
     {
       titulo: "Diseño y Patrones",
       descripcion: "Cada pieza se diseña a mano, creando patrones únicos que respetan la tradición artesanal.",
-      imagen: "/api/placeholder/600/400",
+      imagen: carrusel2,
     },
     {
       titulo: "Corte Artesanal",
       descripcion: "Con herramientas tradicionales, cortamos cada pieza con precisión y dedicación.",
-      imagen: "/api/placeholder/600/400",
+      imagen: carrusel3,
     },
     {
       titulo: "Costura Manual",
       descripcion: "Nuestros artesanos cosen cada puntada a mano, garantizando durabilidad y belleza.",
-      imagen: artesano, // Tu foto existente
+      imagen: carrusel4, 
     },
     {
       titulo: "Acabado Premium",
       descripcion: "Aplicamos tintes, ceras y acabados naturales que realzan la textura y protegen el cuero.",
-      imagen: "/api/placeholder/600/400",
+      imagen: carrusel5,
     }
   ];
 
@@ -52,7 +57,7 @@ const Nosotros = () => {
   return (
     <div className="min-h-screen bg-cream-50">
       
-      {/* Section hombre*/}
+      
       <section className="relative h-screen bg-cover bg-center bg-fixed" 
                style={{backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${artesano})`}}>
         <div className="absolute inset-0 flex items-center justify-center">
