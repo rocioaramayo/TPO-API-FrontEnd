@@ -7,6 +7,7 @@ import Home from './pages/Home.jsx';
 import Navigation from './components/Navigation.jsx';
 import Productos from './pages/Productos.jsx';
 import ProductDetail from './pages/ProductDetail.jsx';
+import Nosotros from './pages/Nosotros.jsx';
 const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -65,7 +66,10 @@ const App = () => {
           path="/productos" 
           element={<Productos />} 
         />
-       
+        <Route 
+          path="/nosotros" 
+          element={<Nosotros />} 
+        />
       </Routes>
       {/*Este es solo para tener en claro en dd estamos, dsp borramos*/}
       <p className="text-center text-sm text-leather-500 mt-4">
