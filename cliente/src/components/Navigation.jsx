@@ -67,14 +67,29 @@ const Navigation = ({ user, onLogout }) => {
 {user ? (
               <>
                 {/* Carrito */}
-                <button className="p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200 relative rounded-lg">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9M17 7v10a2 2 0 01-2 2H9a2 2 0 01-2-2V7" />
-                  </svg>
-                  <span className="absolute -top-1 -right-1 bg-leather-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                    0
-                  </span>
-                </button>
+                <button className="relative flex items-center justify-center p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200">
+                {/* Ícono del carrito */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.25 3h1.386c.51 0 .955.343 1.087.836l.383 1.437M7.5 14.25H17.25a1.5 1.5 0 001.464-1.184L20.25 6.75H5.25M7.5 14.25L6.117 5.273A1.125 1.125 0 005.009 4.5H3M7.5 14.25l-1.5 6h10.5m-9 0a1.5 1.5 0 103 0m6 0a1.5 1.5 0 103 0"
+                  />
+                </svg>
+
+                {/* Burbuja del número */}
+                <span className="absolute -top-1.5 -right-1.5 bg-leather-600 text-white text-[10px] font-semibold h-5 w-5 rounded-full flex items-center justify-center shadow-md">
+                  0
+                </span>
+              </button>
+
 
                 {/* Favoritos */}
                 <Link 
