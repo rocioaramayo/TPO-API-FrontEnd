@@ -6,7 +6,8 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
 
   useEffect(() => {
     if (user && user.token) {
-      // AGREGAR headers de Authorization
+      console.log('Cargando favoritos para:', user.email);
+      
       fetch('http://localhost:8080/api/v1/favoritos', {
         headers: {
           'Authorization': `Bearer ${user.token}`,
@@ -14,19 +15,22 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
         }
       })
         .then(response => {
+          console.log('Response favoritos:', response.status);
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           return response.json();
         })
         .then(data => {
-          console.log('Favoritos cargados:', data); // Debug
+          console.log('Favoritos cargados:', data);
           const ids = data.map(f => f.producto.id);
           setFavoritos(ids);
         })
         .catch(error => {
           console.error('Error al cargar favoritos:', error);
         });
+    } else {
+      setFavoritos([]);
     }
   }, [user]);
 
@@ -46,19 +50,18 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}` // ← ESTO ES CLAVE
+        'Authorization': `Bearer ${user.token}`
       },
       ...(method === 'POST' && {
         body: JSON.stringify({ productoId })
       })
     };
 
-    console.log('Haciendo request:', method, url); // Debug
-    console.log('Con token:', user.token ? 'SÍ' : 'NO'); // Debug
+    console.log('Haciendo request favorito:', method, productoId);
 
     fetch(url, options)
       .then(response => {
-        console.log('Response status:', response.status); // Debug
+        console.log('Response favorito:', response.status);
         if (response.ok) {
           if (method === 'DELETE') {
             return { success: true };
@@ -70,7 +73,7 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
         }
       })
       .then(() => {
-        console.log('Favorito actualizado exitosamente'); // Debug
+        console.log('Favorito actualizado exitosamente');
         if (esFavorito) {
           setFavoritos(prev => prev.filter(id => id !== productoId));
         } else {
@@ -81,7 +84,7 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
         console.error('Error al actualizar favorito:', error);
         alert('Error: ' + error.message);
       });
-  };
+  }
 
   if (loading) {
     return (

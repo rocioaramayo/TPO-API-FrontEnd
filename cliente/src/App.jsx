@@ -8,6 +8,8 @@ import Navigation from './components/Navigation.jsx';
 import Productos from './pages/Productos.jsx';
 import ProductDetail from './pages/ProductDetail.jsx';
 import Nosotros from './pages/Nosotros.jsx';
+import Favoritos from './pages/Favoritos.jsx';
+
 const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -58,9 +60,9 @@ const App = () => {
           } 
         />
         {/* RUTAS DE PRODUCTOS */}
-         <Route 
+        <Route 
           path="/productos/:id" 
-          element={<ProductDetail />} 
+          element={<ProductDetail user={user} />}  
         />
         <Route 
           path="/productos" 
@@ -69,6 +71,11 @@ const App = () => {
         <Route 
           path="/nosotros" 
           element={<Nosotros />} 
+        />
+
+        <Route 
+          path="/favoritos" 
+          element={<Favoritos user={user} />} 
         />
       </Routes>
       {/*Este es solo para tener en claro en dd estamos, dsp borramos*/}
