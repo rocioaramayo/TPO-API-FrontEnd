@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import AuthMessage from '../components/AuthMessage';
+import ReviewList from '../components/ReviewList';
+import ReviewForm from '../components/ReviewForm';
 
 const ProductDetail = ({ user }) => {
     const { id } = useParams();
@@ -11,6 +13,7 @@ const ProductDetail = ({ user }) => {
     const [isFavorite, setIsFavorite] = useState(false);
     const [loadingFavorite, setLoadingFavorite] = useState(false);
     const [showAuthMessage, setShowAuthMessage] = useState(false);
+    const [reviewsKey, setReviewsKey] = useState(0); // Para forzar recarga de reviews
     const URL = `http://localhost:8080/productos/detalle/${id}`;
 
     useEffect(() => {  
@@ -91,6 +94,12 @@ const ProductDetail = ({ user }) => {
                 setLoadingFavorite(false);
             });
     }
+
+    // Callback para cuando se envía una nueva review
+    const handleReviewSubmitted = () => {
+        // Incrementar la key para forzar que ReviewList se recargue
+        setReviewsKey(prev => prev + 1);
+    };
 
     // función para formatear precio
     function formatPrice(price) {
@@ -327,6 +336,28 @@ const ProductDetail = ({ user }) => {
                             </button>
                         </div>
                     </div>
+                </div>
+
+                {/* Sección de Reviews */}
+                <div className="mt-16 border-t border-leather-200">
+                    <div className="pt-8">
+                        <h2 className="text-2xl font-serif font-bold text-leather-900 mb-2">
+                            Reseñas y Opiniones
+                        </h2>
+                        <p className="text-leather-600 mb-8">
+                            Conoce la experiencia de otros clientes con este producto
+                        </p>
+                    </div>
+                    
+                    {/* Lista de reviews existentes */}
+                    <ReviewList key={reviewsKey} productoId={id} />
+                    
+                    {/* Formulario para escribir nueva review */}
+                    <ReviewForm 
+                        user={user} 
+                        productoId={id} 
+                        onReviewSubmitted={handleReviewSubmitted}
+                    />
                 </div>
             </div>
 
