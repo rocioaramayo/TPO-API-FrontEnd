@@ -1,10 +1,26 @@
 // src/components/Navigation.jsx
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import DescuentosAdminPanel from "../components/DescuentosAdminPanel";
 
 
 const Navigation = ({ user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showDescuentosPanel, setShowDescuentosPanel] = useState(false);
+  const [mostrarPanel, setMostrarPanel] = useState(false);
+  const panelRef = useRef();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!showDescuentosPanel) return;
+    function handleClickOutside(event) {
+      if (panelRef.current && !panelRef.current.contains(event.target)) {
+        setShowDescuentosPanel(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDescuentosPanel]);
 
   return (
     <nav className="bg-white shadow-sm border-b border-leather-200 sticky top-0 z-50">
@@ -60,6 +76,16 @@ const Navigation = ({ user, onLogout }) => {
               Nosotros
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-leather-600 transition-all duration-200 group-hover:w-full"></span>
             </Link>
+            {user?.role?.toLowerCase() === 'admin' && (
+              <button
+                type="button"
+                onClick={() => navigate('/admin')}
+                className="text-leather-700 hover:text-leather-800 font-medium transition-colors duration-200 relative group px-2"
+              >
+                Panel Admin
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-leather-600 transition-all duration-200 group-hover:w-full"></span>
+              </button>
+            )}
           </div>
 
           {/* Usuario y acciones */}
@@ -102,20 +128,24 @@ const Navigation = ({ user, onLogout }) => {
                 </Link>
 
                 {/* Usuario autenticado */}
-                <div className="flex items-center space-x-3">
-                  <div className="hidden sm:block text-right">
+                <div className="flex items-center space-x-3 relative">
+                  <div
+                    className="hidden sm:block text-right cursor-pointer"
+                    onClick={() => user && user.role?.toLowerCase() === 'admin' && setShowDescuentosPanel(v => !v)}
+                  >
                     <p className="text-sm font-medium text-leather-800">
                       Hola, {user.email.split('@')[0]}
                     </p>
                     <p className="text-xs text-leather-600">Bienvenido</p>
                   </div>
-                  
-                  <div className="flex items-center justify-center w-8 h-8 bg-leather-800 rounded-full shadow-sm">
+                  <div
+                    className="flex items-center justify-center w-8 h-8 bg-leather-800 rounded-full shadow-sm cursor-pointer"
+                    onClick={() => user && user.role?.toLowerCase() === 'admin' && setShowDescuentosPanel(v => !v)}
+                  >
                     <span className="text-white text-sm font-medium">
                       {user.email.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  
                   <button 
                     onClick={onLogout}
                     className="bg-leather-800 text-white hover:bg-leather-900 text-sm px-3 py-2 rounded-lg transition-colors duration-200"

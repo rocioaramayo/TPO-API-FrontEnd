@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +12,8 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
     titulo: '',
     comentario: ''
   });
+
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -27,7 +30,7 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     
     if (!user || !user.token) {
@@ -48,53 +51,46 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
     setLoading(true);
     setError(null);
 
-    try {
-      const requestBody = {
-        productoId: parseInt(productoId),
-        rating: reviewData.rating,
-        titulo: reviewData.titulo,
-        comentario: reviewData.comentario
-      };
-      
-      console.log('📤 Enviando review:', requestBody);
-      console.log('🔑 Token presente:', !!user.token);
-      
-      const response = await fetch('http://localhost:8080/reviews', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.token}`
-        },
-        body: JSON.stringify(requestBody)
+    const requestBody = {
+      productoId: parseInt(productoId),
+      rating: reviewData.rating,
+      titulo: reviewData.titulo,
+      comentario: reviewData.comentario
+    };
+
+    fetch('http://localhost:8080/reviews', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}`
+      },
+      body: JSON.stringify(requestBody)
+    })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(errorData => {
+            throw new Error(errorData || 'Error al enviar la reseña');
+          });
+        }
+        return response.json();
+      })
+      .then(() => {
+        setSuccess(true);
+        setReviewData({ rating: 0, titulo: '', comentario: '' });
+        if (onReviewSubmitted) {
+          onReviewSubmitted();
+        }
+        setTimeout(() => {
+          setIsOpen(false);
+          setSuccess(false);
+        }, 2000);
+      })
+      .catch(error => {
+        setError(error.message || 'Error al enviar la reseña. Intenta nuevamente.');
+      })
+      .finally(() => {
+        setLoading(false);
       });
-      
-      console.log('📡 Response status:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || 'Error al enviar la reseña');
-      }
-
-      setSuccess(true);
-      setReviewData({ rating: 0, titulo: '', comentario: '' });
-      
-      // Llamar callback para actualizar la lista de reviews
-      if (onReviewSubmitted) {
-        onReviewSubmitted();
-      }
-
-      // Cerrar el formulario después de 2 segundos
-      setTimeout(() => {
-        setIsOpen(false);
-        setSuccess(false);
-      }, 2000);
-
-    } catch (error) {
-      console.error('Error al enviar review:', error);
-      setError(error.message || 'Error al enviar la reseña. Intenta nuevamente.');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const renderStars = (interactive = false) => {
@@ -136,13 +132,13 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button 
-                onClick={() => window.location.href = '/login'}
+                onClick={() => navigate('/login')}
                 className="bg-leather-800 text-white px-6 py-2 rounded-lg hover:bg-leather-900 transition-colors"
               >
                 Iniciar Sesión
               </button>
               <button 
-                onClick={() => window.location.href = '/register'}
+                onClick={() => navigate('/register')}
                 className="border border-leather-800 text-leather-800 px-6 py-2 rounded-lg hover:bg-leather-800 hover:text-white transition-colors"
               >
                 Crear Cuenta

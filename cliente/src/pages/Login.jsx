@@ -35,7 +35,7 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
           if (!response.ok) {
             throw new Error(data.mensaje || 'Error al iniciar sesión');
           }
-          return { email: credentials.email, token: data.token };
+          return { email: credentials.email, token: data.token, role: data.role };
         })
       )
       .catch(error => {
