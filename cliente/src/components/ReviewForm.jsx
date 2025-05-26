@@ -68,6 +68,9 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
     })
       .then(response => {
         if (!response.ok) {
+          if (response.status === 403) {
+            throw new Error('No tienes permiso para dejar una reseña. Solo pueden opinar quienes compraron este producto.');
+          }
           return response.text().then(errorData => {
             throw new Error(errorData || 'Error al enviar la reseña');
           });
