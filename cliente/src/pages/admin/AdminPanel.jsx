@@ -17,11 +17,6 @@ const AdminPanel = ({ user }) => {
 
   return (
     <>
-      <AdminNavigation />
-      <div className="p-6 font-sans">
-        <h1 className="text-2xl font-bold text-leather-800 " >Dashboard</h1>
-        <h2 className="text-2l font-bold text-leather-800 ">Bienvenido {user?.name},</h2>
-      </div>
       <Routes>
         <Route path='/' element={
           <Dashboard/>

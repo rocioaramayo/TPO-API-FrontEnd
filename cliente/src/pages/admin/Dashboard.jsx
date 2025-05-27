@@ -17,6 +17,9 @@ const Dashboard = () => {
 
   return (
     <>
+        <div className="p-6 font-sans">
+            <h1 className="text-2xl font-bold text-leather-800 " >Dashboard</h1>
+        </div>
         <h2 className="text-2l font-bold text-leather-800 px-6">Informacion General</h2>
         <div className="px-6 font-sans">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -41,10 +44,10 @@ const Dashboard = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 {[
-                    { label: '+ Agregar nuevo producto', onClick: () => {navigate('/admin/productos')} },
-                    { label: 'Editar producto', onClick: () => {} },
-                    { label: 'Eliminar producto', onClick: () => {} },
-                    { label: 'Actualizar stock de producto', onClick: () => {} },
+                    { label: 'Gestionar productos', onClick: () => {navigate('/admin/productos')} },
+                    { label: 'Gestionar metodos de entrega', onClick: () => {} },
+                    { label: 'Gestionar puntos de entrega', onClick: () => {} },
+                    { label: 'Gestionar usuarios', onClick: () => {} },
                 ].map((btn, index) => (
                     <button
                         onClick={btn.onClick}
@@ -53,43 +56,6 @@ const Dashboard = () => {
                         {btn.label}
                     </button>
                 ))}
-            </div>
-            <h2 className="text-xl font-bold text-leather-800 mb-6">Gestión de entregas</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-12">
-                <div>
-                    <h3 className="text-l font-bold text-leather-800 mb-6">Metodo de entrega</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                        {[
-                            { label: '+ Agregar metodo de entrega', onClick: () => {} },
-                            { label: 'Editar metodo de entrega', onClick: () => {} },
-                            { label: 'Eliminar metodo de entrega', onClick: () => {} },
-                        ].map((btn, index) => (
-                            <button
-                                onClick={btn.onClick}
-                                className="bg-leather-600 text-white py-2 px-4 rounded hover:bg-leather-400 transition"
-                            >
-                                {btn.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                <div>
-                    <h3 className="text-l font-bold text-leather-800 mb-6">Punto de entrega</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                        {[
-                            { label: '+ Agregar punto de entrega', onClick: () => {} },
-                            { label: 'Editar punto de entrega', onClick: () => {} },
-                            { label: 'Eliminar punto de entrega', onClick: () => {} },
-                        ].map((btn, index) => (
-                            <button
-                                onClick={btn.onClick}
-                                className="bg-leather-600 text-white py-2 px-4 rounded hover:bg-leather-400 transition"
-                            >
-                                {btn.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
             </div>
 
         </div>
