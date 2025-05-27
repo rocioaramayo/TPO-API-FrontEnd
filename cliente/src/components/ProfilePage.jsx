@@ -105,7 +105,7 @@ const ProfilePage = ({ user, onLogout }) => {
                 );
 
 
-        }   /*return (
+        }   return (
         <div className="max-w-5xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-md flex flex-col md:flex-row gap-8">
             {/!* Sidebar *!/}
             <aside className="md:w-1/4 border-r border-gray-200 pr-6">
@@ -162,7 +162,7 @@ const ProfilePage = ({ user, onLogout }) => {
             {/!* Main content *!/}
             <main className="md:w-3/4">{renderContent()}</main>
         </div>
-    );*/
+    );
 };
 
 export default ProfilePage;
