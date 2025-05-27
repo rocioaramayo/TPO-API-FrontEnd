@@ -81,6 +81,7 @@ body {
 
 .bg-cognac-100 { background-color: var(--cognac-100); }
 .bg-cognac-200 { background-color: var(--cognac-200); }
+.bg-cognac-400 { background-color: var(--cognac-400); }
 .bg-cognac-600 { background-color: var(--cognac-600); }
 .bg-cognac-700 { background-color: var(--cognac-700); }
 
@@ -471,4 +472,9 @@ body {
 
 .opacity-20 {
   opacity: 0.2;
+}
+
+#flexPrueba{
+  display: flex;
+  flex-direction: column;
 }
