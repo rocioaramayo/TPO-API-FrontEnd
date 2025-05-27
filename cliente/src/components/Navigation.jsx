@@ -10,6 +10,7 @@ const Navigation = ({ user, onLogout }) => {
   const [mostrarPanel, setMostrarPanel] = useState(false);
   const panelRef = useRef();
   const navigate = useNavigate();
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (!showDescuentosPanel) return;
@@ -21,6 +22,14 @@ const Navigation = ({ user, onLogout }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showDescuentosPanel]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (search.trim()) {
+      navigate(`/productos?busqueda=${encodeURIComponent(search)}`);
+      setSearch("");
+    }
+  };
 
   return (
     <nav className="bg-white shadow-sm border-b border-leather-200 sticky top-0 z-50">
@@ -78,47 +87,65 @@ const Navigation = ({ user, onLogout }) => {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-leather-600 transition-all duration-200 group-hover:w-full"></span>
               </button>
             )}
+            {/* Buscador */}
+            <form onSubmit={handleSearch} className="flex items-center ml-4">
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Buscar..."
+                className="border border-leather-200 rounded-l px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-leather-200"
+                style={{ minWidth: 120 }}
+              />
+              <button type="submit" className="bg-leather-800 text-white px-2 py-1 rounded-r hover:bg-leather-900 flex items-center">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+            </form>
           </div>
 
           {/* Usuario y acciones */}
           <div className="flex items-center space-x-4 min-w-[180px] justify-end absolute right-0 top-0 h-full">
-{user ? (
+            {user ? (
               <>
-                {/* Carrito */}
-                <button className="relative flex items-center justify-center p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200">
-                {/* Ícono del carrito */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                  className="w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M2.25 3h1.386c.51 0 .955.343 1.087.836l.383 1.437M7.5 14.25H17.25a1.5 1.5 0 001.464-1.184L20.25 6.75H5.25M7.5 14.25L6.117 5.273A1.125 1.125 0 005.009 4.5H3M7.5 14.25l-1.5 6h10.5m-9 0a1.5 1.5 0 103 0m6 0a1.5 1.5 0 103 0"
-                  />
-                </svg>
-
-                {/* Burbuja del número */}
-                <span className="absolute -top-1.5 -right-1.5 bg-leather-600 text-white text-[10px] font-semibold h-5 w-5 rounded-full flex items-center justify-center shadow-md">
-                  0
-                </span>
-              </button>
-
-
-                {/* Favoritos */}
-                <Link 
-                  to="/favoritos"
-                  className="p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200 rounded-lg"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </Link>
-
+                {/* Carrito y Favoritos solo para usuarios que no son admin */}
+                {user.role?.toLowerCase() !== 'admin' && (
+                  <>
+                    {/* Carrito */}
+                    <button className="relative flex items-center justify-center p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200">
+                      {/* Ícono del carrito */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        className="w-6 h-6"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.25 3h1.386c.51 0 .955.343 1.087.836l.383 1.437M7.5 14.25H17.25a1.5 1.5 0 001.464-1.184L20.25 6.75H5.25M7.5 14.25L6.117 5.273A1.125 1.125 0 005.009 4.5H3M7.5 14.25l-1.5 6h10.5m-9 0a1.5 1.5 0 103 0m6 0a1.5 1.5 0 103 0"
+                        />
+                      </svg>
+                      {/* Burbuja del número */}
+                      <span className="absolute -top-1.5 -right-1.5 bg-leather-600 text-white text-[10px] font-semibold h-5 w-5 rounded-full flex items-center justify-center shadow-md">
+                        0
+                      </span>
+                    </button>
+                    {/* Favoritos */}
+                    <Link 
+                      to="/favoritos"
+                      className="p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200 rounded-lg"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </Link>
+                  </>
+                )}
                 {/* Usuario autenticado */}
                 <div className="flex items-center space-x-3 relative">
                   <div

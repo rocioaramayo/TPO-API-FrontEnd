@@ -3,6 +3,7 @@ import Footer from '../components/Footer';
 import ProductFilters from '../components/ProductFilters';
 import ProductGrid from '../components/ProductGrid';
 import FilterTags from '../components/FilterTags';
+import { useLocation } from 'react-router-dom';
 
 const Productos = ({ user }) => {
   // Estados principales
@@ -22,11 +23,24 @@ const Productos = ({ user }) => {
     ordenarPor: 'nombre',
     orden: 'asc'
   });
-// En Productos.jsx, después de recibir user como prop
-useEffect(() => {
-  console.log('Usuario en Productos:', user);
-  console.log('¿Tiene token?', user?.token ? 'SÍ' : 'NO');
-}, [user]);
+
+  const location = useLocation();
+
+  // En Productos.jsx, después de recibir user como prop
+  useEffect(() => {
+    console.log('Usuario en Productos:', user);
+    console.log('¿Tiene token?', user?.token ? 'SÍ' : 'NO');
+  }, [user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const busqueda = params.get('busqueda') || '';
+    setFiltros(prev => ({
+      ...prev,
+      nombre: busqueda
+    }));
+  }, [location.search]);
+
   // Opciones para ordenamiento
   const opcionesOrden = [
     { value: 'nombre_asc', label: 'Nombre A-Z', ordenarPor: 'nombre', orden: 'asc' },
@@ -129,7 +143,12 @@ useEffect(() => {
             {/* Contador de productos */}
             <div className="flex items-center space-x-4">
               <span className="text-leather-600 text-sm">
-                {loading ? 'Cargando...' : `${productos.length} productos encontrados`}
+                {loading
+                  ? 'Cargando...'
+                  : productos.length === 0
+                    ? 'No se encontraron productos'
+                    : `${productos.length} producto${productos.length > 1 ? 's' : ''} encontrado${productos.length > 1 ? 's' : ''}`
+                }
               </span>
               
               {/* Toggle filtros en móvil */}
