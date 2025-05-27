@@ -9,7 +9,7 @@ import Productos from './pages/Productos.jsx';
 import ProductDetail from './pages/ProductDetail.jsx';
 import Nosotros from './pages/Nosotros.jsx';
 import Favoritos from './pages/Favoritos.jsx';
-import AdminPanel from './pages/AdminPanel.jsx';
+import AdminPanel from './pages/admin/AdminPanel.jsx';
 import DescuentosAdminPage from './pages/DescuentosAdminPage.jsx';
 
 const App = () => {
@@ -81,19 +81,19 @@ const App = () => {
         />
 
         <Route 
-          path="/admin" 
-          element={<AdminPanel user={user} />} 
-        />
-
-        <Route 
           path="/admin/descuentos" 
           element={<DescuentosAdminPage user={user} />} 
         />
+
+        <Route 
+          path="/admin/*" 
+          element={<AdminPanel user={user} />} 
+        />
       </Routes>
       {/*Este es solo para tener en claro en dd estamos, dsp borramos*/}
-      <p className="text-center text-sm text-leather-500 mt-4">
+      {/* <p className="text-center text-sm text-leather-500 mt-4">
         La ruta actual es: {location.pathname}
-      </p>
+      </p> */}
     </>
   );
 };
