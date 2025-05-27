@@ -4,25 +4,17 @@ import { useState, useRef, useEffect } from 'react';
 import DescuentosAdminPanel from "../components/DescuentosAdminPanel";
 
 
-<<<<<<< Updated upstream
 
 const Navigation = ({ user, onLogout }) => {
-=======
-const Navigation = ({ user, onLogout, cart = [], removeFromCart, clearCart, updateCartQuantity }) => {
->>>>>>> Stashed changes
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDescuentosPanel, setShowDescuentosPanel] = useState(false);
   const [mostrarPanel, setMostrarPanel] = useState(false);
   const panelRef = useRef();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-<<<<<<< Updated upstream
   const [mostrarPerfil, setMostrarPerfil] = useState(false);
   const togglePerfil = () => setMostrarPerfil(v => !v);
 
-=======
-  const [showCart, setShowCart] = useState(false);
->>>>>>> Stashed changes
 
   useEffect(() => {
     if (!showDescuentosPanel) return;
@@ -34,17 +26,6 @@ const Navigation = ({ user, onLogout, cart = [], removeFromCart, clearCart, upda
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showDescuentosPanel]);
-
-  useEffect(() => {
-    if (!showCart) return;
-    function handleClickOutside(event) {
-      if (event.target.classList.contains('cart-overlay')) {
-        setShowCart(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showCart]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -137,100 +118,27 @@ const Navigation = ({ user, onLogout, cart = [], removeFromCart, clearCart, upda
                 {user.role?.toLowerCase() !== 'admin' && (
                   <>
                     {/* Carrito */}
-                    <div className="relative flex items-center justify-center">
-                      <button
-                        className="relative flex items-center justify-center p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200"
-                        onClick={() => setShowCart(true)}
-                        aria-label="Abrir carrito"
+                    <button className="relative flex items-center justify-center p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200">
+                      {/* Ícono del carrito */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        className="w-6 h-6"
                       >
-                        {/* Ícono del carrito */}
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={1.5}
-                          className="w-6 h-6"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M2.25 3h1.386c.51 0 .955.343 1.087.836l.383 1.437M7.5 14.25H17.25a1.5 1.5 0 001.464-1.184L20.25 6.75H5.25M7.5 14.25L6.117 5.273A1.125 1.125 0 005.009 4.5H3M7.5 14.25l-1.5 6h10.5m-9 0a1.5 1.5 0 103 0m6 0a1.5 1.5 0 103 0"
-                          />
-                        </svg>
-                        {/* Burbuja del número */}
-                        <span className="absolute -top-1.5 -right-1.5 bg-leather-600 text-white text-[10px] font-semibold h-5 w-5 rounded-full flex items-center justify-center shadow-md">
-                          {cart.reduce((acc, item) => acc + item.quantity, 0)}
-                        </span>
-                      </button>
-                    </div>
-                    {/* Panel lateral del carrito (side drawer) y overlay global */}
-                    {showCart && (
-                      <>
-                        {/* Overlay global */}
-                        <div className="fixed inset-0 bg-black bg-opacity-40 z-[100] cart-overlay animate-fade-in" style={{transition: 'background 0.3s'}}></div>
-                        {/* Drawer lateral */}
-                        <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-[110] animate-slide-in flex flex-col" style={{transition: 'right 0.3s', width: '400px', maxWidth: '100vw'}}>
-                          <div className="flex items-center justify-between p-4 border-b border-leather-200">
-                            <h3 className="font-bold text-lg">Carrito</h3>
-                            <button onClick={() => setShowCart(false)} className="text-leather-600 hover:text-leather-900 text-2xl font-bold" aria-label="Cerrar carrito">&times;</button>
-                          </div>
-                          <div className="flex-1 overflow-y-auto p-4">
-                            {cart.length === 0 ? (
-                              <p className="text-leather-600 text-sm">El carrito está vacío.</p>
-                            ) : (
-                              <ul className="divide-y divide-leather-100">
-                                {cart.map(item => (
-                                  <li key={item.id} className="py-4 flex items-center gap-3">
-                                    {item.fotos && item.fotos[0] && (
-                                      <img src={item.fotos[0].contenidoBase64} alt={item.nombre} className="w-16 h-16 object-cover rounded border" />
-                                    )}
-                                    <div className="flex-1">
-                                      <div className="font-medium text-leather-900">{item.nombre}</div>
-                                      <div className="flex items-center gap-2 mt-1">
-                                        <button
-                                          className="px-2 py-1 bg-leather-100 rounded text-leather-800 hover:bg-leather-200"
-                                          onClick={() => updateCartQuantity && updateCartQuantity(item.id, item.quantity - 1)}
-                                          disabled={item.quantity <= 1}
-                                        >-</button>
-                                        <span className="text-leather-600 text-sm">{item.quantity}</span>
-                                        <button
-                                          className="px-2 py-1 bg-leather-100 rounded text-leather-800 hover:bg-leather-200"
-                                          onClick={() => updateCartQuantity && updateCartQuantity(item.id, item.quantity + 1)}
-                                        >+</button>
-                                      </div>
-                                      <div className="text-leather-800 font-semibold text-sm mt-1">${item.precio?.toLocaleString('es-AR')}</div>
-                                    </div>
-                                    <button
-                                      className="ml-2 text-xs text-red-600 hover:underline"
-                                      onClick={() => removeFromCart && removeFromCart(item.id)}
-                                    >
-                                      Eliminar
-                                    </button>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                          {cart.length > 0 && (
-                            <div className="p-4 border-t border-leather-200">
-                              <button
-                                className="w-full bg-leather-800 text-white py-2 rounded hover:bg-leather-900 text-base font-semibold mb-2"
-                                onClick={() => alert('Funcionalidad de checkout próximamente')}
-                              >
-                                Checkout • ${cart.reduce((acc, item) => acc + (item.precio * item.quantity), 0).toLocaleString('es-AR')}
-                              </button>
-                              <button
-                                className="w-full bg-leather-100 text-leather-800 py-2 rounded hover:bg-leather-200 text-sm"
-                                onClick={() => clearCart && clearCart()}
-                              >
-                                Vaciar carrito
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.25 3h1.386c.51 0 .955.343 1.087.836l.383 1.437M7.5 14.25H17.25a1.5 1.5 0 001.464-1.184L20.25 6.75H5.25M7.5 14.25L6.117 5.273A1.125 1.125 0 005.009 4.5H3M7.5 14.25l-1.5 6h10.5m-9 0a1.5 1.5 0 103 0m6 0a1.5 1.5 0 103 0"
+                        />
+                      </svg>
+                      {/* Burbuja del número */}
+                      <span className="absolute -top-1.5 -right-1.5 bg-leather-600 text-white text-[10px] font-semibold h-5 w-5 rounded-full flex items-center justify-center shadow-md">
+                        0
+                      </span>
+                    </button>
                     {/* Favoritos */}
                     <Link 
                       to="/favoritos"

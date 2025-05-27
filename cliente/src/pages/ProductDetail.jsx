@@ -7,7 +7,7 @@ import ReviewForm from '../components/ReviewForm';
 
 
 
-const ProductDetail = ({ user, addToCart }) => {
+const ProductDetail = ({ user }) => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [producto, setProducto] = useState(null);
@@ -325,7 +325,7 @@ const ProductDetail = ({ user, addToCart }) => {
                         <div className="space-y-4">
                             <button 
                                 className="w-full bg-leather-800 text-white py-3 px-6 rounded-lg font-medium hover:bg-leather-900 transition-colors"
-                                onClick={() => addToCart(producto)}
+                                onClick={() => alert('Funcionalidad de carrito próximamente')}
                             >
                                 Agregar al carrito
                             </button>

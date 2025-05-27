@@ -15,8 +15,7 @@ const ProductCard = ({
   pocoStock,
   user,
   isFavorite,
-  onFavoriteClick,
-  addToCart
+  onFavoriteClick
 }) => {
   
   const navigate = useNavigate();
@@ -145,12 +144,6 @@ const ProductCard = ({
           <div className="mt-2 text-xs text-leather-500">
             Stock: {stock} unidades
           </div>
-          <button
-            className="mt-4 w-full bg-leather-800 text-white py-2 px-4 rounded-lg font-medium hover:bg-leather-900 transition-colors"
-            onClick={e => { e.stopPropagation(); addToCart({ id, nombre, descripcion, precio, stock, categoria, fotos, tipoCuero, color }); }}
-          >
-            Agregar al carrito
-          </button>
         </div>
       </div>
 
