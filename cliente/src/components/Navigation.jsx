@@ -11,6 +11,9 @@ const Navigation = ({ user, onLogout }) => {
   const panelRef = useRef();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [mostrarPerfil, setMostrarPerfil] = useState(false);
+  const togglePerfil = () => setMostrarPerfil(v => !v);
+
 
   useEffect(() => {
     if (!showDescuentosPanel) return;
@@ -147,41 +150,35 @@ const Navigation = ({ user, onLogout }) => {
                   </>
                 )}
                 {/* Usuario autenticado */}
-                <div className="flex items-center space-x-3 relative">
-                  <div
-                    className="hidden sm:block text-right cursor-pointer"
-                    onClick={() => user && user.role?.toLowerCase() === 'admin' && setShowDescuentosPanel(v => !v)}
-                  >
-                    <p className="text-sm font-medium text-leather-800">
-                      Hola, {user.email.split('@')[0]}
-                    </p>
-                    <p className="text-xs text-leather-600">Bienvenido</p>
-                  </div>
+                <div className="relative">
                   <button
-                      onClick={() => {
-                        if (user) {
-                          alert(`Usuario: ${user.name}\nEmail: ${user.email}\nRol: ${user.role}`);
-                        } else {
-                          alert("No hay usuario logueado.");
-                        }
-                      }}
+                      onClick={() => setMostrarPerfil(prev => !prev)}
                   >
-                    <div
-                        className="flex items-center justify-center w-8 h-8 bg-leather-800 rounded-full shadow-sm cursor-pointer"
-                    >
-    <span className="text-white text-sm font-medium">
-      {user?.email?.charAt(0).toUpperCase() || "?"}
-    </span>
+                    <div className="flex items-center justify-center w-8 h-8 bg-leather-800 rounded-full shadow-sm cursor-pointer">
+      <span className="text-white text-sm font-medium">
+        {user?.email?.charAt(0).toUpperCase() || "?"}
+      </span>
                     </div>
                   </button>
 
-                  <button 
+                  {mostrarPerfil && user && (
+                      <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg p-4 z-50">
+                        <p className="text-sm"><strong>Usuario:</strong> {user.username}</p>
+                        <p className="text-sm"><strong>Email:</strong> {user.email}</p>
+                        <p className="text-sm"><strong>Rol:</strong> {user.role}</p>
+                        <p className="text-sm"><strong>Estado:</strong> {user.activo ? "Activo" : "Inactivo"}</p>
+                        <p className="text-sm"><strong>Creado:</strong> {new Date(user.createdAT).toLocaleDateString()}</p>
+                      </div>
+                  )}
+                </div>
+
+                <button
                     onClick={onLogout}
                     className="bg-leather-800 text-white hover:bg-leather-900 text-sm px-3 py-2 rounded-lg transition-colors duration-200"
                   >
                     Salir
                   </button>
-                </div>
+                
               </>
             ) : (
               /* Usuario no autenticado */

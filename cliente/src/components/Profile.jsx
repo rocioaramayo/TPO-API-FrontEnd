@@ -1,20 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useUser } from "../context/UserContext";
 
 const Profile = () => {
-    const [user, setUser] = useState(null);
+    const { user } = useUser();
 
-    useEffect(() => {
-        fetch("/api/usuarios/me", {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`, // o donde guardes el token
-            },
-        })
-            .then((res) => res.json())
-            .then((data) => setUser(data))
-            .catch((err) => console.error("Error al obtener perfil:", err));
-    }, []);
-
-    if (!user) return <p>Cargando datos...</p>;
+    if (!user) return <p>No hay usuario logueado.</p>;
 
     return (
         <div>
