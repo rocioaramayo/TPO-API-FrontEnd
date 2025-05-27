@@ -164,5 +164,5 @@ const ProfilePage = ({ user, onLogout }) => {
         </div>
     );*/
 };
-
-export default ProfilePage;
+}
+export default ProfilePage
