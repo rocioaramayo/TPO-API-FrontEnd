@@ -11,6 +11,7 @@ import Nosotros from './pages/Nosotros.jsx';
 import Favoritos from './pages/Favoritos.jsx';
 import AdminPanel from './pages/admin/AdminPanel.jsx';
 import DescuentosAdminPage from './pages/DescuentosAdminPage.jsx';
+import AdminNavigation from './pages/admin/AdminNavigation.jsx';
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -26,68 +27,100 @@ const App = () => {
 
   return (
     <>
-    {/* Este esta afuera de routes para q aparesca simpre*/}
-      <Navigation user={user} onLogout={handleLogout} />
-
-      
+         
       <Routes>
         <Route 
           path="/login" 
           element={
-            <Login 
-              setUser={setUser} 
-              loading={loading}
-              setLoading={setLoading}
-              error={error}
-              setError={setError}
-            />
+            <>
+              <Navigation user={user} onLogout={handleLogout} />
+              <Login 
+                setUser={setUser} 
+                loading={loading}
+                setLoading={setLoading}
+                error={error}
+                setError={setError}
+              />
+            </>
           } 
         />
         <Route 
           path="/register" 
           element={
-            <Register 
-              setUser={setUser} 
-              loading={loading}
-              setLoading={setLoading}
-              error={error}
-              setError={setError}
-            />
+            <>
+              <Navigation user={user} onLogout={handleLogout} />
+              <Register 
+                setUser={setUser} 
+                loading={loading}
+                setLoading={setLoading}
+                error={error}
+                setError={setError}
+              />
+            </>
+            
           } 
         />
         <Route 
           path="/" 
           element={
-            <Home user={user} logout={handleLogout} />
+            <>
+              <Navigation user={user} onLogout={handleLogout} />
+              <Home user={user} logout={handleLogout} />
+            </>
+            
           } 
         />
         {/* RUTAS DE PRODUCTOS */}
         <Route 
           path="/productos/:id" 
-          element={<ProductDetail user={user} />}  
+          element={
+          <>
+              <Navigation user={user} onLogout={handleLogout} />
+              <ProductDetail user={user} />
+          </>}  
         />
         <Route 
           path="/productos" 
-          element={<Productos user={user} />} 
+          element={
+          <>
+              <Navigation user={user} onLogout={handleLogout} />
+              <Productos user={user} />
+          </>} 
         />
         <Route 
           path="/nosotros" 
-          element={<Nosotros />} 
+          element={
+          <>
+              <Navigation user={user} onLogout={handleLogout} />
+              <Nosotros />
+          </>} 
         />
 
         <Route 
           path="/favoritos" 
-          element={<Favoritos user={user} />} 
+          element={
+          <>
+              <Navigation user={user} onLogout={handleLogout} />
+              <Favoritos user={user} />
+          </>} 
         />
 
         <Route 
           path="/admin/descuentos" 
-          element={<DescuentosAdminPage user={user} />} 
+          element={
+          <>
+              <Navigation user={user} onLogout={handleLogout} />
+              <DescuentosAdminPage user={user} />
+          </>} 
         />
 
         <Route 
           path="/admin/*" 
-          element={<AdminPanel user={user} />} 
+          element={
+          <>
+              <AdminNavigation user={user} />
+              <AdminPanel user={user} />
+          </>} 
         />
       </Routes>
       {/*Este es solo para tener en claro en dd estamos, dsp borramos*/}
