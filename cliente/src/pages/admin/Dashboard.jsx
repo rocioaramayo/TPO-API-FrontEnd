@@ -45,6 +45,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 {[
                     { label: 'Gestionar productos', onClick: () => {navigate('/admin/productos')} },
+                    { label: 'Gestionar descuentos', onClick: () => {navigate('/admin/descuentos')} },
                     { label: 'Gestionar metodos de entrega', onClick: () => {} },
                     { label: 'Gestionar puntos de entrega', onClick: () => {} },
                     { label: 'Gestionar usuarios', onClick: () => {} },

@@ -10,7 +10,7 @@ import ProductDetail from './pages/ProductDetail.jsx';
 import Nosotros from './pages/Nosotros.jsx';
 import Favoritos from './pages/Favoritos.jsx';
 import AdminPanel from './pages/admin/AdminPanel.jsx';
-import DescuentosAdminPage from './pages/DescuentosAdminPage.jsx';
+import DescuentosAdminPanel from './components/DescuentosAdminPanel';
 import AdminNavigation from './pages/admin/AdminNavigation.jsx';
 import Contacto from './pages/Contacto.jsx';
 import PreguntasFrecuentes from './pages/PreguntasFrecuentes.jsx';
@@ -114,7 +114,7 @@ const App = () => {
           element={
           <>
               <Navigation user={user} onLogout={handleLogout} />
-              <DescuentosAdminPage user={user} />
+              <DescuentosAdminPanel user={user} fullPage={true} visible={true} onClose={() => {}} />
           </>} 
         />
 
@@ -127,10 +127,30 @@ const App = () => {
           </>} 
         />
         {/* Páginas legales y de ayuda */}
-        <Route path="/contacto" element={<Contacto />} />
-        <Route path="/preguntas-frecuentes" element={<PreguntasFrecuentes />} />
-        <Route path="/terminos-condiciones" element={<TerminosCondiciones />} />
-        <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
+        <Route path="/contacto" element={
+          <>
+            <Navigation user={user} onLogout={handleLogout} />
+            <Contacto />
+          </>
+        } />
+        <Route path="/preguntas-frecuentes" element={
+          <>
+            <Navigation user={user} onLogout={handleLogout} />
+            <PreguntasFrecuentes />
+          </>
+        } />
+        <Route path="/terminos-condiciones" element={
+          <>
+            <Navigation user={user} onLogout={handleLogout} />
+            <TerminosCondiciones />
+          </>
+        } />
+        <Route path="/politica-privacidad" element={
+          <>
+            <Navigation user={user} onLogout={handleLogout} />
+            <PoliticaPrivacidad />
+          </>
+        } />
       </Routes>
       {/*Este es solo para tener en claro en dd estamos, dsp borramos*/}
       {/* <p className="text-center text-sm text-leather-500 mt-4">

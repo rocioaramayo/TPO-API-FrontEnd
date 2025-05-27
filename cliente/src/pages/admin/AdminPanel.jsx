@@ -24,23 +24,9 @@ const AdminPanel = ({ user }) => {
         <Route path='/productos' element={
           <GestionProductos/>
         }/>
-
+        <Route path='/descuentos' element={<DescuentosAdminPanel user={user} fullPage={true} visible={true} onClose={() => navigate('/admin')} />} />
       </Routes>
-      
     </>
-    // {/* <div className="min-h-screen bg-cream-50 py-12 px-4 flex items-center justify-center relative">
-    //     <h1
-    //       className="text-3xl font-bold text-leather-800 cursor-pointer hover:underline hover:text-leather-600 transition-colors duration-200"
-    //       onClick={() => setShowDescuentos(true)}
-    //     >
-    //       Gestionar Descuentos
-    //     </h1>
-    //     {showDescuentos && (
-    //       <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-    //         <DescuentosAdminPanel user={user} visible={true} onClose={() => setShowDescuentos(false)} fullPage={false} />
-    //       </div>
-    //     )}
-    //   </div> */}
   );
 };
 
