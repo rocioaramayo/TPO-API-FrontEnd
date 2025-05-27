@@ -5,6 +5,8 @@ import AuthMessage from '../components/AuthMessage';
 import ReviewList from '../components/ReviewList';
 import ReviewForm from '../components/ReviewForm';
 
+
+
 const ProductDetail = ({ user }) => {
     const { id } = useParams();
     const navigate = useNavigate();
