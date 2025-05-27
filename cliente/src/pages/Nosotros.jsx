@@ -315,6 +315,7 @@ const Nosotros = () => {
               Ver Productos
             </button>
             <button 
+              onClick={() => navigate('/contacto')}
               className="border-2 border-white text-white hover:bg-white hover:text-leather-700 px-8 py-3 rounded-lg font-medium transition-all duration-200"
             >
               Contactanos
