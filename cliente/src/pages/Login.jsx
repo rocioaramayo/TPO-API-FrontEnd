@@ -57,14 +57,16 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     login(credentials)
-      .then(userData => {
-        if (userData) {
-          setUser(userData);
-          navigate('/');
-        }
-      });
+        .then(userData => {
+          if (userData) {
+            localStorage.setItem('user', JSON.stringify(userData)); // 👈 Guarda en localStorage
+            setUser(userData);
+            navigate('/');
+          }
+        });
+
   };
 
   const handleGoToRegister = () => {
