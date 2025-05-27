@@ -1,7 +1,7 @@
 import ProductCard from './ProductCard';
 import { useState, useEffect } from 'react';
 
-const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
+const ProductGrid = ({ productos, loading, onLimpiarFiltros, user, addToCart }) => {
   const [favoritos, setFavoritos] = useState([]);
 
   useEffect(() => {
@@ -131,6 +131,7 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
           user={user}
           isFavorite={favoritos.includes(producto.id)}
           onFavoriteClick={handleFavoriteClick}
+          addToCart={addToCart}
         />
       ))}
     </div>

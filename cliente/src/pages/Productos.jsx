@@ -5,7 +5,7 @@ import ProductGrid from '../components/ProductGrid';
 import FilterTags from '../components/FilterTags';
 import { useLocation } from 'react-router-dom';
 
-const Productos = ({ user }) => {
+const Productos = ({ user, addToCart }) => {
   // Estados principales
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -196,6 +196,7 @@ const Productos = ({ user }) => {
             loading={loading}
             onLimpiarFiltros={limpiarFiltros}
             user={user}
+            addToCart={addToCart}
             />
 
           </div>
