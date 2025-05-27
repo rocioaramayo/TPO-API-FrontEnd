@@ -42,11 +42,6 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/categorias" className="text-leather-200 hover:text-white text-sm transition-colors duration-200">
-                  Categorías
-                </Link>
-              </li>
-              <li>
                 <Link to="/nosotros" className="text-leather-200 hover:text-white text-sm transition-colors duration-200">
                   Nosotros
                 </Link>
@@ -59,24 +54,24 @@ const Footer = () => {
             <h4 className="font-semibold text-white mb-4">Atención</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-leather-200 hover:text-white text-sm transition-colors duration-200">
+                <Link to="/contacto" className="text-leather-200 hover:text-white text-sm transition-colors duration-200">
                   Contacto
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-leather-200 hover:text-white text-sm transition-colors duration-200">
+                <Link to="/preguntas-frecuentes" className="text-leather-200 hover:text-white text-sm transition-colors duration-200">
                   Preguntas Frecuentes
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-leather-200 hover:text-white text-sm transition-colors duration-200">
+                <Link to="/terminos-condiciones" className="text-leather-200 hover:text-white text-sm transition-colors duration-200">
                   Términos y Condiciones
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-leather-200 hover:text-white text-sm transition-colors duration-200">
+                <Link to="/politica-privacidad" className="text-leather-200 hover:text-white text-sm transition-colors duration-200">
                   Política de Privacidad
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

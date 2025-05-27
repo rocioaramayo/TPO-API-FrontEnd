@@ -24,19 +24,18 @@ const Navigation = ({ user, onLogout }) => {
 
   return (
     <nav className="bg-white shadow-sm border-b border-leather-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div className="flex items-center h-16">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center min-w-[120px]">
             <Link to="/" className="flex items-center group">
               <div className="bg-white flex items-center justify-center">
-              <img
-                src="/foto-toro-logo.png"
-                alt="Logo"
-                className="w-12 h-12 mr-2 object-contain"
-              />
-          </div>
-
+                <img
+                  src="/foto-toro-logo.png"
+                  alt="Logo"
+                  className="w-12 h-12 mr-2 object-contain"
+                />
+              </div>
               <div className="hidden sm:block">
                 <h1 className="text-xl font-serif font-bold text-leather-900 group-hover:text-leather-700 transition-colors duration-200">
                   Cuero Argentino
@@ -47,7 +46,7 @@ const Navigation = ({ user, onLogout }) => {
           </div>
 
           {/* Enlaces de navegación - Desktop */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-8 absolute left-1/2 top-0 transform -translate-x-1/2 h-full">
             <Link 
               to="/" 
               className="text-leather-700 hover:text-leather-800 font-medium transition-colors duration-200 relative group"
@@ -60,13 +59,6 @@ const Navigation = ({ user, onLogout }) => {
               className="text-leather-700 hover:text-leather-800 font-medium transition-colors duration-200 relative group"
             >
               Productos
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-leather-600 transition-all duration-200 group-hover:w-full"></span>
-            </Link>
-            <Link 
-              to="/categorias" 
-              className="text-leather-700 hover:text-leather-800 font-medium transition-colors duration-200 relative group"
-            >
-              Categorías
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-leather-600 transition-all duration-200 group-hover:w-full"></span>
             </Link>
             <Link 
@@ -89,7 +81,7 @@ const Navigation = ({ user, onLogout }) => {
           </div>
 
           {/* Usuario y acciones */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 min-w-[180px] justify-end absolute right-0 top-0 h-full">
 {user ? (
               <>
                 {/* Carrito */}
@@ -205,13 +197,6 @@ const Navigation = ({ user, onLogout }) => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Productos
-              </Link>
-              <Link 
-                to="/categorias" 
-                className="text-leather-700 hover:text-cognac-700 font-medium py-2 px-4 rounded-lg hover:bg-cream-100 transition-all duration-200"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Categorías
               </Link>
               <Link 
                 to="/nosotros" 

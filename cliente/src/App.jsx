@@ -11,6 +11,10 @@ import Nosotros from './pages/Nosotros.jsx';
 import Favoritos from './pages/Favoritos.jsx';
 import AdminPanel from './pages/AdminPanel.jsx';
 import DescuentosAdminPage from './pages/DescuentosAdminPage.jsx';
+import Contacto from './pages/Contacto.jsx';
+import PreguntasFrecuentes from './pages/PreguntasFrecuentes.jsx';
+import TerminosCondiciones from './pages/TerminosCondiciones.jsx';
+import PoliticaPrivacidad from './pages/PoliticaPrivacidad.jsx';
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -89,6 +93,11 @@ const App = () => {
           path="/admin/descuentos" 
           element={<DescuentosAdminPage user={user} />} 
         />
+        {/* Páginas legales y de ayuda */}
+        <Route path="/contacto" element={<Contacto />} />
+        <Route path="/preguntas-frecuentes" element={<PreguntasFrecuentes />} />
+        <Route path="/terminos-condiciones" element={<TerminosCondiciones />} />
+        <Route path="/politica-privacidad" element={<PoliticaPrivacidad />} />
       </Routes>
       {/*Este es solo para tener en claro en dd estamos, dsp borramos*/}
       <p className="text-center text-sm text-leather-500 mt-4">
