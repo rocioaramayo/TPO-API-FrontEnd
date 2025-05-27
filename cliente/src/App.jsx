@@ -30,14 +30,6 @@ const App = () => {
     setUser(null);
   };
 
-    useEffect(() => {
-        fetch("/api/usuarios/me")
-            .then(res => res.json())
-            .then(data => setUser(data))
-            .catch(err => console.error(err));
-    }, []);
-
-
 
   return (
     <>
@@ -64,7 +56,7 @@ const App = () => {
               element={
                   <>
                       <Navigation user={user} onLogout={handleLogout} />
-                      <ProfilePage user={user} />
+                      <ProfilePage user={user} onLogout={handleLogout} />
                   </>
               }
           />
