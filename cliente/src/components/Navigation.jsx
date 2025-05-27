@@ -157,17 +157,24 @@ const Navigation = ({ user, onLogout }) => {
                     </p>
                     <p className="text-xs text-leather-600">Bienvenido</p>
                   </div>
-                  <button onClick={alert(".")}>
-                  <div
-                    className="flex items-center justify-center w-8 h-8 bg-leather-800 rounded-full shadow-sm cursor-pointer"
-                    onClick={() => user && user.role?.toLowerCase() === 'admin' && setShowDescuentosPanel(v => !v)}
+                  <button
+                      onClick={() => {
+                        if (user) {
+                          alert(`Usuario: ${user.name}\nEmail: ${user.email}\nRol: ${user.role}`);
+                        } else {
+                          alert("No hay usuario logueado.");
+                        }
+                      }}
                   >
+                    <div
+                        className="flex items-center justify-center w-8 h-8 bg-leather-800 rounded-full shadow-sm cursor-pointer"
+                    >
+    <span className="text-white text-sm font-medium">
+      {user?.email?.charAt(0).toUpperCase() || "?"}
+    </span>
+                    </div>
+                  </button>
 
-                      <span className="text-white text-sm font-medium">
-                        {user.email.charAt(0).toUpperCase()}
-                      </span>
-                  </div>
-                </button>
                   <button 
                     onClick={onLogout}
                     className="bg-leather-800 text-white hover:bg-leather-900 text-sm px-3 py-2 rounded-lg transition-colors duration-200"
