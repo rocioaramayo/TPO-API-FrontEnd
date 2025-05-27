@@ -1,6 +1,6 @@
 // src/components/Navigation.jsx
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import DescuentosAdminPanel from "../components/DescuentosAdminPanel";
 
 
@@ -9,7 +9,6 @@ const Navigation = ({ user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDescuentosPanel, setShowDescuentosPanel] = useState(false);
   const [mostrarPanel, setMostrarPanel] = useState(false);
-  const panelRef = useRef();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [mostrarPerfil, setMostrarPerfil] = useState(false);
@@ -19,7 +18,7 @@ const Navigation = ({ user, onLogout }) => {
   useEffect(() => {
     if (!showDescuentosPanel) return;
     function handleClickOutside(event) {
-      if (panelRef.current && !panelRef.current.contains(event.target)) {
+      if (!event.target.closest('.descuentos-panel')) {
         setShowDescuentosPanel(false);
       }
     }
@@ -269,6 +268,11 @@ const Navigation = ({ user, onLogout }) => {
                 </>
               )}
             </div>
+          </div>
+        )}
+        {showDescuentosPanel && (
+          <div className="descuentos-panel">
+            <DescuentosAdminPanel />
           </div>
         )}
       </div>
