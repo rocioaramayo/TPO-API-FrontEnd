@@ -176,7 +176,7 @@ const Navigation = ({ user, onLogout }) => {
                       </div>
                   )}
                 </div>
-                
+
 
 
 
