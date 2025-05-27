@@ -10,13 +10,72 @@ const ProfilePage = ({ user, onLogout }) => {
     const renderContent = () => {
         switch (activeTab) {
             case "perfil":
+                const [editMode, setEditMode] = useState(false);
+                const [editedUser, setEditedUser] = useState({
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                });
+
+                const handleInputChange = (e) => {
+                    setEditedUser({...editedUser, [e.target.name]: e.target.value});
+                };
+
+                const handleSave = () => {
+                    /*
+                     Aquí podrías hacer una llamada a la API para guardar los cambios
+                    */
+                    console.log("Datos actualizados:", editedUser);
+                    setEditMode(false);
+                };
+
+                const handleCancel = () => {
+                    setEditedUser({firstName: user.firstName, lastName: user.lastName});
+                    setEditMode(false);
+                };
+
                 return (
                     <div>
-                        <h2 className="text-2xl font-semibold mb-6 text-leather-800">Perfil de Usuario</h2>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-semibold text-leather-800">Perfil de Usuario</h2>
+                            {!editMode && (
+                                <button
+                                    onClick={() => setEditMode(true)}
+                                    className="bg-leather-800 text-white px-4 py-1.5 rounded hover:bg-leather-700 text-sm"
+                                >
+                                    Editar
+                                </button>
+                            )}
+                        </div>
+
                         <div className="space-y-4 text-leather-700">
                             <div>
-                                <h3 className="text-lg font-medium">Nombre de usuario</h3>
-                                <p className="text-gray-800">{user.username}</p>
+                                <h3 className="text-lg font-medium">Nombre</h3>
+                                {editMode ? (
+                                    <input
+                                        type="text"
+                                        name="firstName"
+                                        value={editedUser.firstName}
+                                        onChange={handleInputChange}
+                                        className="w-full border border-gray-300 rounded px-3 py-2"
+                                    />
+                                ) : (
+                                    <p>{user.firstName}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <h3 className="text-lg font-medium">Apellido</h3>
+                                {editMode ? (
+                                    <input
+                                        type="text"
+                                        name="lastName"
+                                        value={editedUser.lastName}
+                                        onChange={handleInputChange}
+                                        className="w-full border border-gray-300 rounded px-3 py-2"
+                                    />
+                                ) : (
+                                    <p>{user.lastName}</p>
+                                )}
                             </div>
 
                             <div>
@@ -24,45 +83,31 @@ const ProfilePage = ({ user, onLogout }) => {
                                 <p className="text-gray-800">{user.email}</p>
                             </div>
 
-                            <div>
-                                <h3 className="text-lg font-medium">Nombre Completo</h3>
-                                <p className="text-gray-800">{user.firstName} {user.lastName}</p>
-                            </div>
-
-                            <div>
-                                <h3 className="text-lg font-medium">Rol</h3>
-                                <p className="text-gray-800 capitalize">{user.role}</p>
-                            </div>
-
-                            <div>
-                                <h3 className="text-lg font-medium">Estado</h3>
-                                <p className={`font-semibold ${user.activo ? "text-green-600" : "text-red-600"}`}>
-                                    {user.activo ? "Activo" : "Inactivo"}
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="text-lg font-medium">Cuenta creada</h3>
-                                <p className="text-gray-800">{new Date(user.createdAt).toLocaleDateString()}</p>
-                            </div>
+                            {/* Botones al estar en modo edición */}
+                            {editMode && (
+                                <div className="flex gap-3 mt-6">
+                                    <button
+                                        onClick={handleSave}
+                                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                                    >
+                                        Guardar
+                                    </button>
+                                    <button
+                                        onClick={handleCancel}
+                                        className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 );
 
-            case "direcciones":
-                return <p>Aquí puedes gestionar tus direcciones (próximamente)</p>;
-            case "pedidos":
-                return <p>Aquí puedes ver tus pedidos (próximamente)</p>;
-            case "tarjetas":
-                return <p>Aquí puedes gestionar tus tarjetas de crédito (próximamente)</p>;
-            default:
-                return null;
-        }
-    };
 
-    return (
+        }   /*return (
         <div className="max-w-5xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-md flex flex-col md:flex-row gap-8">
-            {/* Sidebar */}
+            {/!* Sidebar *!/}
             <aside className="md:w-1/4 border-r border-gray-200 pr-6">
                 <div className="flex flex-col items-center mb-8">
                     <div className="w-24 h-24 rounded-full bg-leather-800 flex items-center justify-center text-white text-4xl font-bold shadow-md">
@@ -114,10 +159,10 @@ const ProfilePage = ({ user, onLogout }) => {
                 </nav>
             </aside>
 
-            {/* Main content */}
+            {/!* Main content *!/}
             <main className="md:w-3/4">{renderContent()}</main>
         </div>
-    );
+    );*/
 };
 
 export default ProfilePage;
