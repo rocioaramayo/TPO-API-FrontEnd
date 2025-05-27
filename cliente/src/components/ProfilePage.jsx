@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaUser, FaSignOutAlt } from "react-icons/fa";
+import { FaUser, FaSignOutAlt, FaMapMarkerAlt, FaShoppingCart, FaCreditCard } from "react-icons/fa";
 
 const ProfilePage = ({ user, onLogout }) => {
     const [activeTab, setActiveTab] = useState("perfil");
@@ -32,78 +32,108 @@ const ProfilePage = ({ user, onLogout }) => {
     };
 
     const renderContent = () => {
-        if (activeTab === "perfil") {
-            return (
-                <div>
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-semibold text-leather-800">Perfil de Usuario</h2>
-                        {!editMode && (
-                            <button
-                                onClick={() => setEditMode(true)}
-                                className="bg-leather-800 text-white px-4 py-1.5 rounded hover:bg-leather-700 text-sm"
-                            >
-                                Editar
-                            </button>
-                        )}
-                    </div>
-
-                    <div className="space-y-4 text-leather-700">
-                        <div>
-                            <h3 className="text-lg font-medium">Nombre</h3>
-                            {editMode ? (
-                                <input
-                                    type="text"
-                                    name="firstName"
-                                    value={editedUser.firstName}
-                                    onChange={handleInputChange}
-                                    className="w-full border border-gray-300 rounded px-3 py-2"
-                                />
-                            ) : (
-                                <p>{user.firstName}</p>
+        switch (activeTab) {
+            case "perfil":
+                return (
+                    <div>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-semibold text-leather-800">Perfil de Usuario</h2>
+                            {!editMode && (
+                                <button
+                                    onClick={() => setEditMode(true)}
+                                    className="bg-leather-800 text-white px-4 py-1.5 rounded hover:bg-leather-700 text-sm"
+                                >
+                                    Editar
+                                </button>
                             )}
                         </div>
 
-                        <div>
-                            <h3 className="text-lg font-medium">Apellido</h3>
-                            {editMode ? (
-                                <input
-                                    type="text"
-                                    name="lastName"
-                                    value={editedUser.lastName}
-                                    onChange={handleInputChange}
-                                    className="w-full border border-gray-300 rounded px-3 py-2"
-                                />
-                            ) : (
-                                <p>{user.lastName}</p>
-                            )}
-                        </div>
-
-                        <div>
-                            <h3 className="text-lg font-medium">Email</h3>
-                            <p className="text-gray-800">{user.email}</p>
-                        </div>
-
-                        {editMode && (
-                            <div className="flex gap-3 mt-6">
-                                <button
-                                    onClick={handleSave}
-                                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                                >
-                                    Guardar
-                                </button>
-                                <button
-                                    onClick={handleCancel}
-                                    className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
-                                >
-                                    Cancelar
-                                </button>
+                        <div className="space-y-4 text-leather-700">
+                            <div>
+                                <h3 className="text-lg font-medium">Nombre</h3>
+                                {editMode ? (
+                                    <input
+                                        type="text"
+                                        name="firstName"
+                                        value={editedUser.firstName}
+                                        onChange={handleInputChange}
+                                        className="w-full border border-gray-300 rounded px-3 py-2"
+                                    />
+                                ) : (
+                                    <p>{user.firstName}</p>
+                                )}
                             </div>
-                        )}
+
+                            <div>
+                                <h3 className="text-lg font-medium">Apellido</h3>
+                                {editMode ? (
+                                    <input
+                                        type="text"
+                                        name="lastName"
+                                        value={editedUser.lastName}
+                                        onChange={handleInputChange}
+                                        className="w-full border border-gray-300 rounded px-3 py-2"
+                                    />
+                                ) : (
+                                    <p>{user.lastName}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <h3 className="text-lg font-medium">Email</h3>
+                                <p className="text-gray-800">{user.email}</p>
+                            </div>
+
+                            {editMode && (
+                                <div className="flex gap-3 mt-6">
+                                    <button
+                                        onClick={handleSave}
+                                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                                    >
+                                        Guardar
+                                    </button>
+                                    <button
+                                        onClick={handleCancel}
+                                        className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-            );
+                );
+
+            case "direccion":
+                return (
+                    <div>
+                        <h2 className="text-2xl font-semibold text-leather-800 mb-4">Dirección</h2>
+                        {/* Aquí ponés el formulario o información de dirección */}
+                        <p>Aquí podés mostrar y editar la dirección del usuario.</p>
+                    </div>
+                );
+
+            case "pedidos":
+                return (
+                    <div>
+                        <h2 className="text-2xl font-semibold text-leather-800 mb-4">Pedidos</h2>
+                        {/* Aquí podés listar los pedidos */}
+                        <p>Aquí podés mostrar el historial de pedidos del usuario.</p>
+                    </div>
+                );
+
+            case "tarjetas":
+                return (
+                    <div>
+                        <h2 className="text-2xl font-semibold text-leather-800 mb-4">Tarjetas de Crédito</h2>
+                        {/* Aquí podés mostrar tarjetas guardadas */}
+                        <p>Aquí podés listar y gestionar las tarjetas de crédito del usuario.</p>
+                    </div>
+                );
+
+            default:
+                return <p>Contenido no disponible</p>;
         }
-        return <p>Contenido de la pestaña "{activeTab}"</p>;
     };
 
     return (
@@ -125,6 +155,30 @@ const ProfilePage = ({ user, onLogout }) => {
             ${activeTab === "perfil" ? "bg-leather-800 text-white" : "text-leather-800 hover:bg-leather-100"}`}
                     >
                         <FaUser /> Perfil
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab("direccion")}
+                        className={`flex items-center gap-3 px-4 py-2 rounded-md font-medium w-full
+            ${activeTab === "direccion" ? "bg-leather-800 text-white" : "text-leather-800 hover:bg-leather-100"}`}
+                    >
+                        <FaMapMarkerAlt /> Dirección
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab("pedidos")}
+                        className={`flex items-center gap-3 px-4 py-2 rounded-md font-medium w-full
+            ${activeTab === "pedidos" ? "bg-leather-800 text-white" : "text-leather-800 hover:bg-leather-100"}`}
+                    >
+                        <FaShoppingCart /> Pedidos
+                    </button>
+
+                    <button
+                        onClick={() => setActiveTab("tarjetas")}
+                        className={`flex items-center gap-3 px-4 py-2 rounded-md font-medium w-full
+            ${activeTab === "tarjetas" ? "bg-leather-800 text-white" : "text-leather-800 hover:bg-leather-100"}`}
+                    >
+                        <FaCreditCard /> Tarjetas de Crédito
                     </button>
 
                     <button
