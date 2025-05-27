@@ -1,5 +1,5 @@
 // src/App.jsx
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
@@ -16,6 +16,7 @@ import Contacto from './pages/Contacto.jsx';
 import PreguntasFrecuentes from './pages/PreguntasFrecuentes.jsx';
 import TerminosCondiciones from './pages/TerminosCondiciones.jsx';
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad.jsx';
+import ProfilePage from "./components/ProfilePage.jsx";
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -28,6 +29,15 @@ const App = () => {
   const handleLogout = () => {
     setUser(null);
   };
+
+    useEffect(() => {
+        fetch("/api/usuarios/me")
+            .then(res => res.json())
+            .then(data => setUser(data))
+            .catch(err => console.error(err));
+    }, []);
+
+
 
   return (
     <>
@@ -48,6 +58,16 @@ const App = () => {
             </>
           } 
         />
+
+          <Route
+              path="/perfil"
+              element={
+                  <>
+                      <Navigation user={user} onLogout={handleLogout} />
+                      <ProfilePage user={user} />
+                  </>
+              }
+          />
         <Route 
           path="/register" 
           element={
@@ -71,8 +91,9 @@ const App = () => {
               <Navigation user={user} onLogout={handleLogout} />
               <Home user={user} logout={handleLogout} />
             </>
-            
-          } 
+
+
+          }
         />
         {/* RUTAS DE PRODUCTOS */}
         <Route 

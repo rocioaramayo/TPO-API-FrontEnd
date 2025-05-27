@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import DescuentosAdminPanel from "../components/DescuentosAdminPanel";
 
 
+
 const Navigation = ({ user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDescuentosPanel, setShowDescuentosPanel] = useState(false);
@@ -152,25 +153,32 @@ const Navigation = ({ user, onLogout }) => {
                 {/* Usuario autenticado */}
                 <div className="relative">
                   <button
-                      onClick={() => setMostrarPerfil(prev => !prev)}
+                      onClick={() => navigate('/perfil')} // Redirige a la página perfil
+                      onMouseEnter={() => setMostrarPerfil(true)} // Mostrar menú al pasar mouse
+                      onMouseLeave={() => setMostrarPerfil(false)} // Ocultar menú al sacar mouse
+                      className="flex items-center justify-center w-8 h-8 bg-leather-800 rounded-full shadow-sm cursor-pointer"
                   >
-                    <div className="flex items-center justify-center w-8 h-8 bg-leather-800 rounded-full shadow-sm cursor-pointer">
-      <span className="text-white text-sm font-medium">
-        {user?.email?.charAt(0).toUpperCase() || "?"}
-      </span>
-                    </div>
+        <span className="text-white text-sm font-medium">
+          {user?.email?.charAt(0).toUpperCase() || "?"}
+        </span>
                   </button>
 
                   {mostrarPerfil && user && (
-                      <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg p-4 z-50">
+                      <div
+                          onMouseEnter={() => setMostrarPerfil(true)}
+                          onMouseLeave={() => setMostrarPerfil(false)}
+                          className="absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg p-4 z-50"
+                      >
                         <p className="text-sm"><strong>Usuario:</strong> {user.username}</p>
                         <p className="text-sm"><strong>Email:</strong> {user.email}</p>
-                        <p className="text-sm"><strong>Rol:</strong> {user.role}</p>
+                        {/*<p className="text-sm"><strong>Rol:</strong> {user.role}</p>*/}
                         <p className="text-sm"><strong>Estado:</strong> {user.activo ? "Activo" : "Inactivo"}</p>
-                        <p className="text-sm"><strong>Creado:</strong> {new Date(user.createdAT).toLocaleDateString()}</p>
                       </div>
                   )}
                 </div>
+                
+
+
 
                 <button
                     onClick={onLogout}
@@ -178,7 +186,7 @@ const Navigation = ({ user, onLogout }) => {
                   >
                     Salir
                   </button>
-                
+
               </>
             ) : (
               /* Usuario no autenticado */
