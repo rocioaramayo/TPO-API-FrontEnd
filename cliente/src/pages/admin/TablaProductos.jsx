@@ -1,122 +1,131 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const productos = [
-  {
-    id: 1,
-    activo: true,
-    color: "Marrón",
-    descripcion: "Cuero vacuno de alta calidad",
-    grosor: "1.5 mm",
-    nombre: "Cuero Premium",
-    precio: "$1200",
-    stock: 45,
-    textura: "Lisa",
-    tipoCuero: "Vacuno",
-    categoria: "Tapicería",
-  },
-  {
-    id: 1,
-    activo: false,
-    color: "Marrón",
-    descripcion: "Cuero vacuno de alta calidadvubdsiapvfbqpiudbvuqbudvuibepduvpbuiadsbvupbsupdvbpsuaivbauispbuisdbvu",
-    grosor: "1.5 mm",
-    nombre: "Cuero Premium",
-    precio: "$1200",
-    stock: 45,
-    textura: "Lisa",
-    tipoCuero: "Vacuno",
-    categoria: "Tapicería",
-  },
-  {
-    id: 1,
-    activo: true,
-    color: "Marrón",
-    descripcion: "Cuero vacuno de alta calidad",
-    grosor: "1.5 mm",
-    nombre: "Cuero Premium",
-    precio: "$1200",
-    stock: 45,
-    textura: "Lisa",
-    tipoCuero: "Vacuno",
-    categoria: "Tapicería",
-  },
-  {
-    id: 1,
-    activo: false,
-    color: "Marrón",
-    descripcion: "Cuero vacuno de alta calidadvubdsiapvfbqpiudbvuqbudvuibepduvpbuiadsbvupbsupdvbpsuaivbauispbuisdbvu",
-    grosor: "1.5 mm",
-    nombre: "Cuero Premium",
-    precio: "$1200",
-    stock: 45,
-    textura: "Lisa",
-    tipoCuero: "Vacuno",
-    categoria: "Tapicería",
-  },
-  {
-    id: 1,
-    activo: true,
-    color: "Marrón",
-    descripcion: "Cuero vacuno de alta calidad",
-    grosor: "1.5 mm",
-    nombre: "Cuero Premium",
-    precio: "$1200",
-    stock: 45,
-    textura: "Lisa",
-    tipoCuero: "Vacuno",
-    categoria: "Tapicería",
-  },
-  {
-    id: 1,
-    activo: false,
-    color: "Marrón",
-    descripcion: "Cuero vacuno de alta calidadvubdsiapvfbqpiudbvuqbudvuibepduvpbuiadsbvupbsupdvbpsuaivbauispbuisdbvu",
-    grosor: "1.5 mm",
-    nombre: "Cuero Premium",
-    precio: "$1200",
-    stock: 45,
-    textura: "Lisa",
-    tipoCuero: "Vacuno",
-    categoria: "Tapicería",
-  },
-  {
-    id: 1,
-    activo: true,
-    color: "Marrón",
-    descripcion: "Cuero vacuno de alta calidad",
-    grosor: "1.5 mm",
-    nombre: "Cuero Premium",
-    precio: "$1200",
-    stock: 45,
-    textura: "Lisa",
-    tipoCuero: "Vacuno",
-    categoria: "Tapicería",
-  },
-  {
-    id: 1,
-    activo: true,
-    color: "Marrón",
-    descripcion: "Cuero vacuno de alta calidad",
-    grosor: "1.5 mm",
-    nombre: "Cuero Premium",
-    precio: "$1200",
-    stock: 45,
-    textura: "Lisa",
-    tipoCuero: "Vacuno",
-    categoria: "Tapicería",
-  },
-  // Agrega más productos aquí...
-];
+// const productos = [
+//   {
+//     id: 1,
+//     activo: true,
+//     color: "Marrón",
+//     descripcion: "Cuero vacuno de alta calidad",
+//     grosor: "1.5 mm",
+//     nombre: "Cuero Premium",
+//     precio: "$1200",
+//     stock: 45,
+//     textura: "Lisa",
+//     tipoCuero: "Vacuno",
+//     categoria: "Tapicería",
+//   },
+//   {
+//     id: 1,
+//     activo: false,
+//     color: "Marrón",
+//     descripcion: "Cuero vacuno de alta calidadvubdsiapvfbqpiudbvuqbudvuibepduvpbuiadsbvupbsupdvbpsuaivbauispbuisdbvu",
+//     grosor: "1.5 mm",
+//     nombre: "Cuero Premium",
+//     precio: "$1200",
+//     stock: 45,
+//     textura: "Lisa",
+//     tipoCuero: "Vacuno",
+//     categoria: "Tapicería",
+//   },
+//   {
+//     id: 1,
+//     activo: true,
+//     color: "Marrón",
+//     descripcion: "Cuero vacuno de alta calidad",
+//     grosor: "1.5 mm",
+//     nombre: "Cuero Premium",
+//     precio: "$1200",
+//     stock: 45,
+//     textura: "Lisa",
+//     tipoCuero: "Vacuno",
+//     categoria: "Tapicería",
+//   },
+//   {
+//     id: 1,
+//     activo: false,
+//     color: "Marrón",
+//     descripcion: "Cuero vacuno de alta calidadvubdsiapvfbqpiudbvuqbudvuibepduvpbuiadsbvupbsupdvbpsuaivbauispbuisdbvu",
+//     grosor: "1.5 mm",
+//     nombre: "Cuero Premium",
+//     precio: "$1200",
+//     stock: 45,
+//     textura: "Lisa",
+//     tipoCuero: "Vacuno",
+//     categoria: "Tapicería",
+//   },
+//   {
+//     id: 1,
+//     activo: true,
+//     color: "Marrón",
+//     descripcion: "Cuero vacuno de alta calidad",
+//     grosor: "1.5 mm",
+//     nombre: "Cuero Premium",
+//     precio: "$1200",
+//     stock: 45,
+//     textura: "Lisa",
+//     tipoCuero: "Vacuno",
+//     categoria: "Tapicería",
+//   },
+//   {
+//     id: 1,
+//     activo: false,
+//     color: "Marrón",
+//     descripcion: "Cuero vacuno de alta calidadvubdsiapvfbqpiudbvuqbudvuibepduvpbuiadsbvupbsupdvbpsuaivbauispbuisdbvu",
+//     grosor: "1.5 mm",
+//     nombre: "Cuero Premium",
+//     precio: "$1200",
+//     stock: 45,
+//     textura: "Lisa",
+//     tipoCuero: "Vacuno",
+//     categoria: "Tapicería",
+//   },
+//   {
+//     id: 1,
+//     activo: true,
+//     color: "Marrón",
+//     descripcion: "Cuero vacuno de alta calidad",
+//     grosor: "1.5 mm",
+//     nombre: "Cuero Premium",
+//     precio: "$1200",
+//     stock: 45,
+//     textura: "Lisa",
+//     tipoCuero: "Vacuno",
+//     categoria: "Tapicería",
+//   },
+//   {
+//     id: 1,
+//     activo: true,
+//     color: "Marrón",
+//     descripcion: "Cuero vacuno de alta calidad",
+//     grosor: "1.5 mm",
+//     nombre: "Cuero Premium",
+//     precio: "$1200",
+//     stock: 45,
+//     textura: "Lisa",
+//     tipoCuero: "Vacuno",
+//     categoria: "Tapicería",
+//   },
+//   // Agrega más productos aquí...
+// ];
 
-export default function TablaProductos() {
+export default function TablaProductos({}) {
+  const [productos,setProductos] = useState([]);
+  useEffect(() => {
+      fetch("http://localhost:8080/productos")
+          .then((res) => res.json())
+          .then((data) => {
+          console.log(data.productos)
+          setProductos(data.productos);
+          });
+  }, []);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6; // Cambiá este número si querés mostrar más/menos por página
+    const itemsPerPage = 1; // Cambiá este número si querés mostrar más/menos por página
 
     // Calcular los productos visibles
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const currentProductos = productos.slice(startIndex, endIndex);
-
+    const currentProductos = productos?.slice(startIndex, endIndex);
+    console.log(currentProductos)
     // Calcular el total de páginas
     const totalPages = Math.ceil(productos.length / itemsPerPage);
   return (
