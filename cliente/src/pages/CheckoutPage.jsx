@@ -33,6 +33,22 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
   const [codigoPostal, setCodigoPostal] = React.useState("");
   const [telefono, setTelefono] = React.useState("");
   const [puntoRetiroId, setPuntoRetiroId] = React.useState("");
+  const [puntosRetiro, setPuntosRetiro] = React.useState([]);
+  React.useEffect(() => {
+    if (metodoEntrega === 2) {
+      fetch("http://localhost:8080/entregas/metodos")
+        .then(res => res.json())
+        .then(data => {
+          const metodo = data.find(m => m.nombre === "Retiro en tienda");
+          if (metodo?.id) {
+            fetch(`http://localhost:8080/entregas/puntos/metodo/${metodo.id}`)
+              .then(res => res.json())
+              .then(setPuntosRetiro)
+              .catch(err => console.error("Error al obtener puntos:", err));
+          }
+        });
+    }
+  }, [metodoEntrega]);
 
   const [errorCheckout, setErrorCheckout] = React.useState("");
 
@@ -269,13 +285,18 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                 )}
                 {metodoEntrega === 2 && (
                   <div className="mt-4">
-                    <input
-                      type="text"
-                      placeholder="ID del punto de retiro"
+                    <select
                       value={puntoRetiroId}
                       onChange={e => setPuntoRetiroId(e.target.value)}
                       className="border rounded px-3 py-2 w-full"
-                    />
+                    >
+                      <option value="">Seleccionar punto de retiro</option>
+                      {puntosRetiro.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.nombre} - {p.direccion}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 )}
               </div>
