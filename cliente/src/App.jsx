@@ -40,6 +40,7 @@ const App = () => {
   };
 
   const handleAddToCart = (product) => {
+    console.log('Producto al agregar al carrito:', product);
     if (!user) {
       alert("Debés iniciar sesión para agregar productos al carrito");
       return;
@@ -49,10 +50,11 @@ const App = () => {
       id: product.id, // Agregado el id de producto
       name: product.nombre || product.name || "Producto",
       price: product.precio || product.price || 0,
-      image: product.imagen || product.image || "https://via.placeholder.com/80?text=Sin+Imagen",
+      fotos: product.fotos || [],
       stock: product.stock || product.stockDisponible || 99,
       quantity: 1,
     };
+    console.log('Item que va al carrito:', newItem);
 
     setCartItems((prevItems) => {
       const existing = prevItems.find(item => item.id === newItem.id);
@@ -258,3 +260,17 @@ const App = () => {
 };
 
 export default App;
+// Deducir tipo mime a partir del nombre del archivo (si existe)
+function guessMimeType(foto) {
+  if (foto?.nombre) {
+    const ext = foto.nombre.split('.').pop().toLowerCase();
+    if (ext === "png") return "image/png";
+    if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+    if (ext === "gif") return "image/gif";
+    if (ext === "webp") return "image/webp";
+  }
+  // Si empieza con "/9j/" probablemente es JPEG
+  if (foto?.file && foto.file.startsWith("/9j/")) return "image/jpeg";
+  // Default
+  return "image/jpeg";
+}

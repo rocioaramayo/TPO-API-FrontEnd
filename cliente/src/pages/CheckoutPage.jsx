@@ -1,3 +1,17 @@
+// Deducir tipo mime a partir del nombre del archivo (si existe)
+function guessMimeType(foto) {
+  if (foto?.nombre) {
+    const ext = foto.nombre.split('.').pop().toLowerCase();
+    if (ext === "png") return "image/png";
+    if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+    if (ext === "gif") return "image/gif";
+    if (ext === "webp") return "image/webp";
+  }
+  // Si empieza con "/9j/" probablemente es JPEG
+  if (foto?.file && foto.file.startsWith("/9j/")) return "image/jpeg";
+  // Default
+  return "image/jpeg";
+}
 import React from "react";
 import { FaCreditCard, FaUniversity } from "react-icons/fa";
 import { MdOutlineCreditCard } from "react-icons/md";
@@ -499,11 +513,21 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                 ) : (
                   cartItems.map((item, idx) => (
                     <div key={idx} className="flex items-center border-t py-4">
-                      <img
-                        src={item.image || "https://via.placeholder.com/80?text=Sin+Imagen"}
-                        alt={item.name}
-                        className="w-20 h-20 object-cover rounded mr-4 border"
-                      />
+                      {(() => {
+                        const foto = item.fotos && item.fotos[0];
+                        const mimeType = guessMimeType(foto);
+                        return (
+                          <img
+                            src={
+                              foto
+                                ? `data:${mimeType};base64,${foto.file || foto.contenidoBase64}`
+                                : "https://via.placeholder.com/80?text=Sin+Imagen"
+                            }
+                            alt={item.name}
+                            className="w-20 h-20 object-cover rounded mr-4 border"
+                          />
+                        );
+                      })()}
                       <div className="flex-1 truncate">
                         <div className="font-medium text-leather-800 truncate">{item.name}</div>
                       </div>

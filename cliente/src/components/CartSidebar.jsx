@@ -1,6 +1,21 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// Deducir tipo mime a partir del nombre del archivo (si existe)
+function guessMimeType(foto) {
+  if (foto?.nombre) {
+    const ext = foto.nombre.split('.').pop().toLowerCase();
+    if (ext === "png") return "image/png";
+    if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+    if (ext === "gif") return "image/gif";
+    if (ext === "webp") return "image/webp";
+  }
+  // Si empieza con "/9j/" probablemente es JPEG
+  if (foto?.file && foto.file.startsWith("/9j/")) return "image/jpeg";
+  // Default
+  return "image/jpeg";
+}
+
 const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty }) => {
   const [confirmDeleteIndex, setConfirmDeleteIndex] = useState(null);
   const navigate = useNavigate();
@@ -29,11 +44,21 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty 
           cartItems.map((item, idx) => (
             <div key={idx} className="mb-6">
               <div className="flex items-center">
-                <img
-                  src={item.image || "https://via.placeholder.com/80?text=Sin+Imagen"}
-                  alt={item.name || "Producto"}
-                  className="w-20 h-24 object-cover rounded mr-4 border"
-                />
+                {(() => {
+                  const foto = item.fotos && item.fotos[0];
+                  const mimeType = guessMimeType(foto);
+                  return (
+                    <img
+                      src={
+                        foto
+                          ? `data:${mimeType};base64,${foto.file || foto.contenidoBase64}`
+                          : "https://via.placeholder.com/80?text=Sin+Imagen"
+                      }
+                      alt={item.name || "Producto"}
+                      className="w-20 h-24 object-cover rounded mr-4 border"
+                    />
+                  );
+                })()}
                 <div className="flex-1">
                   <div className="font-medium text-leather-800 truncate">{item.name}</div>
                   <div className="text-lg font-bold text-leather-700">${item.price.toLocaleString()}</div>
