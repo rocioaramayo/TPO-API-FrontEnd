@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty }) => {
+const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty, user }) => {
   const [confirmDeleteIndex, setConfirmDeleteIndex] = useState(null);
+  const navigate = useNavigate();
 
   // Suma total
   const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -39,12 +41,13 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty 
                     <button
                       className="px-2 py-1 text-lg font-bold border rounded hover:bg-leather-100"
                       onClick={() => onSubQty(idx)}
+                      disabled={!user}
                     >-</button>
                     <span className="font-medium">{item.quantity}</span>
                     <button
                       className="px-2 py-1 text-lg font-bold border rounded hover:bg-leather-100"
                       onClick={() => onAddQty(idx)}
-                      disabled={item.quantity >= (item.stock !== undefined ? item.stock : 99)}
+                      disabled={!user || item.quantity >= (item.stock !== undefined ? item.stock : 99)}
                     >+</button>
                     {confirmDeleteIndex === idx ? (
                       <div className="ml-4 flex items-center gap-2">
@@ -70,6 +73,7 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty 
                         className="ml-2 text-gray-400 hover:text-red-500 text-xl"
                         title="Eliminar producto"
                         onClick={() => setConfirmDeleteIndex(idx)}
+                        disabled={!user}
                       >🗑️</button>
                     )}
                   </div>
@@ -86,14 +90,17 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty 
           <span>${total.toLocaleString()}</span>
         </div>
         <button
-          className="w-full bg-green-300 hover:bg-green-400 text-leather-800 font-bold py-2 rounded transition"
+          className="w-full bg-leather-700 hover:bg-leather-800 text-white font-bold py-2 rounded transition"
           disabled
         >
           PAGAR
         </button>
         <button
           className="w-full mt-2 border border-leather-300 text-leather-800 font-semibold py-2 rounded"
-          onClick={onClose}
+          onClick={() => {
+            onClose();
+            navigate("/carrito");
+          }}
         >
           VER CARRITO
         </button>

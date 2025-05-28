@@ -18,6 +18,7 @@ import TerminosCondiciones from './pages/TerminosCondiciones.jsx';
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad.jsx';
 import ProfilePage from "./components/ProfilePage.jsx";
 import CartSidebar from "./components/CartSidebar";
+import CarritoPage from './pages/CarritoPage.jsx';
 
 
 const App = () => {
@@ -35,10 +36,15 @@ const App = () => {
   // Función para manejar el logout
   const handleLogout = () => {
     setUser(null);
+    setCartItems([]);
   };
 
   const handleAddToCart = (product) => {
-    // Adapta a la estructura compatible con el carrito visual
+    if (!user) {
+      alert("Debés iniciar sesión para agregar productos al carrito");
+      return;
+    }
+
     const newItem = {
       name: product.nombre || product.name || "Producto",
       price: product.precio || product.price || 0,
@@ -50,7 +56,6 @@ const App = () => {
     setCartItems((prevItems) => {
       const existing = prevItems.find(item => item.name === newItem.name);
       if (existing) {
-        // Respetar el stock máximo
         if (existing.quantity >= newItem.stock) return prevItems;
         return prevItems.map(item =>
           item.name === newItem.name
@@ -60,7 +65,7 @@ const App = () => {
       }
       return [...prevItems, newItem];
     });
-    setCartOpen(true); // Abre el carrito al agregar
+    setCartOpen(true);
   };
 
   // Funciones para manejar el carrito
@@ -225,6 +230,16 @@ const App = () => {
             <PoliticaPrivacidad />
           </>
         } />
+        <Route 
+          path="/carrito" 
+          element={
+            <CarritoPage
+              cartItems={cartItems}
+              setCartItems={setCartItems}
+              user={user}
+            />
+          }
+        />
       </Routes>
       <CartSidebar
         isOpen={cartOpen}
