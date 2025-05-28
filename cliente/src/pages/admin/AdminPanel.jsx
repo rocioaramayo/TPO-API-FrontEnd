@@ -6,27 +6,27 @@ import AdminNavigation from './AdminNavigation';
 import GestionProductos from './GestionProductos';
 import FormCrearProducto from './FormCrearProducto';
 
-const AdminPanel = ({ user }) => {
+const AdminPanel = ({ user, productos }) => {
   const navigate = useNavigate();
   const [showDescuentos, setShowDescuentos] = useState(false);
 
   useEffect(() => {
-    // if (!user || user.role?.toLowerCase() !== 'admin') {
-    //   navigate('/');
-    // }
+    if (!user || user.role?.toLowerCase() !== 'admin') {
+      navigate('/');
+    }
   }, [user, navigate]);
 
   return (
     <>
       <Routes>
         <Route path='/' element={
-          <Dashboard/>
+          <Dashboard user={user}/>
         }/>
         <Route path='/productos' element={
-          <GestionProductos/>
+          <GestionProductos user={user}/>
         }/>
         <Route path='/productos/crear' element={
-          <FormCrearProducto/>
+          <FormCrearProducto user={user}/>
         }/>
         <Route path='/descuentos' element={<DescuentosAdminPanel user={user} fullPage={true} visible={true} onClose={() => navigate('/admin')} />} />
       </Routes>
