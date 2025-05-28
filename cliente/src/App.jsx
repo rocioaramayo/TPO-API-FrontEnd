@@ -18,7 +18,7 @@ import TerminosCondiciones from './pages/TerminosCondiciones.jsx';
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad.jsx';
 import ProfilePage from "./components/ProfilePage.jsx";
 import CartSidebar from "./components/CartSidebar";
-import CarritoPage from './pages/CarritoPage.jsx';
+import CheckoutPage from './pages/CheckoutPage.jsx';
 
 
 const App = () => {
@@ -105,7 +105,7 @@ const App = () => {
           path="/login" 
           element={
             <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
               <Login 
                 setUser={setUser} 
                 loading={loading}
@@ -121,7 +121,7 @@ const App = () => {
               path="/perfil"
               element={
                   <>
-                      <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+                      <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
                       <ProfilePage user={user} onLogout={handleLogout} />
                   </>
               }
@@ -131,7 +131,7 @@ const App = () => {
           path="/register" 
           element={
             <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
               <Register 
                 setUser={setUser} 
                 loading={loading}
@@ -147,7 +147,7 @@ const App = () => {
           path="/" 
           element={
             <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
               <Home user={user} logout={handleLogout} />
             </>
 
@@ -159,7 +159,7 @@ const App = () => {
           path="/productos/:id" 
           element={
           <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
               <ProductDetail user={user} onAddToCart={handleAddToCart} />
           </>}  
         />
@@ -167,7 +167,7 @@ const App = () => {
           path="/productos" 
           element={
           <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
               <Productos user={user} />
           </>} 
         />
@@ -175,7 +175,7 @@ const App = () => {
           path="/nosotros" 
           element={
           <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
               <Nosotros />
           </>} 
         />
@@ -184,7 +184,7 @@ const App = () => {
           path="/favoritos" 
           element={
           <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
               <Favoritos user={user} />
           </>} 
         />
@@ -209,36 +209,39 @@ const App = () => {
         {/* Páginas legales y de ayuda */}
         <Route path="/contacto" element={
           <>
-            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
             <Contacto />
           </>
         } />
         <Route path="/preguntas-frecuentes" element={
           <>
-            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
             <PreguntasFrecuentes />
           </>
         } />
         <Route path="/terminos-condiciones" element={
           <>
-            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
             <TerminosCondiciones />
           </>
         } />
         <Route path="/politica-privacidad" element={
           <>
-            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
             <PoliticaPrivacidad />
           </>
         } />
         <Route 
-          path="/carrito" 
+          path="/checkout" 
           element={
-            <CarritoPage
-              cartItems={cartItems}
-              setCartItems={setCartItems}
-              user={user}
-            />
+            <>
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <CheckoutPage
+                cartItems={cartItems}
+                setCartItems={setCartItems}
+                user={user}
+              />
+            </>
           }
         />
       </Routes>
@@ -250,10 +253,6 @@ const App = () => {
         onAddQty={handleAddQty}
         onSubQty={handleSubQty}
       />
-      {/*Este es solo para tener en claro en dd estamos, dsp borramos*/}
-      {/* <p className="text-center text-sm text-leather-500 mt-4">
-        La ruta actual es: {location.pathname}
-      </p> */}
     </>
   );
 };

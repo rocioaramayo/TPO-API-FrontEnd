@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty, user }) => {
+const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty }) => {
   const [confirmDeleteIndex, setConfirmDeleteIndex] = useState(null);
   const navigate = useNavigate();
 
@@ -41,13 +41,12 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty,
                     <button
                       className="px-2 py-1 text-lg font-bold border rounded hover:bg-leather-100"
                       onClick={() => onSubQty(idx)}
-                      disabled={!user}
                     >-</button>
                     <span className="font-medium">{item.quantity}</span>
                     <button
                       className="px-2 py-1 text-lg font-bold border rounded hover:bg-leather-100"
                       onClick={() => onAddQty(idx)}
-                      disabled={!user || item.quantity >= (item.stock !== undefined ? item.stock : 99)}
+                      disabled={item.quantity >= (item.stock !== undefined ? item.stock : 99)}
                     >+</button>
                     {confirmDeleteIndex === idx ? (
                       <div className="ml-4 flex items-center gap-2">
@@ -73,7 +72,6 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty,
                         className="ml-2 text-gray-400 hover:text-red-500 text-xl"
                         title="Eliminar producto"
                         onClick={() => setConfirmDeleteIndex(idx)}
-                        disabled={!user}
                       >🗑️</button>
                     )}
                   </div>
@@ -84,25 +82,19 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty,
         )}
       </div>
       {/* total */}
-      <div className="border-t px-5 py-4 bg-white">
+      <div className="absolute bottom-0 left-0 w-full border-t px-5 py-4 bg-white">
         <div className="flex justify-between items-center font-bold text-xl mb-2">
           <span>Total</span>
           <span>${total.toLocaleString()}</span>
         </div>
         <button
           className="w-full bg-leather-700 hover:bg-leather-800 text-white font-bold py-2 rounded transition"
-          disabled
-        >
-          PAGAR
-        </button>
-        <button
-          className="w-full mt-2 border border-leather-300 text-leather-800 font-semibold py-2 rounded"
           onClick={() => {
             onClose();
-            navigate("/carrito");
+            navigate("/checkout");
           }}
         >
-          VER CARRITO
+          PAGAR
         </button>
       </div>
     </div>
