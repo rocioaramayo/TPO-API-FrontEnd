@@ -46,9 +46,9 @@ const Dashboard = () => {
                 {[
                     { label: 'Gestionar productos', onClick: () => {navigate('/admin/productos')} },
                     { label: 'Gestionar descuentos', onClick: () => {navigate('/admin/descuentos')} },
-                    { label: 'Gestionar metodos de entrega', onClick: () => {} },
-                    { label: 'Gestionar puntos de entrega', onClick: () => {} },
-                    { label: 'Gestionar usuarios', onClick: () => {} },
+                    { label: 'Gestionar metodos de entrega', onClick: () => {navigate('/admin/metodosEntrega')} },
+                    { label: 'Gestionar puntos de entrega', onClick: () => {navigate('/admin/puntosEntrega')} },
+                    { label: 'Gestionar usuarios', onClick: () => {navigate('/admin/usuarios')} },
                 ].map((btn, index) => (
                     <button
                         onClick={btn.onClick}
