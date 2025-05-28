@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TablaProductos from "./TablaProductos";
 
-const GestionProductos = ({user}) => {
+const GestionProductos = () => {
     const [productos, setProductos] = useState(null);
     const navigate = useNavigate();
     const handleOnClickVolver = (e) =>{
