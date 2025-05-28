@@ -17,6 +17,7 @@ import PreguntasFrecuentes from './pages/PreguntasFrecuentes.jsx';
 import TerminosCondiciones from './pages/TerminosCondiciones.jsx';
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad.jsx';
 import ProfilePage from "./components/ProfilePage.jsx";
+import CartSidebar from "./components/CartSidebar";
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -25,9 +26,67 @@ const App = () => {
   
   const location = useLocation();
 
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
+
+  // Eliminado useEffect que escuchaba 'updateCart'
+
   // Función para manejar el logout
   const handleLogout = () => {
     setUser(null);
+  };
+
+  const handleAddToCart = (product) => {
+    // Adapta a la estructura compatible con el carrito visual
+    const newItem = {
+      name: product.nombre || product.name || "Producto",
+      price: product.precio || product.price || 0,
+      image: product.imagen || product.image || "https://via.placeholder.com/80?text=Sin+Imagen",
+      stock: product.stock || product.stockDisponible || 99,
+      quantity: 1,
+    };
+
+    setCartItems((prevItems) => {
+      const existing = prevItems.find(item => item.name === newItem.name);
+      if (existing) {
+        // Respetar el stock máximo
+        if (existing.quantity >= newItem.stock) return prevItems;
+        return prevItems.map(item =>
+          item.name === newItem.name
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prevItems, newItem];
+    });
+    setCartOpen(true); // Abre el carrito al agregar
+  };
+
+  // Funciones para manejar el carrito
+  const handleRemoveFromCart = (idx) => {
+    setCartItems((items) => items.filter((_, i) => i !== idx));
+  };
+
+  const handleAddQty = (idx) => {
+    setCartItems((items) =>
+      items.map((item, i) =>
+        i === idx
+          ? { ...item, quantity: item.quantity < (item.stock ?? 99) ? item.quantity + 1 : item.quantity }
+          : item
+      )
+    );
+  };
+
+  const handleSubQty = (idx) => {
+    setCartItems((items) =>
+      items
+        .map((item, i) =>
+          i === idx
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
   };
 
 
@@ -39,7 +98,7 @@ const App = () => {
           path="/login" 
           element={
             <>
-              <Navigation user={user} onLogout={handleLogout} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
               <Login 
                 setUser={setUser} 
                 loading={loading}
@@ -55,7 +114,7 @@ const App = () => {
               path="/perfil"
               element={
                   <>
-                      <Navigation user={user} onLogout={handleLogout} />
+                      <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
                       <ProfilePage user={user} onLogout={handleLogout} />
                   </>
               }
@@ -64,7 +123,7 @@ const App = () => {
           path="/register" 
           element={
             <>
-              <Navigation user={user} onLogout={handleLogout} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
               <Register 
                 setUser={setUser} 
                 loading={loading}
@@ -80,7 +139,7 @@ const App = () => {
           path="/" 
           element={
             <>
-              <Navigation user={user} onLogout={handleLogout} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
               <Home user={user} logout={handleLogout} />
             </>
 
@@ -92,15 +151,15 @@ const App = () => {
           path="/productos/:id" 
           element={
           <>
-              <Navigation user={user} onLogout={handleLogout} />
-              <ProductDetail user={user} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
+              <ProductDetail user={user} onAddToCart={handleAddToCart} />
           </>}  
         />
         <Route 
           path="/productos" 
           element={
           <>
-              <Navigation user={user} onLogout={handleLogout} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
               <Productos user={user} />
           </>} 
         />
@@ -108,7 +167,7 @@ const App = () => {
           path="/nosotros" 
           element={
           <>
-              <Navigation user={user} onLogout={handleLogout} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
               <Nosotros />
           </>} 
         />
@@ -117,7 +176,7 @@ const App = () => {
           path="/favoritos" 
           element={
           <>
-              <Navigation user={user} onLogout={handleLogout} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
               <Favoritos user={user} />
           </>} 
         />
@@ -126,7 +185,7 @@ const App = () => {
           path="/admin/descuentos" 
           element={
           <>
-              <Navigation user={user} onLogout={handleLogout} />
+              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
               <DescuentosAdminPanel user={user} fullPage={true} visible={true} onClose={() => {}} />
           </>} 
         />
@@ -142,29 +201,37 @@ const App = () => {
         {/* Páginas legales y de ayuda */}
         <Route path="/contacto" element={
           <>
-            <Navigation user={user} onLogout={handleLogout} />
+            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
             <Contacto />
           </>
         } />
         <Route path="/preguntas-frecuentes" element={
           <>
-            <Navigation user={user} onLogout={handleLogout} />
+            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
             <PreguntasFrecuentes />
           </>
         } />
         <Route path="/terminos-condiciones" element={
           <>
-            <Navigation user={user} onLogout={handleLogout} />
+            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
             <TerminosCondiciones />
           </>
         } />
         <Route path="/politica-privacidad" element={
           <>
-            <Navigation user={user} onLogout={handleLogout} />
+            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
             <PoliticaPrivacidad />
           </>
         } />
       </Routes>
+      <CartSidebar
+        isOpen={cartOpen}
+        onClose={() => setCartOpen(false)}
+        cartItems={cartItems}
+        onRemove={handleRemoveFromCart}
+        onAddQty={handleAddQty}
+        onSubQty={handleSubQty}
+      />
       {/*Este es solo para tener en claro en dd estamos, dsp borramos*/}
       {/* <p className="text-center text-sm text-leather-500 mt-4">
         La ruta actual es: {location.pathname}

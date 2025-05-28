@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import DescuentosAdminPanel from "../components/DescuentosAdminPanel";
 
 
-
-const Navigation = ({ user, onLogout }) => {
+const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDescuentosPanel, setShowDescuentosPanel] = useState(false);
   const [mostrarPanel, setMostrarPanel] = useState(false);
@@ -14,6 +13,7 @@ const Navigation = ({ user, onLogout }) => {
   const [mostrarPerfil, setMostrarPerfil] = useState(false);
   const togglePerfil = () => setMostrarPerfil(v => !v);
 
+  const totalCartItems = cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
 
   useEffect(() => {
     if (!showDescuentosPanel) return;
@@ -117,7 +117,10 @@ const Navigation = ({ user, onLogout }) => {
                 {user.role?.toLowerCase() !== 'admin' && (
                   <>
                     {/* Carrito */}
-                    <button className="relative flex items-center justify-center p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200">
+                    <button
+                      className="relative flex items-center justify-center p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200"
+                      onClick={onCartClick}
+                    >
                       {/* Ícono del carrito */}
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -135,7 +138,7 @@ const Navigation = ({ user, onLogout }) => {
                       </svg>
                       {/* Burbuja del número */}
                       <span className="absolute -top-1.5 -right-1.5 bg-leather-600 text-white text-[10px] font-semibold h-5 w-5 rounded-full flex items-center justify-center shadow-md">
-                        0
+                        {totalCartItems}
                       </span>
                     </button>
                     {/* Favoritos */}
