@@ -1,28 +1,25 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { data, Link, useNavigate, useParams } from 'react-router-dom';
 
-const FormCrearProducto = ({ setUser, loading, setLoading, error, setError }) => {
-  const categorias = [{name:"Pulsera"}, {name:"Mochila"}]
+const FormEditarProducto = ({ user, setUser, loading, setLoading, error, setError }) => {
+  const [categorias,setCategorias] = useState([])
   const navigate = useNavigate();
-  
+  const [producto,setProducto] = useState() ;
+  const id = useParams();
   const [formErrors, setFormErrors] = useState({});
   const [imagenes, setImagenes] = useState([]);
+  useEffect(()=>{
+    fetch(`http://localhost:8080/productos/detalle/${id["*"]}`)
+    .then(response => response.json())
+    .then(data => setProducto(data))
+  },[]);
 
-  const [producto, setProducto] = useState({
-    nombreProducto:"",
-    descripcion:"",
-    precio:"",
-    stock:"",
-    categoria:"",
-    tipoCuero:"",
-    grosor:"",
-    acabado:"",
-    color:"",
-    textura:"",
-    instrucciones:"",
-    imagenes:[]
-  })
-  
+  useEffect(() => {
+      fetch('http://localhost:8080/categories')
+        .then(response => response.json())
+        .then(data => setCategorias(data))
+        .catch(error => console.error('Error al cargar categorías:', error));
+    }, []); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,8 +44,25 @@ const FormCrearProducto = ({ setUser, loading, setLoading, error, setError }) =>
       ...prev,
       [name]: imagenes
     }))
-    console.log(producto)
   }
+  const handleSubmit = async (e) =>{
+    e.preventDefault();
+    const response = await fetch(`http://127.0.0.1:8080/productos/${id["*"]}`,{
+      method: 'PUT',
+      headers:{
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}`
+      },
+      body: JSON.stringify(producto)
+      
+    });
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Actualizado con éxito:', data);
+    } else {
+      console.error('Error al actualizar',data);
+    }
+  };
 return (
     <div className="min-h-screen bg-cream-50 flex items-center justify-center px-6 py-8">
       <div className="w-full max-w-l">
@@ -65,7 +79,7 @@ return (
           {/* Header simple */}
           <div className="text-center mb-8 flex justify-center">
             <h1 className="text-3xl font-serif font-semibold text-leather-800 mb-2">
-              Crear Producto
+              Editar Producto
             </h1>
           </div>
           <div className="mt-4">
@@ -80,7 +94,7 @@ return (
           )} */}
         
           {/* Formulario limpio */}
-          <form onSubmit={()=>console.log("submit")} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Nombre producto */}
             <div className="grid grid-cols-3 gap-4">
               <div>
@@ -92,9 +106,9 @@ return (
                 </label>
                 <input
                   type="text"
-                  id="nombreProducto"
-                  name="nombreProducto"
-                  value={producto.nombreProducto} 
+                  id="nombre"
+                  name="nombre"
+                  value={producto?.nombre} 
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                   placeholder="Nombre de tu producto"
@@ -119,7 +133,7 @@ return (
                   step="any"
                   id="precio"
                   name="precio"
-                  value={producto.precio}  
+                  value={producto?.precio}  
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                   placeholder="10000"
@@ -127,28 +141,6 @@ return (
                 />
                  {/* {formErrors.firstName && (
                   <p className="mt-1 text-sm text-red-600">{formErrors.firstName}</p>
-                )} */}
-              </div>
-              
-              <div>
-                <label 
-                  htmlFor="stock" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Stock
-                </label>
-                <input
-                  type="number"
-                  id="stock"
-                  name="stock"
-                  value={producto.stock}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
-                  placeholder="30"
-                  required
-                />
-                {/* {formErrors.lastName && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.lastName}</p>
                 )} */}
               </div>
             </div>
@@ -166,7 +158,7 @@ return (
                 type="text"
                 id="descripcion"
                 name="descripcion"
-                value={producto.descripcion} 
+                value={producto?.descripcion} 
                 onChange={handleChange} 
                 className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                 placeholder="Tu descripcion..."
@@ -190,14 +182,14 @@ return (
                 <select
                   id="categoria"
                   name="categoria"
-                  value={producto.categoria}
+                  value={producto?.categoria}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 pr-10 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                   required
                 >
-                  <option value="">Seleccionar categoria</option>
-                  {categorias.map(categoria =>(
-                    <option value={categoria.name}>{categoria.name}</option>
+                  <option value="">{producto?.categoria}</option>
+                  {categorias?.map(categoria =>(
+                    <option value={categoria.nombre}>{categoria.nombre}</option>
                   ))}
                 </select>
                 
@@ -215,7 +207,7 @@ return (
                     type="text"
                     id="tipoCuero"
                     name="tipoCuero"
-                    value={producto.tipoCuero}
+                    value={producto?.tipoCuero}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                     placeholder="Nobuck"
@@ -237,7 +229,7 @@ return (
                     type="text"
                     id="grosor"
                     name="grosor"
-                    value={producto.grosor}
+                    value={producto?.grosor}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                     placeholder="Fino"
@@ -261,7 +253,7 @@ return (
                     type="text"
                     id="acabado"
                     name="acabado"
-                    value={producto.acabado}
+                    value={producto?.acabado}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                     placeholder="Vintage"
@@ -285,7 +277,7 @@ return (
                     type="text"
                     id="color"
                     name="color"
-                    value={producto.color}
+                    value={producto?.color}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors`}
                     placeholder="Negro"
@@ -307,7 +299,7 @@ return (
                     type="text"
                     id="textura"
                     name="textura"
-                    value={producto.textura}
+                    value={producto?.textura}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                     placeholder="Trenzado"
@@ -330,7 +322,7 @@ return (
                     type="text"
                     id="instrucciones"
                     name="instrucciones"
-                    value={producto.instrucciones}
+                    value={producto?.instruccionesCuidado}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                     placeholder="Mantener en lugar..."
@@ -367,7 +359,7 @@ return (
                   Creando producto...
                 </div>
               ) : (
-                'Crear Producto'
+                'Editar Producto'
               )}
             </button>
           </form>
@@ -379,4 +371,4 @@ return (
   );
 };
 
-export default FormCrearProducto;
+export default FormEditarProducto;
