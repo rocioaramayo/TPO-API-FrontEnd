@@ -1,3 +1,17 @@
+// Deducir tipo mime a partir del nombre del archivo (si existe)
+function guessMimeType(foto) {
+  if (foto?.nombre) {
+    const ext = foto.nombre.split('.').pop().toLowerCase();
+    if (ext === "png") return "image/png";
+    if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+    if (ext === "gif") return "image/gif";
+    if (ext === "webp") return "image/webp";
+  }
+  // Si empieza con "/9j/" probablemente es JPEG
+  if (foto?.file && foto.file.startsWith("/9j/")) return "image/jpeg";
+  // Default
+  return "image/jpeg";
+}
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
@@ -163,11 +177,17 @@ const ProductDetail = ({ user, onAddToCart }) => {
                         <div className="aspect-square bg-cream-100 rounded-lg mb-4 relative overflow-hidden">
                             {producto.fotos && producto.fotos.length > 0 ? (
                                 <>
-                                    <img
-                                        src={producto.fotos[selectedPhoto].contenidoBase64}
-                                        alt={producto.nombre}
-                                        className="w-full h-full object-cover"
-                                    />
+                                    {(() => {
+                                        const foto = producto.fotos[selectedPhoto];
+                                        const mimeType = guessMimeType(foto);
+                                        return (
+                                            <img
+                                                src={`data:${mimeType};base64,${foto.file}`}
+                                                alt={producto.nombre}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        );
+                                    })()}
                                     {/* Badge de stock bajo */}
                                     {producto.pocoStock && (
                                         <div className="absolute top-4 left-4">
@@ -197,11 +217,16 @@ const ProductDetail = ({ user, onAddToCart }) => {
                                             selectedPhoto === index ? 'border-leather-800' : 'border-leather-200'
                                         }`}
                                     >
-                                        <img
-                                            src={foto.contenidoBase64}
-                                            alt={`${producto.nombre} - ${index + 1}`}
-                                            className="w-full h-full object-cover"
-                                        />
+                                        {(() => {
+                                            const mimeType = guessMimeType(foto);
+                                            return (
+                                                <img
+                                                    src={`data:${mimeType};base64,${foto.file}`}
+                                                    alt={`${producto.nombre} - ${index + 1}`}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            );
+                                        })()}
                                     </button>
                                 ))}
                             </div>
@@ -328,13 +353,6 @@ const ProductDetail = ({ user, onAddToCart }) => {
                                 onClick={() => onAddToCart(producto)}
                             >
                                 Agregar al carrito
-                            </button>
-                            
-                            <button 
-                                onClick={() => alert('Funcionalidad de compra próximamente')}
-                                className="w-full border-2 border-leather-800 text-leather-800 py-3 px-6 rounded-lg font-medium hover:bg-leather-800 hover:text-white transition-all"
-                            >
-                                Comprar ahora
                             </button>
                         </div>
                     </div>

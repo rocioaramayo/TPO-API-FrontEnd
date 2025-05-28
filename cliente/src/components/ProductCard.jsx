@@ -2,6 +2,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import AuthMessage from './AuthMessage';
 
+// Deducir tipo mime a partir del nombre del archivo (si existe)
+function guessMimeType(foto) {
+  if (foto?.nombre) {
+    const ext = foto.nombre.split('.').pop().toLowerCase();
+    if (ext === "png") return "image/png";
+    if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+    if (ext === "gif") return "image/gif";
+    if (ext === "webp") return "image/webp";
+  }
+  // Si empieza con "/9j/" probablemente es JPEG
+  if (foto?.file && foto.file.startsWith("/9j/")) return "image/jpeg";
+  // Default
+  return "image/jpeg";
+}
+
 const ProductCard = ({ 
   id, 
   nombre, 
@@ -45,6 +60,14 @@ const ProductCard = ({
     onFavoriteClick(id);
   }
 
+  // Obtener la imagen principal del producto con tipo dinámico
+  const foto = fotos && fotos.length > 0 ? fotos[0] : null;
+  const mimeType = guessMimeType(foto);
+  const fotoPrincipal =
+    foto && (foto.file || foto.contenidoBase64)
+      ? `data:${mimeType};base64,${foto.file || foto.contenidoBase64}`
+      : null;
+
   return (
     <>
       <div 
@@ -53,9 +76,9 @@ const ProductCard = ({
       >
         {/* Imagen del producto */}
         <div className="aspect-square bg-cream-100 relative">
-          {fotos && fotos.length > 0 ? (
+          {fotoPrincipal ? (
             <img
-              src={fotos[0].contenidoBase64}  
+              src={fotoPrincipal}
               alt={nombre}
               className="w-full h-full object-cover"
               onError={(e) => {
