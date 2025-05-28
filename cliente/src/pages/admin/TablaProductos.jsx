@@ -1,120 +1,13 @@
 import { useEffect, useState } from "react";
-
-// const productos = [
-//   {
-//     id: 1,
-//     activo: true,
-//     color: "Marrón",
-//     descripcion: "Cuero vacuno de alta calidad",
-//     grosor: "1.5 mm",
-//     nombre: "Cuero Premium",
-//     precio: "$1200",
-//     stock: 45,
-//     textura: "Lisa",
-//     tipoCuero: "Vacuno",
-//     categoria: "Tapicería",
-//   },
-//   {
-//     id: 1,
-//     activo: false,
-//     color: "Marrón",
-//     descripcion: "Cuero vacuno de alta calidadvubdsiapvfbqpiudbvuqbudvuibepduvpbuiadsbvupbsupdvbpsuaivbauispbuisdbvu",
-//     grosor: "1.5 mm",
-//     nombre: "Cuero Premium",
-//     precio: "$1200",
-//     stock: 45,
-//     textura: "Lisa",
-//     tipoCuero: "Vacuno",
-//     categoria: "Tapicería",
-//   },
-//   {
-//     id: 1,
-//     activo: true,
-//     color: "Marrón",
-//     descripcion: "Cuero vacuno de alta calidad",
-//     grosor: "1.5 mm",
-//     nombre: "Cuero Premium",
-//     precio: "$1200",
-//     stock: 45,
-//     textura: "Lisa",
-//     tipoCuero: "Vacuno",
-//     categoria: "Tapicería",
-//   },
-//   {
-//     id: 1,
-//     activo: false,
-//     color: "Marrón",
-//     descripcion: "Cuero vacuno de alta calidadvubdsiapvfbqpiudbvuqbudvuibepduvpbuiadsbvupbsupdvbpsuaivbauispbuisdbvu",
-//     grosor: "1.5 mm",
-//     nombre: "Cuero Premium",
-//     precio: "$1200",
-//     stock: 45,
-//     textura: "Lisa",
-//     tipoCuero: "Vacuno",
-//     categoria: "Tapicería",
-//   },
-//   {
-//     id: 1,
-//     activo: true,
-//     color: "Marrón",
-//     descripcion: "Cuero vacuno de alta calidad",
-//     grosor: "1.5 mm",
-//     nombre: "Cuero Premium",
-//     precio: "$1200",
-//     stock: 45,
-//     textura: "Lisa",
-//     tipoCuero: "Vacuno",
-//     categoria: "Tapicería",
-//   },
-//   {
-//     id: 1,
-//     activo: false,
-//     color: "Marrón",
-//     descripcion: "Cuero vacuno de alta calidadvubdsiapvfbqpiudbvuqbudvuibepduvpbuiadsbvupbsupdvbpsuaivbauispbuisdbvu",
-//     grosor: "1.5 mm",
-//     nombre: "Cuero Premium",
-//     precio: "$1200",
-//     stock: 45,
-//     textura: "Lisa",
-//     tipoCuero: "Vacuno",
-//     categoria: "Tapicería",
-//   },
-//   {
-//     id: 1,
-//     activo: true,
-//     color: "Marrón",
-//     descripcion: "Cuero vacuno de alta calidad",
-//     grosor: "1.5 mm",
-//     nombre: "Cuero Premium",
-//     precio: "$1200",
-//     stock: 45,
-//     textura: "Lisa",
-//     tipoCuero: "Vacuno",
-//     categoria: "Tapicería",
-//   },
-//   {
-//     id: 1,
-//     activo: true,
-//     color: "Marrón",
-//     descripcion: "Cuero vacuno de alta calidad",
-//     grosor: "1.5 mm",
-//     nombre: "Cuero Premium",
-//     precio: "$1200",
-//     stock: 45,
-//     textura: "Lisa",
-//     tipoCuero: "Vacuno",
-//     categoria: "Tapicería",
-//   },
-//   // Agrega más productos aquí...
-// ];
+import { useNavigate } from "react-router-dom";
 
 export default function TablaProductos({}) {
+  const navigate = useNavigate()
   const [productos,setProductos] = useState([]);
   useEffect(() => {
       fetch("http://localhost:8080/productos")
           .then((res) => res.json())
           .then((data) => {
-          console.log(data.productos)
           setProductos(data.productos);
           });
   }, []);
@@ -125,9 +18,12 @@ export default function TablaProductos({}) {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentProductos = productos?.slice(startIndex, endIndex);
-    console.log(currentProductos)
     // Calcular el total de páginas
     const totalPages = Math.ceil(productos.length / itemsPerPage);
+    const handleEdit = (e) => {
+      e.preventDefault();
+      navigate(`/admin/productos/editar/${e.target.value}`)
+    }
   return (
     <>
         <div className="overflow-x-auto shadow-cognac rounded-lg border border-leather-200">
@@ -152,9 +48,9 @@ export default function TablaProductos({}) {
             {currentProductos.map((prod) => (
                 <tr key={prod.id} className="hover:bg-leather-50 transition">
                 <td className="px-4 py-3">
-                    <button className="px-1">✏️</button>
-                    <button className="px-1">🗑️</button>
-                    <button className="px-1">📦➕</button>
+                    <button className="px-1" value={prod.id} onClick={handleEdit}>✏️</button>
+                    <button className="px-1" value={prod.id}>🗑️</button>
+                    <button className="px-1" value={prod.id}>📦➕</button>
                 </td>
                 <td className="px-4 py-3">{prod.id}</td>
                 <td className="px-4 py-3">{prod.nombre}</td>
