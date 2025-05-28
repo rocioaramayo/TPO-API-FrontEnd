@@ -354,13 +354,6 @@ const ProductDetail = ({ user, onAddToCart }) => {
                             >
                                 Agregar al carrito
                             </button>
-                            
-                            <button 
-                                onClick={() => alert('Funcionalidad de compra próximamente')}
-                                className="w-full border-2 border-leather-800 text-leather-800 py-3 px-6 rounded-lg font-medium hover:bg-leather-800 hover:text-white transition-all"
-                            >
-                                Comprar ahora
-                            </button>
                         </div>
                     </div>
                 </div>

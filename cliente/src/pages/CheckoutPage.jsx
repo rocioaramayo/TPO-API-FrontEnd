@@ -443,16 +443,22 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                     <div className="flex flex-col items-center">
                       <button
                         type="button"
-                        className={`w-[150px] h-32 flex-shrink-0 flex flex-col items-center justify-center p-3 rounded border-2 ${metodoPago === "EFECTIVO" ? "border-leather-700 bg-leather-50" : "border-gray-300 bg-white"} hover:border-leather-700 transition ${metodoEntrega !== 2 ? "opacity-50 cursor-not-allowed" : ""}`}
-                        disabled={metodoEntrega !== 2}
+                        className={`w-[150px] h-32 flex-shrink-0 flex flex-col items-center justify-center p-3 rounded border-2
+                          ${metodoPago === "EFECTIVO" ? "border-leather-700 bg-leather-50" : "border-gray-300 bg-white"}
+                          hover:border-leather-700 transition
+                          ${metodoSeleccionado?.nombre?.toLowerCase().includes("retiro") ? "" : "opacity-50 cursor-not-allowed"}
+                        `}
+                        disabled={!metodoSeleccionado?.nombre?.toLowerCase().includes("retiro")}
                         onClick={() => {
-                          if (metodoEntrega === 2) setMetodoPago("EFECTIVO");
+                          if (metodoSeleccionado?.nombre?.toLowerCase().includes("retiro")) {
+                            setMetodoPago("EFECTIVO");
+                          }
                         }}
                       >
                         <BsCash className="mb-1" size={36} />
                         <span className="text-sm font-bold">Efectivo</span>
                       </button>
-                      {metodoEntrega !== 2 && (
+                      {!metodoSeleccionado?.nombre?.toLowerCase().includes("retiro") && (
                         <span className="block text-xs text-gray-500 text-center mt-1">
                           Solo disponible para retiro en tienda
                         </span>
