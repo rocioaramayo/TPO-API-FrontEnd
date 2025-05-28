@@ -18,6 +18,7 @@ import TerminosCondiciones from './pages/TerminosCondiciones.jsx';
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad.jsx';
 import ProfilePage from "./components/ProfilePage.jsx";
 
+
 const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -60,7 +61,8 @@ const App = () => {
                   </>
               }
           />
-        <Route 
+
+          <Route
           path="/register" 
           element={
             <>
