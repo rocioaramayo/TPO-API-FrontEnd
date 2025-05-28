@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { data, Link, useNavigate } from 'react-router-dom';
 
-const FormCrearProducto = ({ setUser, loading, setLoading, error, setError }) => {
-  const categorias = [{name:"Pulsera"}, {name:"Mochila"}]
+const FormCrearProducto = ({ user, setUser, loading, setLoading, error, setError }) => {
+  const [categorias, setCategorias] = useState([]) 
   const navigate = useNavigate();
   
   const [formErrors, setFormErrors] = useState({});
@@ -22,7 +22,18 @@ const FormCrearProducto = ({ setUser, loading, setLoading, error, setError }) =>
     instrucciones:"",
     imagenes:[]
   })
+  useEffect(() => {
+    console.log('Usuario en Productos:', user);
+    console.log('¿Tiene token?', user?.token ? 'SÍ' : 'NO');
+  }, [user]);
   
+  useEffect(() => {
+      fetch('http://localhost:8080/categories')
+        .then(response => response.json())
+        .then(data => setCategorias(data))
+        .then(data => console.log(data))
+        .catch(error => console.error('Error al cargar categorías:', error));
+    }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -196,8 +207,8 @@ return (
                   required
                 >
                   <option value="">Seleccionar categoria</option>
-                  {categorias.map(categoria =>(
-                    <option value={categoria.name}>{categoria.name}</option>
+                  {categorias.length > 0 && categorias.map(categoria =>(
+                    <option value={categoria.nombre}>{categoria.nombre}</option>
                   ))}
                 </select>
                 
