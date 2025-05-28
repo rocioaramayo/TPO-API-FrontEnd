@@ -25,6 +25,23 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
   const [montoDescuento, setMontoDescuento] = React.useState(null);
   const [totalBD, setTotalBD] = React.useState(null);
 
+  // Estado local para datos del usuario
+  const [userInfo, setUserInfo] = React.useState(null);
+
+  // Efecto para obtener datos del usuario autenticado
+  React.useEffect(() => {
+    if (user?.token) {
+      fetch("http://127.0.0.1:8080/api/v1/users/me", {
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        }
+      })
+        .then(res => res.json())
+        .then(data => setUserInfo(data))
+        .catch(() => setUserInfo(null));
+    }
+  }, [user]);
+
   // Estados para checkout
   const [metodoEntrega, setMetodoEntrega] = React.useState(null); // 1 para envío, 2 para retiro
   const [direccion, setDireccion] = React.useState("");
@@ -149,44 +166,56 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
     const body = {
       items,
       codigoDescuento: aplicado ? cupon.trim() : null,
-      metodoEntrega,
+      metodoEntregaId: metodoEntrega,
     };
 
-    if (metodoEntrega === 1) {
-      body.direccion = {
-        direccion: direccion.trim(),
-        localidad: localidad.trim(),
-        provincia: provincia.trim(),
-        codigoPostal: codigoPostal.trim(),
-        telefono: telefono.trim(),
-      };
-    } else if (metodoEntrega === 2) {
-      body.puntoRetiroId = puntoRetiroId.trim();
-    }
+    // Nuevo: obtener flags de la API para saber qué campos agregar
+    (async () => {
+      const metodo = await fetch("http://localhost:8080/entregas/metodos")
+        .then(res => res.json())
+        .then(data => data.find(m => m.id === metodoEntrega));
 
-    fetch('http://localhost:8080/compras', {
-      method: 'POST',
-      headers: {
-        'Authorization': user?.token ? `Bearer ${user.token}` : undefined,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Error en la compra");
-        return res.json();
+      if (!metodo) {
+        setErrorCheckout("Método de entrega inválido.");
+        return;
+      }
+
+      if (metodo.requiereDireccion) {
+        body.direccionEntrega = direccion.trim();
+        body.localidadEntrega = localidad.trim();
+        body.provinciaEntrega = provincia.trim();
+        body.codigoPostalEntrega = codigoPostal.trim();
+        body.telefonoContacto = telefono.trim();
+      }
+
+      if (metodo.requierePuntoRetiro) {
+        body.puntoRetiroId = puntoRetiroId.trim();
+      }
+
+      fetch('http://localhost:8080/compras', {
+        method: 'POST',
+        headers: {
+          'Authorization': user?.token ? `Bearer ${user.token}` : undefined,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
       })
-      .then(data => {
-        // Aquí se podría redirigir o mostrar mensaje de éxito
-        alert("Compra realizada con éxito.");
-        // Limpiar carrito y navegar a otra página si se desea
-        setCartItems([]);
-        navigate("/");
-      })
-      .catch(() => {
-        setErrorCheckout("Hubo un error al procesar la compra. Intenta nuevamente.");
-      });
-  };
+        .then(res => {
+          if (!res.ok) throw new Error("Error en la compra");
+          return res.json();
+        })
+        .then(data => {
+          // Aquí se podría redirigir o mostrar mensaje de éxito
+          alert("Compra realizada con éxito.");
+          // Limpiar carrito y navegar a otra página si se desea
+          setCartItems([]);
+          navigate("/");
+        })
+        .catch(() => {
+          setErrorCheckout("Hubo un error al procesar la compra. Intenta nuevamente.");
+        });
+    })();
+    }
 
   return (
     <>
@@ -217,7 +246,12 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
               {/* Nombre del comprador */}
               <div className="pb-0">
                 <h3 className="font-semibold text-leather-700 mb-1">Nombre del comprador</h3>
-                <div className="text-gray-800">{user?.email || "Invitado"}</div>
+                <div className="text-gray-800">
+                  {userInfo ? `${userInfo.firstName} ${userInfo.lastName}` : "Invitado"}
+                </div>
+                {userInfo && (
+                  <div className="text-sm text-gray-600">{userInfo.email}</div>
+                )}
               </div>
               {/* Entrega */}
               <div className="pt-0">
