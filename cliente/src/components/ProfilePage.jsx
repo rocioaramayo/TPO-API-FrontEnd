@@ -1,199 +1,126 @@
-import { useEffect, useState } from "react";
-import { FaUser, FaSignOutAlt, FaMapMarkerAlt, FaShoppingCart, FaCreditCard } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
 
-const ProfilePage = ({ user, onLogout }) => {
-    const [activeTab, setActiveTab] = useState("perfil");
-    const [editMode, setEditMode] = useState(false);
-    const [editedUser, setEditedUser] = useState({ firstName: "", lastName: "" });
+const ProfilePage = ({ user }) => {
+  const [userInfo, setUserInfo] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+  });
 
-    useEffect(() => {
-        if (user) {
-            setEditedUser({ firstName: user.firstName, lastName: user.lastName });
-        }
-    }, [user]);
-
-    if (!user) {
-        return <p className="text-center mt-10 text-gray-600">Cargando datos del usuario...</p>;
+  useEffect(() => {
+    if (user?.token) {
+      fetch("http://127.0.0.1:8080/api/v1/users/me", {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setUserInfo(data);
+          setFormData({
+            firstName: data.firstName || "",
+            lastName: data.lastName || "",
+            email: data.email || "",
+          });
+        })
+        .catch(() => setUserInfo(null));
     }
+  }, [user]);
 
-    const handleInputChange = (e) => {
-        setEditedUser({ ...editedUser, [e.target.name]: e.target.value });
-    };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-    const handleSave = () => {
-        console.log("Datos actualizados:", editedUser);
-        setEditMode(false);
-        // Aquí podrías hacer una petición para guardar los cambios si querés
-    };
+  const handleSave = () => {
+    // Si querés que esto haga un PUT a la API, avisame y te lo armo.
+    setUserInfo({ ...userInfo, ...formData });
+    setEditMode(false);
+  };
 
-    const handleCancel = () => {
-        setEditedUser({ firstName: user.firstName, lastName: user.lastName });
-        setEditMode(false);
-    };
-
-    const renderContent = () => {
-        switch (activeTab) {
-            case "perfil":
-                return (
-                    <div>
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-semibold text-leather-800">Perfil de Usuario</h2>
-                            {!editMode && (
-                                <button
-                                    onClick={() => setEditMode(true)}
-                                    className="bg-leather-800 text-white px-4 py-1.5 rounded hover:bg-leather-700 text-sm"
-                                >
-                                    Editar
-                                </button>
-                            )}
-                        </div>
-
-                        <div className="space-y-4 text-leather-700">
-                            <div>
-                                <h3 className="text-lg font-medium">Nombre</h3>
-                                {editMode ? (
-                                    <input
-                                        type="text"
-                                        name="firstName"
-                                        value={editedUser.firstName}
-                                        onChange={handleInputChange}
-                                        className="w-full border border-gray-300 rounded px-3 py-2"
-                                    />
-                                ) : (
-                                    <p>{user.firstName}</p>
-                                )}
-                            </div>
-
-                            <div>
-                                <h3 className="text-lg font-medium">Apellido</h3>
-                                {editMode ? (
-                                    <input
-                                        type="text"
-                                        name="lastName"
-                                        value={editedUser.lastName}
-                                        onChange={handleInputChange}
-                                        className="w-full border border-gray-300 rounded px-3 py-2"
-                                    />
-                                ) : (
-                                    <p>{user.lastName}</p>
-                                )}
-                            </div>
-
-                            <div>
-                                <h3 className="text-lg font-medium">Email</h3>
-                                <p className="text-gray-800">{user.email}</p>
-                            </div>
-
-                            {editMode && (
-                                <div className="flex gap-3 mt-6">
-                                    <button
-                                        onClick={handleSave}
-                                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                                    >
-                                        Guardar
-                                    </button>
-                                    <button
-                                        onClick={handleCancel}
-                                        className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
-                                    >
-                                        Cancelar
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                );
-
-            case "direccion":
-                return (
-                    <div>
-                        <h2 className="text-2xl font-semibold text-leather-800 mb-4">Dirección</h2>
-                        {/* Aquí ponés el formulario o información de dirección */}
-                        <p>Aquí podés mostrar y editar la dirección del usuario.</p>
-                    </div>
-                );
-
-            case "pedidos":
-                return (
-                    <div>
-                        <h2 className="text-2xl font-semibold text-leather-800 mb-4">Pedidos</h2>
-                        {/* Aquí podés listar los pedidos */}
-                        <p>Aquí podés mostrar el historial de pedidos del usuario.</p>
-                    </div>
-                );
-
-            case "tarjetas":
-                return (
-                    <div>
-                        <h2 className="text-2xl font-semibold text-leather-800 mb-4">Tarjetas de Crédito</h2>
-                        {/* Aquí podés mostrar tarjetas guardadas */}
-                        <p>Aquí podés listar y gestionar las tarjetas de crédito del usuario.</p>
-                    </div>
-                );
-
-            default:
-                return <p>Contenido no disponible</p>;
-        }
-    };
-
+  if (!userInfo) {
     return (
-        <div className="max-w-5xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-md flex flex-col md:flex-row gap-8">
-            {/* Sidebar */}
-            <aside className="md:w-1/4 border-r border-gray-200 pr-6">
-                <div className="flex flex-col items-center mb-8">
-                    <div className="w-24 h-24 rounded-full bg-leather-800 flex items-center justify-center text-white text-4xl font-bold shadow-md">
-                        {user.firstName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "?"}
-                    </div>
-                    <p className="mt-4 text-lg font-semibold">{user.firstName} {user.lastName}</p>
-                    <p className="text-sm text-gray-500">{user.email}</p>
-                </div>
-
-                <nav className="flex flex-col space-y-3">
-                    <button
-                        onClick={() => setActiveTab("perfil")}
-                        className={`flex items-center gap-3 px-4 py-2 rounded-md font-medium w-full
-            ${activeTab === "perfil" ? "bg-leather-800 text-white" : "text-leather-800 hover:bg-leather-100"}`}
-                    >
-                        <FaUser /> Perfil
-                    </button>
-
-                    <button
-                        onClick={() => setActiveTab("direccion")}
-                        className={`flex items-center gap-3 px-4 py-2 rounded-md font-medium w-full
-            ${activeTab === "direccion" ? "bg-leather-800 text-white" : "text-leather-800 hover:bg-leather-100"}`}
-                    >
-                        <FaMapMarkerAlt /> Dirección
-                    </button>
-
-                    <button
-                        onClick={() => setActiveTab("pedidos")}
-                        className={`flex items-center gap-3 px-4 py-2 rounded-md font-medium w-full
-            ${activeTab === "pedidos" ? "bg-leather-800 text-white" : "text-leather-800 hover:bg-leather-100"}`}
-                    >
-                        <FaShoppingCart /> Pedidos
-                    </button>
-
-                    <button
-                        onClick={() => setActiveTab("tarjetas")}
-                        className={`flex items-center gap-3 px-4 py-2 rounded-md font-medium w-full
-            ${activeTab === "tarjetas" ? "bg-leather-800 text-white" : "text-leather-800 hover:bg-leather-100"}`}
-                    >
-                        <FaCreditCard /> Tarjetas de Crédito
-                    </button>
-
-                    <button
-                        onClick={onLogout}
-                        className="flex items-center gap-3 px-4 py-2 rounded-md font-medium w-full text-red-600 hover:bg-red-100"
-                    >
-                        <FaSignOutAlt /> Salir
-                    </button>
-                </nav>
-            </aside>
-
-            {/* Contenido principal */}
-            <main className="md:w-3/4">{renderContent()}</main>
-        </div>
+      <div className="min-h-screen flex items-center justify-center text-gray-600 text-xl">
+        Cargando datos del perfil...
+      </div>
     );
+  }
+
+  return (
+    <div className="min-h-screen bg-white py-10 px-4 flex flex-col items-center">
+      <div className="max-w-3xl w-full border rounded-lg p-6 shadow-sm bg-gray-50">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold text-leather-800">Mi Perfil</h2>
+          {!editMode ? (
+            <button
+              onClick={() => setEditMode(true)}
+              className="px-4 py-2 bg-leather-600 text-white rounded-lg hover:bg-leather-700 transition"
+            >
+              Editar
+            </button>
+          ) : (
+            <button
+              onClick={handleSave}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            >
+              Guardar
+            </button>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <span className="font-semibold text-leather-700">Nombre:</span>{" "}
+            {editMode ? (
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                className="border p-1 rounded ml-2"
+              />
+            ) : (
+              userInfo.firstName
+            )}
+          </div>
+          <div>
+            <span className="font-semibold text-leather-700">Apellido:</span>{" "}
+            {editMode ? (
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                className="border p-1 rounded ml-2"
+              />
+            ) : (
+              userInfo.lastName
+            )}
+          </div>
+          <div>
+            <span className="font-semibold text-leather-700">Email:</span>{" "}
+            {editMode ? (
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="border p-1 rounded ml-2"
+              />
+            ) : (
+              userInfo.email
+            )}
+          </div>
+          <div>
+            <span className="font-semibold text-leather-700">Rol:</span>{" "}
+            {userInfo.role}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ProfilePage;
