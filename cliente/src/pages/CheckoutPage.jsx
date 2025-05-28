@@ -7,6 +7,23 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 
 const CarritoPage = ({ cartItems, setCartItems, user }) => {
+  const navigate = useNavigate();
+
+  // BLOQUEO DE ACCESO SI NO HAY USUARIO AUTENTICADO
+  if (!user || !user.token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-xl text-red-600">
+        Debes estar autenticado para acceder al carrito. <br />
+        <button
+          onClick={() => navigate("/login")}
+          className="underline text-leather-700 ml-2"
+        >
+          Ir al login
+        </button>
+      </div>
+    );
+  }
+
   if (!cartItems) {
     return (
       <div className="min-h-screen flex items-center justify-center text-xl text-red-600">
@@ -14,8 +31,6 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
       </div>
     );
   }
-
-  const navigate = useNavigate();
 
   // Calcula el total
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -239,9 +254,9 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
             &lt; Volver al sitio
           </button>
           <h2 className="text-3xl font-bold text-center mb-6">Checkout</h2>
-          <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] md:grid-flow-col-dense gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] md:grid-flow-col-dense gap-16">
             {/* Columna izquierda: datos del comprador, entrega y pago */}
-            <div className="bg-white shadow-md rounded-lg px-8 pt-8 pb-10 flex flex-col gap-4 min-w-[520px] max-w-[740px] mx-auto">
+            <div className="bg-white shadow-md rounded-lg px-8 pt-8 pb-10 flex flex-col gap-4 min-w-[520px] max-w-[1200px] ml-0">
               {/* Email de contacto solo si no hay usuario */}
               {!user && (
                 <div className="pt-0">
@@ -291,41 +306,54 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                 </div>
                 {metodoEntrega === 1 && (
                   <div className="mt-4 space-y-2">
-                    <input
-                      type="text"
-                      placeholder="Dirección"
-                      value={direccion}
-                      onChange={e => setDireccion(e.target.value)}
-                      className="border rounded px-3 py-2 w-full"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Localidad"
-                      value={localidad}
-                      onChange={e => setLocalidad(e.target.value)}
-                      className="border rounded px-3 py-2 w-full"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Provincia"
-                      value={provincia}
-                      onChange={e => setProvincia(e.target.value)}
-                      className="border rounded px-3 py-2 w-full"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Código Postal"
-                      value={codigoPostal}
-                      onChange={e => setCodigoPostal(e.target.value)}
-                      className="border rounded px-3 py-2 w-full"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Teléfono"
-                      value={telefono}
-                      onChange={e => setTelefono(e.target.value)}
-                      className="border rounded px-3 py-2 w-full"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Nombre"
+                        value={userInfo ? `${userInfo.firstName} ${userInfo.lastName}` : ""}
+                        readOnly
+                        className="border rounded px-3 py-2 w-1/2 bg-gray-50 text-gray-500"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Teléfono"
+                        value={telefono}
+                        onChange={e => setTelefono(e.target.value)}
+                        className="border rounded px-3 py-2 w-1/2"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Dirección"
+                        value={direccion}
+                        onChange={e => setDireccion(e.target.value)}
+                        className="border rounded px-3 py-2 w-1/2"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Localidad"
+                        value={localidad}
+                        onChange={e => setLocalidad(e.target.value)}
+                        className="border rounded px-3 py-2 w-1/2"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Código Postal"
+                        value={codigoPostal}
+                        onChange={e => setCodigoPostal(e.target.value)}
+                        className="border rounded px-3 py-2 w-1/2"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Provincia"
+                        value={provincia}
+                        onChange={e => setProvincia(e.target.value)}
+                        className="border rounded px-3 py-2 w-1/2"
+                      />
+                    </div>
                   </div>
                 )}
                 {metodoEntrega === 2 && (
@@ -351,7 +379,7 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                 <div className="flex flex-nowrap md:flex-nowrap lg:flex-nowrap xl:flex-nowrap 2xl:flex-nowrap sm:flex-wrap gap-6 mb-4 w-full min-h-[170px] overflow-x-auto">
                   <button
                     type="button"
-                    className={`w-[220px] h-40 flex-shrink-0 flex flex-col items-center justify-center p-3 rounded border-2 ${metodoPago === "TARJETA_CREDITO" ? "border-leather-700 bg-leather-50" : "border-gray-300 bg-white"} hover:border-leather-700 transition`}
+                    className={`w-[150px] h-32 flex-shrink-0 flex flex-col items-center justify-center p-3 rounded border-2 ${metodoPago === "TARJETA_CREDITO" ? "border-leather-700 bg-leather-50" : "border-gray-300 bg-white"} hover:border-leather-700 transition`}
                     onClick={() => setMetodoPago("TARJETA_CREDITO")}
                   >
                     <FaCreditCard className="mb-1" size={36} />
@@ -359,7 +387,7 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                   </button>
                   <button
                     type="button"
-                    className={`w-[220px] h-40 flex-shrink-0 flex flex-col items-center justify-center p-3 rounded border-2 ${metodoPago === "TARJETA_DEBITO" ? "border-leather-700 bg-leather-50" : "border-gray-300 bg-white"} hover:border-leather-700 transition`}
+                    className={`w-[150px] h-32 flex-shrink-0 flex flex-col items-center justify-center p-3 rounded border-2 ${metodoPago === "TARJETA_DEBITO" ? "border-leather-700 bg-leather-50" : "border-gray-300 bg-white"} hover:border-leather-700 transition`}
                     onClick={() => setMetodoPago("TARJETA_DEBITO")}
                   >
                     <MdOutlineCreditCard className="mb-1" size={36} />
@@ -367,7 +395,7 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                   </button>
                   <button
                     type="button"
-                    className={`w-[220px] h-40 flex-shrink-0 flex flex-col items-center justify-center p-3 rounded border-2 ${metodoPago === "MERCADO_PAGO" ? "border-leather-700 bg-leather-50" : "border-gray-300 bg-white"} hover:border-leather-700 transition`}
+                    className={`w-[150px] h-32 flex-shrink-0 flex flex-col items-center justify-center p-3 rounded border-2 ${metodoPago === "MERCADO_PAGO" ? "border-leather-700 bg-leather-50" : "border-gray-300 bg-white"} hover:border-leather-700 transition`}
                     onClick={() => setMetodoPago("MERCADO_PAGO")}
                   >
                     <SiMercadopago className="mb-1" size={36} />
@@ -375,20 +403,30 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                   </button>
                   <button
                     type="button"
-                    className={`w-[220px] h-40 flex-shrink-0 flex flex-col items-center justify-center p-3 rounded border-2 ${metodoPago === "TRANSFERENCIA" ? "border-leather-700 bg-leather-50" : "border-gray-300 bg-white"} hover:border-leather-700 transition`}
+                    className={`w-[150px] h-32 flex-shrink-0 flex flex-col items-center justify-center p-3 rounded border-2 ${metodoPago === "TRANSFERENCIA" ? "border-leather-700 bg-leather-50" : "border-gray-300 bg-white"} hover:border-leather-700 transition`}
                     onClick={() => setMetodoPago("TRANSFERENCIA")}
                   >
                     <FaUniversity className="mb-1" size={36} />
                     <span className="text-sm font-bold">Transferencia</span>
                   </button>
-                  <button
-                    type="button"
-                    className={`w-[220px] h-40 flex-shrink-0 flex flex-col items-center justify-center p-3 rounded border-2 ${metodoPago === "EFECTIVO" ? "border-leather-700 bg-leather-50" : "border-gray-300 bg-white"} hover:border-leather-700 transition`}
-                    onClick={() => setMetodoPago("EFECTIVO")}
-                  >
-                    <BsCash className="mb-1" size={36} />
-                    <span className="text-sm font-bold">Efectivo</span>
-                  </button>
+                  <div className="flex flex-col items-center">
+                    <button
+                      type="button"
+                      className={`w-[150px] h-32 flex-shrink-0 flex flex-col items-center justify-center p-3 rounded border-2 ${metodoPago === "EFECTIVO" ? "border-leather-700 bg-leather-50" : "border-gray-300 bg-white"} hover:border-leather-700 transition ${metodoEntrega !== 2 ? "opacity-50 cursor-not-allowed" : ""}`}
+                      disabled={metodoEntrega !== 2}
+                      onClick={() => {
+                        if (metodoEntrega === 2) setMetodoPago("EFECTIVO");
+                      }}
+                    >
+                      <BsCash className="mb-1" size={36} />
+                      <span className="text-sm font-bold">Efectivo</span>
+                    </button>
+                    {metodoEntrega !== 2 && (
+                      <span className="block text-xs text-gray-500 text-center mt-1">
+                        Solo disponible para retiro en tienda
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {/* Inputs para tarjeta */}
                 {(metodoPago === "TARJETA_CREDITO" || metodoPago === "TARJETA_DEBITO") && (
