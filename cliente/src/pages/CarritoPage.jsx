@@ -21,36 +21,59 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
   const [aplicado, setAplicado] = React.useState(false);
   const [descuento, setDescuento] = React.useState(0);
   const [cuponMsg, setCuponMsg] = React.useState("");
+  const [subtotalBD, setSubtotalBD] = React.useState(null);
+  const [montoDescuento, setMontoDescuento] = React.useState(null);
+  const [totalBD, setTotalBD] = React.useState(null);
 
   const handleAplicarCupon = () => {
     const codigo = cupon.trim();
     if (!codigo || !user?.token) return;
 
-    fetch('http://localhost:8080/descuentos/validar?codigo=' + codigo, {
-      headers: {
-        'Authorization': `Bearer ${user.token}`
+    const items = cartItems.map(item => {
+      return {
+        productoId: item.id || item.productoId,
+        cantidad: item.quantity
       }
+    });
+
+    fetch('http://localhost:8080/descuentos/validar', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${user.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        codigoDescuento: codigo,
+        items
+      })
     })
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0 && data[0].activo) {
-          setDescuento(Number(data[0].porcentaje));
+        if (data.descuentoAplicado) {
+          setDescuento(data.porcentajeDescuento);
           setAplicado(true);
-          setCuponMsg(`Cupón aplicado: ${data[0].porcentaje}% de descuento`);
+          setCuponMsg(`Cupón aplicado: ${data.porcentajeDescuento}% de descuento`);
+          setSubtotalBD(data.subtotalSinDescuento);
+          setMontoDescuento(data.montoDescuento);
+          setTotalBD(data.totalConDescuento);
         } else {
           setDescuento(0);
           setAplicado(false);
-          setCuponMsg('Cupón inválido');
+          setCuponMsg(data.mensajeError || 'Cupón inválido');
+          setSubtotalBD(null);
+          setMontoDescuento(null);
+          setTotalBD(null);
         }
       })
       .catch(() => {
         setDescuento(0);
         setAplicado(false);
         setCuponMsg('Cupón inválido');
+        setSubtotalBD(null);
+        setMontoDescuento(null);
+        setTotalBD(null);
       });
   };
-
-  const total = subtotal * (1 - descuento / 100);
 
   // Handlers para cantidad y eliminar productos
   const handleQuantityChange = (idx, newQty) => {
@@ -150,7 +173,15 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                   {aplicado && (
                     <button
                       className="ml-2 text-leather-700 underline text-xs"
-                      onClick={() => { setAplicado(false); setCupon(""); setDescuento(0); setCuponMsg(""); }}
+                      onClick={() => {
+                        setAplicado(false);
+                        setCupon("");
+                        setDescuento(0);
+                        setCuponMsg("");
+                        setSubtotalBD(null);
+                        setMontoDescuento(null);
+                        setTotalBD(null);
+                      }}
                       type="button"
                     >
                       Quitar cupón
@@ -162,17 +193,25 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                 )}
                 <div className="flex justify-between mb-2">
                   <span>Subtotal</span>
-                  <span>${subtotal.toLocaleString("es-AR")}</span>
+                  <span>
+                    ${aplicado && subtotalBD !== null
+                      ? subtotalBD.toLocaleString("es-AR")
+                      : subtotal.toLocaleString("es-AR")}
+                  </span>
                 </div>
-                {descuento > 0 && (
+                {aplicado && descuento > 0 && montoDescuento !== null && (
                   <div className="flex justify-between mb-2 text-green-700">
                     <span>Descuento ({descuento}%)</span>
-                    <span>- ${Math.round(subtotal * descuento / 100).toLocaleString("es-AR")}</span>
+                    <span>- ${Math.round(montoDescuento).toLocaleString("es-AR")}</span>
                   </div>
                 )}
                 <div className="flex justify-between font-bold text-xl mb-4">
                   <span>Total</span>
-                  <span>${total.toLocaleString("es-AR")}</span>
+                  <span>
+                    ${aplicado && totalBD !== null
+                      ? totalBD.toLocaleString("es-AR")
+                      : subtotal.toLocaleString("es-AR")}
+                  </span>
                 </div>
               </div>
               <button

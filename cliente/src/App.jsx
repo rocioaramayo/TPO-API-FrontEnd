@@ -46,6 +46,7 @@ const App = () => {
     }
 
     const newItem = {
+      id: product.id, // Agregado el id de producto
       name: product.nombre || product.name || "Producto",
       price: product.precio || product.price || 0,
       image: product.imagen || product.image || "https://via.placeholder.com/80?text=Sin+Imagen",
@@ -54,11 +55,11 @@ const App = () => {
     };
 
     setCartItems((prevItems) => {
-      const existing = prevItems.find(item => item.name === newItem.name);
+      const existing = prevItems.find(item => item.id === newItem.id);
       if (existing) {
         if (existing.quantity >= newItem.stock) return prevItems;
         return prevItems.map(item =>
-          item.name === newItem.name
+          item.id === newItem.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
