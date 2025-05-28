@@ -102,7 +102,7 @@ return (
                 />
                 {/* {formErrors.username && (
                   <p className="mt-1 text-sm text-red-600">{formErrors.username}</p>
-                )// NI IDEA QUE ES ESTO
+                )
                 }  */}
               </div>
              {/* Precio y stock */}
@@ -361,14 +361,14 @@ return (
               // disabled={loading}
               className="w-full bg-leather-800 text-white py-2.5 px-4 rounded font-medium hover:bg-leather-900 focus:outline-none focus:ring-2 focus:ring-leather-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {/* {loading ? (
+              {loading ? (
                 <div className="flex items-center justify-center">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                   Creando producto...
                 </div>
               ) : (
                 'Crear Producto'
-              )} */}
+              )}
             </button>
           </form>
         </div>
