@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Footer from '../components/Footer';
 import artesano from "../assets/artesano-trabajando.jpg";
+import ProductCard from '../components/ProductCard';
 
 const Home = ({ user, logout }) => {
   const navigate = useNavigate();
@@ -172,63 +173,15 @@ const Home = ({ user, logout }) => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {featuredProducts.map((producto) => (
-                <div 
-                  key={producto.id} 
-                  onClick={() => navigate(`/productos/${producto.id}`)}
-                  className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
-                >
-                  <div className="bg-cream-100 aspect-square relative">
-                    {producto.fotos && producto.fotos.length > 0 ? (
-                      <img
-                        src={producto.fotos[0].contenidoBase64}
-                        alt={producto.nombre}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <svg className="w-16 h-16 text-leather-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                    )}
-
-                    {/*  stock bajo */}
-                    {producto.pocoStock && (
-                      <div className="absolute top-2 left-2">
-                        <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
-                          Poco stock
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-6">
-                    <span className="text-sm text-leather-600 font-medium bg-leather-100 px-3 py-1 rounded-full">
-                      {producto.categoria}
-                    </span>
-                    
-                    <h3 className="font-serif text-xl font-bold text-leather-900 mb-2 mt-2">
-                      {producto.nombre}
-                    </h3>
-                    
-                    <p className="text-leather-600 text-sm mb-4 line-clamp-2">
-                      {producto.descripcion}
-                    </p>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-leather-700">
-                        {formatPrice(producto.precio)}
-                      </span>
-                 
-                    </div>
-
-                    {/* Stock info */}
-                    <div className="mt-2 text-xs text-leather-500">
-                      Stock: {producto.stock} unidades
-                    </div>
-                  </div>
-                </div>
+               {featuredProducts.map((producto) => (
+                //uso el componente ProductCard para mostrar cada producto
+                <ProductCard 
+                  key={producto.id}
+                  {...producto}
+                  user={user}
+                  isFavorite={false}
+                  onFavoriteClick={() => {}}
+                />
               ))}
             </div>
           )}
