@@ -42,26 +42,54 @@ const FormEditarProducto = ({ user, setUser, loading, setLoading, error, setErro
     setImagenes(prev => [...prev, ...archivos])
     setProducto(prev =>({
       ...prev,
-      [name]: imagenes
+      [name]: producto.imagenes
     }))
   }
-  const handleSubmit = async (e) =>{
-    e.preventDefault();
-    const response = await fetch(`http://127.0.0.1:8080/productos/${id["*"]}`,{
+  const handleEditarProducto = async (e) => {
+  e.preventDefault();
+  const categoria = categorias.find(cat => cat.nombre == producto.categoria)
+  
+  const formData = new FormData();
+  formData.append('nombre', producto.nombre);
+  formData.append('descripcion', producto.descripcion);
+  formData.append('precio', producto.precio);
+  formData.append('stock', producto.stock);
+  formData.append('color', producto.color);
+  formData.append('grosor', producto.grosor);
+  formData.append('acabado', producto.acabado);
+  formData.append('textura', producto.textura);
+  formData.append('tipoCuero', producto.tipoCuero);
+  formData.append('instruccionesCuidado', producto.instrucciones)
+  formData.append('categoryId', categoria.id);
+  console.log(producto)
+  // Agregar imágenes
+  producto.fotos.forEach((imagen) => {
+    formData.append('files', imagen); // el backend espera 'fotos'
+  });
+  console.log(formData);
+  
+  try {
+    const response = await fetch(`http://127.0.0.1:8080/productos/${id["*"]}`, {
       method: 'PUT',
-      headers:{
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}`
+      headers: {
+        'Authorization': `Bearer ${user.token}`,
+        // NO se agrega 'Content-Type', fetch lo pone automáticamente con boundary
       },
-      body: JSON.stringify(producto)
-      
+      body: formData
     });
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Actualizado con éxito:', data);
-    } else {
-      console.error('Error al actualizar',data);
+
+    if (!response.ok) {
+      const text = await response.text();
+      alert("Producto no creado")
+      throw new Error(`Error ${response.status}: ${text}`);
     }
+
+    const data = await response.json();
+    alert('Producto creado con éxito:', data);
+    navigate('/admin/productos')
+  } catch (err) {
+    console.error('Error al crear producto:', err.message);
+  }
   };
 return (
     <div className="min-h-screen bg-cream-50 flex items-center justify-center px-6 py-8">
@@ -94,7 +122,7 @@ return (
           )} */}
         
           {/* Formulario limpio */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleEditarProducto} className="space-y-5">
             {/* Nombre producto */}
             <div className="grid grid-cols-3 gap-4">
               <div>
@@ -322,7 +350,7 @@ return (
                     type="text"
                     id="instrucciones"
                     name="instrucciones"
-                    value={producto?.instruccionesCuidado}
+                    value={producto?.instrucciones}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                     placeholder="Mantener en lugar..."
