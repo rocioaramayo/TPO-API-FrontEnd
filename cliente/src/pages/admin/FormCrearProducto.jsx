@@ -55,6 +55,12 @@ const handleChangeImagenes = (e) => {
 
   const handleCrearProducto = (e) => {
     e.preventDefault();
+    // Validación rápida en frontend: Debe haber al menos una imagen
+    if (imagenes.length === 0) {
+      setError("El producto debe tener al menos una imagen.");
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -89,49 +95,32 @@ const handleChangeImagenes = (e) => {
     .then(response => {
       return response.text().then(text => {
         let data = {};
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          data = { message: text };
-        }
-        
+        try { data = JSON.parse(text); } catch (e) { data = { message: text }; }
         if (!response.ok) {
           let errorMessage = 'Error al crear producto';
-          
-          // Mapear errores específicos del backend
           switch (response.status) {
-            case 400:
-              if (text.includes('producto ya existe') || 
-                  response.statusText.includes('producto con ese nombre')) {
-                errorMessage = 'Ya existe un producto con ese nombre en la misma categoría';
-              } else if (text.includes('debe tener al menos una imagen')) {
-                errorMessage = 'El producto debe tener al menos una imagen';
-              } else if (text.includes('imagen es demasiado grande')) {
-                errorMessage = 'La imagen es demasiado grande. El límite es de 2MB';
-              } else if (data.message) {
-                errorMessage = data.message;
-              } else {
-                errorMessage = 'Datos del producto inválidos';
-              }
-              break;
             case 404:
-              errorMessage = 'Categoría no encontrada';
+              if (text.includes('ProductoNoEncontradoException')) errorMessage = 'Producto no encontrado.';
+              else errorMessage = 'No encontrado';
+              break;
+            case 400:
+              if (text.includes('CategoriaNoEncontradaException')) errorMessage = 'Categoría no encontrada.';
+              else if (text.includes('ProductoYaExisteException')) errorMessage = 'Ya existe un producto con ese nombre en la misma categoría.';
+              else if (text.includes('ImagenRequeridaException')) errorMessage = 'El producto debe tener al menos una imagen.';
+              else if (text.includes('ImagenDemasiadoGrandeException')) errorMessage = 'La imagen es demasiado grande. El límite es de 2MB.';
+              else if (text.includes('StockInsuficienteException')) errorMessage = 'Stock insuficiente.';
+              else if (data.message) errorMessage = data.message;
+              else errorMessage = 'Datos del producto inválidos';
               break;
             case 403:
               errorMessage = 'No tienes permisos para crear productos';
               break;
             default:
-              if (data.message) {
-                errorMessage = data.message;
-              } else if (response.statusText && response.statusText !== 'OK') {
-                errorMessage = response.statusText;
-              }
+              if (data.message) errorMessage = data.message;
+              else if (response.statusText && response.statusText !== 'OK') errorMessage = response.statusText;
           }
-          
           throw new Error(errorMessage);
         }
-        
-        // Éxito
         return data;
       });
     })
@@ -170,6 +159,11 @@ const handleChangeImagenes = (e) => {
     .finally(() => {
       setLoading(false);
     });
+  };
+
+  // Permite eliminar imágenes seleccionadas antes de enviar el formulario
+  const handleEliminarImagen = (idx) => {
+    setImagenes(prev => prev.filter((_, i) => i !== idx));
   };
 
   return (
@@ -403,15 +397,53 @@ const handleChangeImagenes = (e) => {
               <label htmlFor="imagenes" className="block text-sm font-medium text-gray-700 mb-2">
                 Imágenes del producto *
               </label>
-              <input 
-                name='imagenes'
-                type="file"
-                accept="image/png, image/jpeg, image/webp"
-                multiple
-                onChange={handleChangeImagenes}
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors"
-                required
-              />
+              <div className="flex flex-col items-start gap-2">
+                <label
+                  htmlFor="imagenes"
+                  className="inline-block px-6 py-2 bg-white border border-leather-400 rounded cursor-pointer font-medium text-leather-800 hover:bg-cream-100 transition-colors"
+                  tabIndex={0}
+                >
+                  Elegir archivos
+                  <input
+                    id="imagenes"
+                    name="imagenes"
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp"
+                    multiple
+                    onChange={handleChangeImagenes}
+                    className="hidden"
+                  />
+                </label>
+                <span className="text-sm font-medium text-gray-700 ml-1 select-none">
+                  {imagenes.length === 0
+                    ? 'Sin archivos seleccionados'
+                    : `${imagenes.length} archivo${imagenes.length > 1 ? 's' : ''} seleccionados`}
+                </span>
+              </div>
+              {/* Previsualización de imágenes seleccionadas */}
+              {imagenes.length > 0 && (
+                <div className="flex flex-wrap gap-4 mt-4">
+                  {imagenes.map((imagen, idx) => (
+                    <div key={idx} className="relative flex flex-col items-center">
+                      <button
+                        type="button"
+                        onClick={() => handleEliminarImagen(idx)}
+                        className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full p-1 text-red-500 hover:bg-red-100 shadow-sm z-10"
+                        aria-label="Eliminar imagen"
+                        tabIndex={0}
+                      >
+                        ×
+                      </button>
+                      <img
+                        src={URL.createObjectURL(imagen)}
+                        alt={`preview-${idx}`}
+                        className="h-24 w-24 object-cover rounded shadow border"
+                      />
+                      <span className="text-xs mt-1">{imagen.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <p className="text-xs text-gray-500 mt-1">
                 Selecciona una o más imágenes (PNG, JPEG, WEBP). Máximo 2MB por imagen.
               </p>
