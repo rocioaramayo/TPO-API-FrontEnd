@@ -48,24 +48,61 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
       },
       body: JSON.stringify(registrationData),
     })
-      .then(response => response.json()
-        .then(data => {
-          if (!response.ok) {
-            throw new Error(data.mensaje || 'Error al registrarse');
+      .then(response => {
+        // Primero intentamos obtener el texto de la respuesta
+        return response.text().then(text => {
+          let data = {};
+          try {
+            data = JSON.parse(text);
+          } catch (e) {
+            // Si no es JSON válido, usar texto plano
+            data = { message: text };
           }
+          
+          if (!response.ok) {
+            let errorMessage = 'Error al registrarse';
+            
+            // Mapear errores específicos según el código HTTP y el backend
+            switch (response.status) {
+              case 400:
+                // Verificar mensajes específicos del backend
+                if (text.includes('usuario ya existe') || 
+                    response.statusText.includes('usuario ya existe')) {
+                  errorMessage = 'El nombre de usuario ya existe';
+                } else if (text.includes('menos 8 caracteres')) {
+                  errorMessage = 'La contraseña debe tener al menos 8 caracteres';
+                } else if (data.mensaje) {
+                  errorMessage = data.mensaje;
+                } else if (data.message) {
+                  errorMessage = data.message;
+                } else {
+                  errorMessage = 'Datos inválidos. Verifica la información ingresada.';
+                }
+                break;
+              case 403:
+                // Email inválido
+                errorMessage = 'Email no válido. Volver a intentar cumpliendo con los requisitos.';
+                break;
+              default:
+                // Intentar usar el mensaje del backend
+                if (data.mensaje) {
+                  errorMessage = data.mensaje;
+                } else if (data.message) {
+                  errorMessage = data.message;
+                } else if (response.statusText && response.statusText !== 'OK') {
+                  errorMessage = response.statusText;
+                }
+            }
+            
+            throw new Error(errorMessage);
+          }
+          
+          // Registro exitoso
           return { email: userData.email, token: data.token };
-        })
-      )
+        });
+      })
       .catch(error => {
-        if (error.message.includes('El usuario ya existe')) {
-          setError('Ya existe un usuario con ese nombre de usuario o email');
-        } else if (error.message.includes('Email no valido')) {
-          setError('El formato del email no es válido');
-        } else if (error.message.includes('menos 8 caracteres')) {
-          setError('La contraseña debe tener al menos 8 caracteres');
-        } else {
-          setError('Error al registrarse. Intenta nuevamente.');
-        }
+        setError(error.message);
         return null;
       })
       .finally(() => {
@@ -133,9 +170,7 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
   return (
     <div className="min-h-screen bg-cream-50 flex items-center justify-center px-6 py-8">
       <div className="w-full max-w-md">
-        {/* Card minimalista */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          {/* Header simple */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-serif font-semibold text-leather-800 mb-2">
               Crear Cuenta
@@ -145,21 +180,21 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
             </p>
           </div>
         
-          {/* Error message minimalista */}
+          {/* Error message específico del backend */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 text-sm">
-              {error}
+              <div className="flex items-center">
+                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {error}
+              </div>
             </div>
           )}
         
-          {/* Formulario limpio */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Username */}
             <div>
-              <label 
-                htmlFor="username" 
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
                 Nombre de Usuario
               </label>
               <input
@@ -177,12 +212,8 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
               )}
             </div>
           
-            {/* Email */}
             <div>
-              <label 
-                htmlFor="email" 
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Correo Electrónico
               </label>
               <input
@@ -200,13 +231,9 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
               )}
             </div>
           
-            {/* Nombre y Apellido */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label 
-                  htmlFor="firstName" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
                   Nombre
                 </label>
                 <input
@@ -225,10 +252,7 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
               </div>
               
               <div>
-                <label 
-                  htmlFor="lastName" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
                   Apellido
                 </label>
                 <input
@@ -247,12 +271,8 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
               </div>
             </div>
           
-            {/* Contraseña */}
             <div>
-              <label 
-                htmlFor="password" 
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Contraseña
               </label>
               <div className="relative">
@@ -291,12 +311,8 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
               )}
             </div>
           
-            {/* Confirmar Contraseña */}
             <div>
-              <label 
-                htmlFor="confirmPassword" 
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                 Confirmar Contraseña
               </label>
               <div className="relative">
@@ -332,7 +348,6 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
               )}
             </div>
           
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -349,14 +364,10 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
             </button>
           </form>
         
-          {/* Enlaces simples */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               ¿Ya tienes una cuenta?{' '}
-              <Link 
-                to="/login" 
-                className="text-leather-700 hover:text-leather-800 font-medium"
-              >
+              <Link to="/login" className="text-leather-700 hover:text-leather-800 font-medium">
                 Inicia sesión
               </Link>
             </p>
@@ -373,7 +384,6 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
           </div>
         </div>
 
-        {/* Footer simple */}
         <div className="text-center mt-6">
           <p className="text-xs text-gray-500">
             Al registrarte, aceptas nuestros términos y condiciones.
