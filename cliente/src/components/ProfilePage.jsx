@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-// Si tenés Heroicons o similares, mejor
 
 const ProfilePage = ({ user }) => {
   const [userInfo, setUserInfo] = useState(null);
@@ -10,6 +9,10 @@ const ProfilePage = ({ user }) => {
     lastName: "",
     email: "",
   });
+
+  // Estados para cambio de contraseña
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
     if (user?.token) {
@@ -36,10 +39,53 @@ const ProfilePage = ({ user }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    // Acá podrías hacer un fetch PUT para guardar cambios si querés.
-    setUserInfo({ ...userInfo, ...formData });
-    setEditMode(false);
+  const handleSave = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8080/api/v1/users/me", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        }),
+      });
+      if (!res.ok) throw new Error("Error al actualizar el perfil");
+      const data = await res.json();
+      setUserInfo(data);
+      setEditMode(false);
+      alert("Perfil actualizado correctamente.");
+    } catch (e) {
+      alert("Hubo un error al guardar los cambios.");
+    }
+  };
+
+  const handleChangePassword = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8080/api/v1/auth/change-password", {
+        method: "PUT", // Cambia a POST si tu backend así lo requiere
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({
+          oldPassword,
+          newPassword,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Error al cambiar contraseña");
+      }
+      alert("¡Contraseña cambiada!");
+      setShowPasswordModal(false);
+      setOldPassword("");
+      setNewPassword("");
+    } catch (e) {
+      alert(e.message);
+    }
   };
 
   if (!userInfo) {
@@ -60,9 +106,13 @@ const ProfilePage = ({ user }) => {
               {userInfo.firstName?.charAt(0).toUpperCase() ?? "U"}
             </div>
             <div>
-              <h2 className="text-3xl font-extrabold text-leather-700">{userInfo.firstName} {userInfo.lastName}</h2>
+              <h2 className="text-3xl font-extrabold text-leather-700">
+                {userInfo.firstName} {userInfo.lastName}
+              </h2>
               <p className="text-leather-500">{userInfo.email}</p>
-              <span className="inline-block mt-1 px-2 py-1 text-xs bg-leather-200 text-leather-800 rounded">{userInfo.role}</span>
+              <span className="inline-block mt-1 px-2 py-1 text-xs bg-leather-200 text-leather-800 rounded">
+              {userInfo.role}
+            </span>
             </div>
           </div>
 
@@ -97,18 +147,13 @@ const ProfilePage = ({ user }) => {
             </div>
             <div>
               <span className="font-semibold text-leather-700">Email:</span>{" "}
-              {editMode ? (
-                  <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="border p-1 rounded ml-2"
-                      disabled
-                  />
-              ) : (
-                  userInfo.email
-              )}
+              <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  className="border p-1 rounded ml-2 bg-gray-100"
+                  disabled
+              />
             </div>
           </div>
 
@@ -139,29 +184,39 @@ const ProfilePage = ({ user }) => {
           </div>
         </div>
 
-        {/* Modal simple para cambiar contraseña */}
+        {/* Modal para cambiar contraseña */}
         {showPasswordModal && (
             <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-30">
               <div className="bg-white rounded-xl shadow-xl p-8 min-w-[320px] flex flex-col gap-4">
-                <h3 className="font-bold text-lg text-leather-700 mb-2">Cambiar contraseña</h3>
+                <h3 className="font-bold text-lg text-leather-700 mb-2">
+                  Cambiar contraseña
+                </h3>
                 <input
                     type="password"
                     placeholder="Contraseña actual"
                     className="border p-2 rounded"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
                 />
                 <input
                     type="password"
                     placeholder="Nueva contraseña"
                     className="border p-2 rounded"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
                 />
                 <button
-                    onClick={() => setShowPasswordModal(false)}
+                    onClick={handleChangePassword}
                     className="bg-leather-600 text-white rounded-lg py-2 hover:bg-leather-700 transition mt-2"
                 >
                   Guardar cambio
                 </button>
                 <button
-                    onClick={() => setShowPasswordModal(false)}
+                    onClick={() => {
+                      setShowPasswordModal(false);
+                      setOldPassword("");
+                      setNewPassword("");
+                    }}
                     className="text-leather-700 underline text-xs mt-1"
                 >
                   Cancelar
