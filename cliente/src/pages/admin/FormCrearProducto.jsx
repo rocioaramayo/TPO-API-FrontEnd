@@ -9,7 +9,7 @@ const FormCrearProducto = ({ user, setUser, loading, setLoading, error, setError
   const [imagenes, setImagenes] = useState([]);
 
   const [producto, setProducto] = useState({
-    nombreProducto:"",
+    nombre:"",
     descripcion:"",
     precio:"",
     stock:"",
@@ -53,13 +53,76 @@ const FormCrearProducto = ({ user, setUser, loading, setLoading, error, setError
   const handleChangeImagenes = (e) =>{
     const {name} = e.target;
     const archivos = Array.from(e.target.files);
+    console.log(archivos)
     setImagenes(prev => [...prev, ...archivos])
+    console.log(imagenes)
+    console.log(name)
     setProducto(prev =>({
       ...prev,
       [name]: imagenes
     }))
     console.log(producto)
   }
+
+  const handleCrearProducto = async (e) => {
+  e.preventDefault();
+  const categoria = categorias.find(cat => cat.nombre == producto.categoria)
+  
+  const formData = new FormData();
+  formData.append('nombre', producto.nombre);
+  formData.append('descripcion', producto.descripcion);
+  formData.append('precio', producto.precio);
+  formData.append('stock', producto.stock);
+  formData.append('color', producto.color);
+  formData.append('grosor', producto.grosor);
+  formData.append('textura', producto.textura);
+  formData.append('acabado', producto.acabado);
+  formData.append('tipoCuero', producto.tipoCuero);
+  formData.append('instruccionesCuidado', producto.instrucciones)
+  formData.append('categoryId', categoria.id);
+
+  // Agregar imágenes
+  producto.imagenes.forEach((imagen) => {
+    formData.append('files', imagen); // el backend espera 'fotos'
+  });
+  console.log(formData);
+  
+  try {
+    const response = await fetch('http://localhost:8080/productos/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${user.token}`,
+        // NO se agrega 'Content-Type', fetch lo pone automáticamente con boundary
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      alert("Producto no creado")
+      throw new Error(`Error ${response.status}: ${text}`);
+    }
+
+    const data = await response.json();
+    alert('Producto creado con éxito:', data);
+    setProducto({
+    nombre:"",
+    descripcion:"",
+    precio:"",
+    stock:"",
+    categoria:"",
+    tipoCuero:"",
+    grosor:"",
+    acabado:"",
+    color:"",
+    textura:"",
+    instrucciones:"",
+    imagenes:[]
+  })
+  } catch (err) {
+    console.error('Error al crear producto:', err.message);
+  }
+  };
 return (
     <div className="min-h-screen bg-cream-50 flex items-center justify-center px-6 py-8">
       <div className="w-full max-w-l">
@@ -91,21 +154,21 @@ return (
           )} */}
         
           {/* Formulario limpio */}
-          <form onSubmit={()=>console.log("submit")} className="space-y-5">
+          <form onSubmit={handleCrearProducto} className="space-y-5">
             {/* Nombre producto */}
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label 
-                  htmlFor="nombreProducto" 
+                  htmlFor="nombre" 
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
                   Nombre de Producto
                 </label>
                 <input
                   type="text"
-                  id="nombreProducto"
-                  name="nombreProducto"
-                  value={producto.nombreProducto} 
+                  id="nombre"
+                  name="nombre"
+                  value={producto.nombre} 
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                   placeholder="Nombre de tu producto"
