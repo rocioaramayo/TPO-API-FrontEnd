@@ -12,7 +12,7 @@ export default function TablaProductos({}) {
           });
   }, []);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 1; // Cambiá este número si querés mostrar más/menos por página
+    const itemsPerPage = 6; // Cambiá este número si querés mostrar más/menos por página
 
     // Calcular los productos visibles
     const startIndex = (currentPage - 1) * itemsPerPage;
