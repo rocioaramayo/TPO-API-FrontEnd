@@ -7,6 +7,10 @@ const Dashboard = ({user}) => {
   const [ingresosMensuales, setIngresosMensuales] = useState(0);
   const [cantidadVentasDia, setCantidadVentasDia] = useState(0);
   const [ingresosTotales, setIngresosTotales] = useState(0);
+  const [usuarios, setUsuarios] = useState([]);
+  const [cantUsuarios, setCantUsuarios] = useState(0);
+  const [productos,setProductos] = useState([]);
+  const [productosPocoStock, setProductosPocoStock] = useState(0);
 
     useEffect(() => {
     // Simulamos una llamada a la API
@@ -18,28 +22,28 @@ const Dashboard = ({user}) => {
         })
         .then((res) => res.json())
         .then((data) => {
-            console.log(data)
             setStats(data);
         });
     },[]);
     useEffect(() => {
-        if (!stats) return;
 
         let anual = 0;
         let diario = 0;
         let mensuales = 0;
         let cantDiarias = 0;
 
-        stats.forEach((venta) => {
+        stats?.forEach((venta) => {
             anual += venta.total;
-            const fechaVenta = venta.fecha.slice(0,9)
-            let fechaHoy = new Date().toISOString().slice(0,9);
-            if (fechaVenta == fechaHoy) {
+            const fechaVenta = venta.fecha.slice(0,10)
+            const [anio, mes, dia] = fechaVenta.split('-');
+            const fechaLocal = `${dia}/${parseInt(mes)}/${anio}`;
+            let fechaHoy = new Date().toLocaleDateString();
+            if (fechaLocal == fechaHoy) {
                 cantDiarias++
                 diario += venta.total
 
             }
-            if(fechaVenta.slice(0,6) == fechaHoy.slice(0,6)){
+            if(fechaLocal.slice(2) == fechaHoy.slice(2)){
                 mensuales += venta.total;
             }
             
@@ -49,7 +53,41 @@ const Dashboard = ({user}) => {
         setIngresosDiarios(diario);
         setIngresosMensuales(mensuales);
         setCantidadVentasDia(cantDiarias);
-        }, [stats]);
+    }, [stats]);
+    useEffect(()=>{
+        fetch('http://127.0.0.1:8080/api/v1/users',{
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${user.token}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            setUsuarios(data);
+        })
+    },[])
+    useEffect(()=>{
+        let cantidad = 0
+        usuarios?.forEach((u)=>{
+            if(u.role != "ADMIN")cantidad++;
+        })
+        setCantUsuarios(cantidad);
+    },[usuarios])
+    useEffect(() => {
+        fetch("http://localhost:8080/productos")
+            .then((res) => res.json())
+            .then((data) => {
+                setProductos(data.productos);        
+            });
+    }, []);
+    useEffect(()=>{
+        let pocoStock = 0;
+        productos?.forEach((p)=>{
+            p.pocoStock ? pocoStock++ : pocoStock
+
+        })
+        setProductosPocoStock(pocoStock)
+    },[productos])
     
   
     const navigate = useNavigate();
@@ -68,15 +106,23 @@ const Dashboard = ({user}) => {
                 </div>
                 <div className="bg-leather-200 p-4 rounded-lg">
                     <h3 className="text-sm text-gray-500">Facturado en el mes</h3>
-                    <p className="text-xl font-semibold">{ingresosMensuales || 0}</p>
+                    <p className="text-xl font-semibold">${ingresosMensuales || 0}</p>
                 </div>
                 <div className="bg-leather-200 p-4 rounded-lg">
                     <h3 className="text-sm text-gray-500">Facturado en el dia</h3>
-                    <p className="text-xl font-semibold">{ingresosDiarios || 0}</p>
+                    <p className="text-xl font-semibold">${ingresosDiarios || 0}</p>
                 </div>
                 <div className="bg-leather-200 p-4 rounded-lg">
                     <h3 className="text-sm text-gray-500">Ventas del dia</h3>
                     <p className="text-xl font-semibold">{cantidadVentasDia || 0}</p>
+                </div>
+                <div className="bg-leather-200 p-4 rounded-lg">
+                    <h3 className="text-sm text-gray-500">Usuarios activos</h3>
+                    <p className="text-xl font-semibold">{cantUsuarios || 0}</p>
+                </div>
+                <div className="bg-leather-200 p-4 rounded-lg">
+                    <h3 className="text-sm text-gray-500">Productos con poco stock</h3>
+                    <p className="text-xl font-semibold">{productosPocoStock || 0}</p>
                 </div>
             </div>
             <h2 className="text-xl font-bold text-leather-800 mb-6">Gestión de productos</h2>

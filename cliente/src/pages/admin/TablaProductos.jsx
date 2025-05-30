@@ -17,6 +17,7 @@ export default function TablaProductos({}) {
     // Calcular los productos visibles
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
+    console.log(endIndex)
     const currentProductos = productos?.slice(startIndex, endIndex);
     // Calcular el total de páginas
     const totalPages = Math.ceil(productos.length / itemsPerPage);
