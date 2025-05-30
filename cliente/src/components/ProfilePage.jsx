@@ -66,53 +66,63 @@ const ProfilePage = ({ user }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = async () => {
-    try {
-      const res = await fetch("http://127.0.0.1:8080/api/v1/users/me", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-        }),
-      });
-      if (!res.ok) throw new Error("Error al actualizar el perfil");
-      const data = await res.json();
-      setUserInfo(data);
-      setEditMode(false);
-      alert("Perfil actualizado correctamente.");
-    } catch (e) {
-      alert("Hubo un error al guardar los cambios.");
-    }
+  const handleSave = () => {
+    fetch("http://127.0.0.1:8080/api/v1/users/me", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: JSON.stringify({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+      }),
+    })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error("Error al actualizar el perfil");
+          }
+          return res.json();
+        })
+        .then((data) => {
+          setUserInfo(data);
+          setEditMode(false);
+          alert("Perfil actualizado correctamente.");
+        })
+        .catch(() => {
+          alert("Hubo un error al guardar los cambios.");
+        });
   };
 
-  const handleChangePassword = async () => {
-    try {
-      const res = await fetch("http://127.0.0.1:8080/api/v1/auth/change-password", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({
-          oldPassword,
-          newPassword,
-        }),
-      });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || "Error al cambiar contraseña");
-      }
-      alert("¡Contraseña cambiada!");
-      setShowPasswordModal(false);
-      setOldPassword("");
-      setNewPassword("");
-    } catch (e) {
-      alert(e.message);
-    }
+  const handleChangePassword = () => {
+    fetch("http://127.0.0.1:8080/api/v1/auth/change-password", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: JSON.stringify({
+        oldPassword,
+        newPassword,
+      }),
+    })
+        .then((res) => {
+          if (!res.ok) {
+            return res.json().then((errData) => {
+              throw new Error(errData.message || "Error al cambiar contraseña");
+            });
+          }
+          return res;
+        })
+        .then(() => {
+          alert("¡Contraseña cambiada!");
+          setShowPasswordModal(false);
+          setOldPassword("");
+          setNewPassword("");
+        })
+        .catch((e) => {
+          alert(e.message);
+        });
   };
 
   if (!userInfo) {
