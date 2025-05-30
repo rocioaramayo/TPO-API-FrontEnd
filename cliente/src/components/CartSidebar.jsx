@@ -37,7 +37,10 @@ const CartSidebar = ({ isOpen, onClose, cartItems, onRemove, onAddQty, onSubQty 
         </button>
       </div>
       {/* Items */}
-      <div className="flex-1 overflow-y-auto px-5 py-4">
+      <div
+        className="overflow-y-auto px-5 py-4"
+        style={{ maxHeight: "calc(100vh - 180px)" }}
+      >
         {cartItems.length === 0 ? (
           <p className="text-gray-500 mt-8 text-center">¡Tu carrito está vacío!</p>
         ) : (

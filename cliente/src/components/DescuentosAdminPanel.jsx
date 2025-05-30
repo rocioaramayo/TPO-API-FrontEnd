@@ -26,7 +26,25 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
     categoriaId: ''
   });
   const [creating, setCreating] = useState(false);
+  const [categoriaPorId, setCategoriaPorId] = useState({});
   const navigate = useNavigate();
+  useEffect(() => {
+    descuentos.forEach(d => {
+      if (d.categoriaId && !categoriaPorId[d.categoriaId]) {
+        fetch(`http://127.0.0.1:8080/categories/${d.categoriaId}`)
+          .then(res => res.json())
+          .then(cat => setCategoriaPorId(prev => ({
+            ...prev,
+            [d.categoriaId]: cat.nombre
+          })))
+          .catch(() => setCategoriaPorId(prev => ({
+            ...prev,
+            [d.categoriaId]: 'Sin categoría'
+          })));
+      }
+    });
+    // eslint-disable-next-line
+  }, [descuentos]);
 
   useEffect(() => {
     if (visible && user?.token) {
@@ -123,6 +141,7 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
 
     // Armar el body para edición, solo incluir fechas si están presentes
     let bodyEditar = {
+      codigo: editData.codigo.trim(),
       porcentaje: Number(editData.porcentaje),
       descripcion: editData.descripcion,
       montoMinimo: editData.montoMinimo ? Number(editData.montoMinimo) : 0,
@@ -294,7 +313,12 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
             )}
             {descuentos.map(d => {
               const vigente = isVigente(d);
-              const categoriaNombre = categorias.find(c => c.id === d.categoriaId)?.nombre || '';
+              const categoriaNombre =
+                d.categoria && d.categoria !== ''
+                  ? d.categoria
+                  : d.categoriaId && categorias.length > 0
+                  ? (categorias.find(cat => String(cat.id) === String(d.categoriaId))?.nombre ?? 'Sin categoría')
+                  : 'Sin categoría';
               return (
                 <li key={d.id} className="py-2 flex flex-col md:flex-row md:items-center justify-between gap-2 px-4">
                   {editId === d.id ? (
@@ -352,7 +376,17 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
                         <span className="text-leather-700 text-sm">Fecha Inicio: {d.fechaInicio ? d.fechaInicio.slice(0,10) : '-'}</span>
                         <span className="text-leather-700 text-sm">Fecha Fin: {d.fechaFin ? d.fechaFin.slice(0,10) : '-'}</span>
                         <span className="text-leather-700 text-sm">Monto Mínimo: ${d.montoMinimo ?? 0}</span>
-                        {categoriaNombre && <span className="text-leather-700 text-sm">Categoría: {categoriaNombre}</span>}
+                        <span className="text-leather-700 text-sm">
+                          Categoría: <strong>
+                            {
+                              d.categoria
+                                ? d.categoria
+                                : d.categoriaId
+                                  ? (categoriaPorId[d.categoriaId] || `ID: ${d.categoriaId}`)
+                                  : 'Sin categoría'
+                            }
+                          </strong>
+                        </span>
                       </div>
                       <div className="flex flex-col gap-1 items-end">
                         <button className="text-blue-700 hover:underline text-sm" onClick={() => handleEditClick(d)}>Editar</button>
@@ -434,7 +468,12 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
         )}
         {descuentos.map(d => {
           const vigente = isVigente(d);
-          const categoriaNombre = categorias.find(c => c.id === d.categoriaId)?.nombre || '';
+          const categoriaNombre =
+            d.categoria && d.categoria !== ''
+              ? d.categoria
+              : d.categoriaId && categorias.length > 0
+              ? (categorias.find(cat => String(cat.id) === String(d.categoriaId))?.nombre ?? 'Sin categoría')
+              : 'Sin categoría';
           return (
             <li key={d.id} className="py-2 flex flex-col md:flex-row md:items-center justify-between gap-2">
               {editId === d.id ? (
@@ -495,7 +534,17 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
                     <span className="text-leather-700 text-sm">Fecha Inicio: {d.fechaInicio ? d.fechaInicio.slice(0,10) : '-'}</span>
                     <span className="text-leather-700 text-sm">Fecha Fin: {d.fechaFin ? d.fechaFin.slice(0,10) : '-'}</span>
                     <span className="text-leather-700 text-sm">Monto Mínimo: ${d.montoMinimo ?? 0}</span>
-                    {categoriaNombre && <span className="text-leather-700 text-sm">Categoría: {categoriaNombre}</span>}
+                    <span className="text-leather-700 text-sm">
+                      Categoría: <strong>
+                        {
+                          d.categoria
+                            ? d.categoria
+                            : d.categoriaId
+                              ? (categoriaPorId[d.categoriaId] || `ID: ${d.categoriaId}`)
+                              : 'Sin categoría'
+                        }
+                      </strong>
+                    </span>
                   </div>
                   <div className="flex flex-col gap-1 items-end">
                     <button className="text-blue-700 hover:underline text-sm" onClick={() => handleEditClick(d)}>Editar</button>
