@@ -16,10 +16,10 @@ const ProfilePage = ({ user }) => {
     lastName: "",
     email: "",
   });
-
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [misCompras, setMisCompras] = useState([]);
+  const [activeTab, setActiveTab] = useState("perfil");
 
   useEffect(() => {
     if (user?.token) {
@@ -146,25 +146,30 @@ const ProfilePage = ({ user }) => {
               <p className="mt-2 text-leather-700 text-sm">{userInfo.email}</p>
             </div>
             <nav className="flex flex-col gap-4">
-              <button className="flex items-center gap-2 text-leather-700 font-semibold">
+              <button
+                  className={`flex items-center gap-2 text-leather-700 font-semibold ${activeTab === "perfil" ? "underline" : ""}`}
+                  onClick={() => setActiveTab("perfil")}
+              >
                 <FaUser /> Perfil
               </button>
-
-
-
-                <button className="flex items-center gap-2 text-leather-700">
-                  <FaCreditCard /> Métodos de Pago
-                </button>
-
-                <button className="flex items-center gap-2 text-leather-700">
-                  <FaShoppingCart /> Mis Compras
-                </button>
-
-                <button className="flex items-center gap-2 text-leather-700">
-                  <FaMapMarkedAlt /> Métodos de Envío
-                </button>
-
-
+              <button
+                  className={`flex items-center gap-2 text-leather-700 ${activeTab === "pagos" ? "underline" : ""}`}
+                  onClick={() => setActiveTab("pagos")}
+              >
+                <FaCreditCard /> Métodos de Pago
+              </button>
+              <button
+                  className={`flex items-center gap-2 text-leather-700 ${activeTab === "compras" ? "underline" : ""}`}
+                  onClick={() => setActiveTab("compras")}
+              >
+                <FaShoppingCart /> Mis Compras
+              </button>
+              <button
+                  className={`flex items-center gap-2 text-leather-700 ${activeTab === "envios" ? "underline" : ""}`}
+                  onClick={() => setActiveTab("envios")}
+              >
+                <FaMapMarkedAlt /> Métodos de Envío
+              </button>
             </nav>
           </div>
           <button className="flex items-center gap-2 text-red-600 font-semibold mt-8">
@@ -174,97 +179,113 @@ const ProfilePage = ({ user }) => {
 
         {/* Contenido principal */}
         <main className="flex-1 p-12">
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-bold text-leather-700 mb-4">Perfil de Usuario</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <span className="font-semibold text-leather-700">Nombre:</span>{" "}
-                {editMode ? (
+          {activeTab === "perfil" && (
+              <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <h2 className="text-2xl font-bold text-leather-700 mb-4">Perfil de Usuario</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <span className="font-semibold text-leather-700">Nombre:</span>{" "}
+                    {editMode ? (
+                        <input
+                            type="text"
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleChange}
+                            className="border p-1 rounded ml-2"
+                        />
+                    ) : (
+                        userInfo.firstName
+                    )}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-leather-700">Apellido:</span>{" "}
+                    {editMode ? (
+                        <input
+                            type="text"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                            className="border p-1 rounded ml-2"
+                        />
+                    ) : (
+                        userInfo.lastName
+                    )}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-leather-700">Email:</span>{" "}
                     <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        className="border p-1 rounded ml-2"
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        className="border p-1 rounded ml-2 bg-gray-100"
+                        disabled
                     />
+                  </div>
+                  <div>
+                    <span className="font-semibold text-leather-700">Rol:</span>{" "}
+                    {userInfo.role}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 mt-6">
+                  {!editMode ? (
+                      <>
+                        <button
+                            onClick={() => setShowPasswordModal(true)}
+                            className="px-4 py-2 bg-leather-200 text-leather-800 rounded-lg hover:bg-leather-300 transition"
+                        >
+                          Cambiar contraseña
+                        </button>
+                        <button
+                            onClick={() => setEditMode(true)}
+                            className="px-4 py-2 bg-leather-600 text-white rounded-lg hover:bg-leather-700 transition"
+                        >
+                          Editar perfil
+                        </button>
+                      </>
+                  ) : (
+                      <button
+                          onClick={handleSave}
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                      >
+                        Guardar
+                      </button>
+                  )}
+                </div>
+              </div>
+          )}
+
+          {activeTab === "compras" && (
+              <div className="bg-white rounded-2xl shadow-md p-6">
+                <h3 className="text-xl font-bold text-leather-700 mb-4">Mis Compras</h3>
+                {misCompras.length === 0 ? (
+                    <p className="text-leather-500">No tenés compras registradas.</p>
                 ) : (
-                    userInfo.firstName
+                    <ul className="space-y-3">
+                      {misCompras.map((compra, i) => (
+                          <li key={i} className="border rounded-lg p-4 bg-leather-50 shadow-sm">
+                            <p className="font-semibold">Compra #{compra.id}</p>
+                            <p>Fecha: {compra.fecha}</p>
+                            <p>Total: ${compra.total}</p>
+                          </li>
+                      ))}
+                    </ul>
                 )}
               </div>
-              <div>
-                <span className="font-semibold text-leather-700">Apellido:</span>{" "}
-                {editMode ? (
-                    <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        className="border p-1 rounded ml-2"
-                    />
-                ) : (
-                    userInfo.lastName
-                )}
-              </div>
-              <div>
-                <span className="font-semibold text-leather-700">Email:</span>{" "}
-                <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    className="border p-1 rounded ml-2 bg-gray-100"
-                    disabled
-                />
-              </div>
-              <div>
-                <span className="font-semibold text-leather-700">Rol:</span>{" "}
-                {userInfo.role}
-              </div>
-            </div>
+          )}
 
-            <div className="flex justify-end gap-2 mt-6">
-              {!editMode ? (
-                  <>
-                    <button
-                        onClick={() => setShowPasswordModal(true)}
-                        className="px-4 py-2 bg-leather-200 text-leather-800 rounded-lg hover:bg-leather-300 transition"
-                    >
-                      Cambiar contraseña
-                    </button>
-                    <button
-                        onClick={() => setEditMode(true)}
-                        className="px-4 py-2 bg-leather-600 text-white rounded-lg hover:bg-leather-700 transition"
-                    >
-                      Editar perfil
-                    </button>
-                  </>
-              ) : (
-                  <button
-                      onClick={handleSave}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                  >
-                    Guardar
-                  </button>
-              )}
-            </div>
-          </div>
+          {activeTab === "pagos" && (
+              <div className="bg-white p-8 rounded shadow">
+                <h2 className="text-xl font-bold">Métodos de Pago</h2>
+                <p className="mt-2 text-gray-600">Acá irían los métodos de pago del usuario.</p>
+              </div>
+          )}
 
-          {/* Sección Mis Compras */}
-          <div className="bg-white rounded-2xl shadow-md p-6">
-            <h3 className="text-xl font-bold text-leather-700 mb-4">Mis Compras</h3>
-            {misCompras.length === 0 ? (
-                <p className="text-leather-500">No tenés compras registradas.</p>
-            ) : (
-                <ul className="space-y-3">
-                  {misCompras.map((compra, i) => (
-                      <li key={i} className="border rounded-lg p-4 bg-leather-50 shadow-sm">
-                        <p className="font-semibold">Compra #{compra.id}</p>
-                        <p>Fecha: {compra.fecha}</p>
-                        <p>Total: ${compra.total}</p>
-                      </li>
-                  ))}
-                </ul>
-            )}
-          </div>
+          {activeTab === "envios" && (
+              <div className="bg-white p-8 rounded shadow">
+                <h2 className="text-xl font-bold">Métodos de Envío</h2>
+                <p className="mt-2 text-gray-600">Acá irían los métodos de entrega favoritos.</p>
+              </div>
+          )}
         </main>
 
         {/* Modal contraseña */}
