@@ -53,8 +53,7 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
 
     const requestBody = {
       productoId: parseInt(productoId),
-      rating: reviewData.rating,
-      titulo: reviewData.titulo,
+      estrellas: reviewData.rating, // Cambio: usar 'estrellas' como espera el backend
       comentario: reviewData.comentario
     };
 
@@ -66,34 +65,79 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
       },
       body: JSON.stringify(requestBody)
     })
-      .then(response => {
+    .then(response => {
+      return response.text().then(text => {
+        let data = {};
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          data = { message: text };
+        }
+        
         if (!response.ok) {
-          if (response.status === 403) {
-            throw new Error('No tienes permiso para dejar una reseña. Solo pueden opinar quienes compraron este producto.');
+          let errorMessage = 'Error al enviar la reseña';
+          
+          // Mapear errores específicos del backend
+          switch (response.status) {
+            case 403:
+              // Usuario no autorizado (no compró el producto)
+              errorMessage = 'No estás autorizado para dejar una reseña. Solo pueden opinar quienes compraron este producto.';
+              break;
+            case 404:
+              if (text.includes('Usuario no encontrado')) {
+                errorMessage = 'Usuario no encontrado';
+              } else if (text.includes('Producto no encontrado')) {
+                errorMessage = 'Producto no encontrado';
+              } else {
+                errorMessage = 'Recurso no encontrado';
+              }
+              break;
+            case 400:
+              if (data.message) {
+                errorMessage = data.message;
+              } else {
+                errorMessage = 'Datos de la reseña inválidos';
+              }
+              break;
+            case 409:
+              // Conflict - Ya dejó una reseña
+              errorMessage = 'Ya has dejado una reseña para este producto';
+              break;
+            default:
+              if (data.message) {
+                errorMessage = data.message;
+              } else if (response.statusText && response.statusText !== 'OK') {
+                errorMessage = response.statusText;
+              }
           }
-          return response.text().then(errorData => {
-            throw new Error(errorData || 'Error al enviar la reseña');
-          });
+          
+          throw new Error(errorMessage);
         }
-        return response.json();
-      })
-      .then(() => {
-        setSuccess(true);
-        setReviewData({ rating: 0, titulo: '', comentario: '' });
-        if (onReviewSubmitted) {
-          onReviewSubmitted();
-        }
-        setTimeout(() => {
-          setIsOpen(false);
-          setSuccess(false);
-        }, 2000);
-      })
-      .catch(error => {
-        setError(error.message || 'Error al enviar la reseña. Intenta nuevamente.');
-      })
-      .finally(() => {
-        setLoading(false);
+        
+        return data;
       });
+    })
+    .then(() => {
+      setSuccess(true);
+      setError(null);
+      setReviewData({ rating: 0, titulo: '', comentario: '' });
+      
+      if (onReviewSubmitted) {
+        onReviewSubmitted();
+      }
+      
+      setTimeout(() => {
+        setIsOpen(false);
+        setSuccess(false);
+      }, 2000);
+    })
+    .catch(error => {
+      console.error('Error al enviar reseña:', error);
+      setError(error.message);
+    })
+    .finally(() => {
+      setLoading(false);
+    });
   };
 
   const renderStars = (interactive = false) => {
@@ -187,6 +231,7 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
               </button>
             </div>
 
+            {/* Mensaje de éxito */}
             {success && (
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
                 <div className="flex items-center">
@@ -198,9 +243,15 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
               </div>
             )}
 
+            {/* Mensaje de error específico del backend */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-                {error}
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {error}
+                </div>
               </div>
             )}
 
@@ -220,7 +271,7 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
                 </div>
               </div>
 
-              {/* Título */}
+              {/* Título (opcional) */}
               <div>
                 <label htmlFor="titulo" className="block text-sm font-medium text-leather-700 mb-2">
                   Título de tu reseña (opcional)

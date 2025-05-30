@@ -362,18 +362,58 @@ return (
               </div>
             {/*Imagenes */}
             <label 
-                  htmlFor="imagenes" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Imagenes
-              </label>
-              <input 
-                name='imagenes'
-                type="file"
-                accept="image/png, image/jpeg, image/webp"
-                multiple
-                onChange={handleChangeImagenes} 
+              htmlFor="imagenes" 
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Imágenes
+            </label>
+            <div className="flex flex-col items-start gap-2">
+              <label
+                htmlFor="imagenes"
+                className="inline-block px-6 py-2 bg-white border border-leather-400 rounded cursor-pointer font-medium text-leather-800 hover:bg-cream-100 transition-colors"
+                tabIndex={0}
+              >
+                Elegir archivos
+                <input
+                  id="imagenes"
+                  name="imagenes"
+                  type="file"
+                  accept="image/png, image/jpeg, image/webp"
+                  multiple
+                  onChange={handleChangeImagenes}
+                  className="hidden"
                 />
+              </label>
+              <span className="text-sm font-medium text-gray-700 ml-1 select-none">
+                {imagenes.length === 0
+                  ? 'Sin archivos seleccionados'
+                  : `${imagenes.length} archivo${imagenes.length > 1 ? 's' : ''} seleccionados`}
+              </span>
+              {/* Previsualización de imágenes seleccionadas */}
+              {imagenes.length > 0 && (
+                <div className="flex flex-wrap gap-4 mt-4">
+                  {imagenes.map((imagen, idx) => (
+                    <div key={idx} className="relative flex flex-col items-center">
+                      <button
+                        type="button"
+                        onClick={() => setImagenes(prev => prev.filter((_, i) => i !== idx))}
+                        className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full p-1 text-red-500 hover:bg-red-100 shadow-sm z-10"
+                        aria-label="Eliminar imagen"
+                        tabIndex={0}
+                      >
+                        ×
+                      </button>
+                      <img
+                        src={URL.createObjectURL(imagen)}
+                        alt={`preview-${idx}`}
+                        className="h-24 w-24 object-cover rounded shadow border"
+                      />
+                      <span className="text-xs mt-1">{imagen.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Submit Button */}
             <button

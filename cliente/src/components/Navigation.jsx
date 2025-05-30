@@ -91,22 +91,24 @@ const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
               </button>
             )}
             {/* Buscador */}
-            <form onSubmit={handleSearch} className="flex items-center ml-4">
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Buscar..."
-                className="border border-leather-200 rounded-l px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-leather-200"
-                style={{ minWidth: 120 }}
-              />
-              <button type="submit" className="bg-leather-800 text-white px-2 py-1 rounded-r hover:bg-leather-900 flex items-center">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </button>
-            </form>
+            {user?.role?.toLowerCase() !== 'admin' && (
+              <form onSubmit={handleSearch} className="flex items-center ml-4">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Buscar..."
+                  className="border border-leather-200 rounded-l px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-leather-200"
+                  style={{ minWidth: 120 }}
+                />
+                <button type="submit" className="bg-leather-800 text-white px-2 py-1 rounded-r hover:bg-leather-900 flex items-center">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </form>
+            )}
           </div>
 
           {/* Usuario y acciones */}
@@ -249,6 +251,18 @@ const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
               >
                 Nosotros
               </Link>
+              {user?.role?.toLowerCase() === 'admin' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    navigate('/admin');
+                  }}
+                  className="text-leather-700 hover:text-cognac-700 font-medium py-2 px-4 rounded-lg hover:bg-cream-100 transition-all duration-200 text-left"
+                >
+                  Panel Admin
+                </button>
+              )}
               {/* Enlaces móviles para usuarios no autenticados */}
               {!user && (
                 <>

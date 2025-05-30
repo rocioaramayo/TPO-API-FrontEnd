@@ -30,24 +30,73 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
       },
       body: JSON.stringify(credentials),
     })
-      .then(response => response.json()
-        .then(data => {
-          if (!response.ok) {
-            throw new Error(data.mensaje || 'Error al iniciar sesión');
+      .then(response => {
+        // Primero intentamos obtener el JSON
+        return response.text().then(text => {
+          let data = {};
+          try {
+            data = JSON.parse(text);
+          } catch (e) {
+            // Si no es JSON válido, usar texto plano
+            data = { message: text };
           }
-          return { email: credentials.email, token: data.token, role: data.role };
-        })
-      )
+          
+          if (!response.ok) {
+            let errorMessage = 'Error al iniciar sesión';
+            
+            // Mapear errores específicos según el código HTTP
+            switch (response.status) {
+              case 403:
+                if (data.message && data.message.toLowerCase().includes('inactivo')) {
+                  errorMessage = 'El usuario está inactivo';
+                } else if (data.message && data.message.toLowerCase().includes('access denied')) {
+                  errorMessage = 'Contraseña incorrecta';
+                } else {
+                  errorMessage = 'No tiene permisos para acceder';
+                }
+                break;
+
+
+              case 404:
+                errorMessage = 'Usuario no encontrado';
+                break;
+              case 401:
+                errorMessage = 'Contraseña incorrecta'; 
+                break;
+              case 400:
+                // Usar mensaje específico del backend si existe
+                if (data.mensaje) {
+                  errorMessage = data.mensaje;
+                } else if (data.message) {
+                  errorMessage = data.message;
+                } else {
+                  errorMessage = 'Datos inválidos';
+                }
+                break;
+              default:
+                // Intentar usar el mensaje del backend
+                if (data.mensaje) {
+                  errorMessage = data.mensaje;
+                } else if (data.message) {
+                  errorMessage = data.message;
+                } else if (response.statusText && response.statusText !== 'OK') {
+                  errorMessage = response.statusText;
+                }
+            }
+            
+            throw new Error(errorMessage);
+          }
+          
+          // Login exitoso
+          return { 
+            email: credentials.email, 
+            token: data.token, 
+            role: data.role 
+          };
+        });
+      })
       .catch(error => {
-        if (error.message.includes('Usuario no encontrado')) {
-          setError('Usuario no encontrado');
-        } else if (error.message.includes('contraseña inválida')) {
-          setError('Contraseña incorrecta');  
-        } else if (error.message.includes('El usuario está inactivo')) {
-          setError('Tu cuenta está inactiva. Contacta al administrador.');
-        } else {
-          setError('Error al iniciar sesión. Intenta nuevamente.');
-        }
+        setError(error.message);
         return null;
       })
       .finally(() => {
@@ -59,14 +108,12 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
     e.preventDefault();
 
     login(credentials)
-        .then(userData => {
-          if (userData) {
-            localStorage.setItem('user', JSON.stringify(userData)); // 👈 Guarda en localStorage
-            setUser(userData);
-            navigate('/');
-          }
-        });
-
+      .then(userData => {
+        if (userData) {
+          setUser(userData);
+          navigate('/');
+        }
+      });
   };
 
   const handleGoToRegister = () => {
@@ -76,9 +123,7 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
   return (
     <div className="min-h-screen bg-cream-50 flex items-center justify-center px-6">
       <div className="w-full max-w-sm">
-        {/* Card minimalista */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          {/* Header simple */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-serif font-semibold text-leather-800 mb-2">
               Cuero Argentino
@@ -88,21 +133,21 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
             </p>
           </div>
         
-          {/* Error message minimalista */}
+          {/* Error message específico del backend */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 text-sm">
-              {error}
+              <div className="flex items-center">
+                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {error}
+              </div>
             </div>
           )}
         
-          {/* Formulario limpio */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
             <div>
-              <label 
-                htmlFor="email" 
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Correo electrónico
               </label>
               <input
@@ -117,12 +162,8 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
               />
             </div>
           
-            {/* Password */}
             <div>
-              <label 
-                htmlFor="password" 
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Contraseña
               </label>
               <div className="relative">
@@ -155,7 +196,6 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
               </div>
             </div>
 
-            {/* Forgot Password */}
             <div className="text-right">
               <button
                 type="button"
@@ -165,7 +205,6 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
               </button>
             </div>
           
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -182,14 +221,10 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
             </button>
           </form>
         
-          {/* Enlaces simples */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               ¿No tienes una cuenta?{' '}
-              <Link 
-                to="/register" 
-                className="text-leather-700 hover:text-leather-800 font-medium"
-              >
+              <Link to="/register" className="text-leather-700 hover:text-leather-800 font-medium">
                 Regístrate aquí
               </Link>
             </p>
@@ -206,7 +241,6 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
           </div>
         </div>
 
-        {/* Footer simple */}
         <div className="text-center mt-6">
           <p className="text-xs text-gray-500">
             © 2025 Cuero Argentino. Calidad artesanal desde 1985.
