@@ -149,15 +149,22 @@ const ProfilePage = ({ user }) => {
               <button className="flex items-center gap-2 text-leather-700 font-semibold">
                 <FaUser /> Perfil
               </button>
-              <button className="flex items-center gap-2 text-leather-700">
-                <FaMapMarkedAlt /> Direcciones
-              </button>
-              <button className="flex items-center gap-2 text-leather-700">
-                <FaShoppingCart /> Pedidos
-              </button>
-              <button className="flex items-center gap-2 text-leather-700">
-                <FaCreditCard /> Tarjetas de crédito
-              </button>
+
+
+
+                <button className="flex items-center gap-2 text-leather-700">
+                  <FaCreditCard /> Métodos de Pago
+                </button>
+
+                <button className="flex items-center gap-2 text-leather-700">
+                  <FaShoppingCart /> Mis Compras
+                </button>
+
+                <button className="flex items-center gap-2 text-leather-700">
+                  <FaMapMarkedAlt /> Métodos de Envío
+                </button>
+
+
             </nav>
           </div>
           <button className="flex items-center gap-2 text-red-600 font-semibold mt-8">
