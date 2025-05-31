@@ -6,6 +6,7 @@ import AdminNavigation from './AdminNavigation';
 import GestionProductos from './GestionProductos';
 import FormCrearProducto from './FormCrearProducto';
 import FormEditarProducto from './FormEditarProducto';
+import GestionUsuarios from './GestionUsuarios';
 
 const AdminPanel = ({ user, productos }) => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const AdminPanel = ({ user, productos }) => {
         <Route path='/productos' element={
           <GestionProductos user={user}/>
         }/>
+        <Route path='/usuarios' element={<GestionUsuarios user={user} />} />
         <Route path='/productos/crear' element={
           <FormCrearProducto user={user}/>
         }/>
