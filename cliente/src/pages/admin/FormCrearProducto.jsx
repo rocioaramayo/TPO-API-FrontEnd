@@ -44,7 +44,6 @@ const FormCrearProducto = ({ user }) => {
       ...prev,
       [name]: value
     }));
-    console.log(producto)
   };
 
 const handleChangeImagenes = (e) => {

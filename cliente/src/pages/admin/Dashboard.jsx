@@ -11,6 +11,8 @@ const Dashboard = ({user}) => {
   const [cantUsuarios, setCantUsuarios] = useState(0);
   const [productos,setProductos] = useState([]);
   const [productosPocoStock, setProductosPocoStock] = useState(0);
+  const [productosActivos, setProductosActivos] = useState(0);
+  const [productosInactivos, setProductosInactivos] = useState(0);
 
     useEffect(() => {
     // Simulamos una llamada a la API
@@ -74,7 +76,7 @@ const Dashboard = ({user}) => {
         setCantUsuarios(cantidad);
     },[usuarios])
     useEffect(() => {
-        fetch("http://localhost:8080/productos")
+        fetch("http://localhost:8080/productos/admin")
             .then((res) => res.json())
             .then((data) => {
                 setProductos(data.productos);        
@@ -82,11 +84,15 @@ const Dashboard = ({user}) => {
     }, []);
     useEffect(()=>{
         let pocoStock = 0;
+        let activos = 0;
+        let inactivos = 0;
         productos?.forEach((p)=>{
             p.pocoStock ? pocoStock++ : pocoStock
-
+            p.activo ? activos++ : inactivos++            
         })
         setProductosPocoStock(pocoStock)
+        setProductosActivos(activos)
+        setProductosInactivos(inactivos)
     },[productos])
     
   
@@ -124,12 +130,20 @@ const Dashboard = ({user}) => {
                     <h3 className="text-sm text-gray-500">Productos con poco stock</h3>
                     <p className="text-xl font-semibold">{productosPocoStock || 0}</p>
                 </div>
+                <div className="bg-leather-200 p-4 rounded-lg">
+                    <h3 className="text-sm text-gray-500">Productos activos</h3>
+                    <p className="text-xl font-semibold">{productosActivos || 0}</p>
+                </div>
+                <div className="bg-leather-200 p-4 rounded-lg">
+                    <h3 className="text-sm text-gray-500">Productos inactivos</h3>
+                    <p className="text-xl font-semibold">{productosInactivos || 0}</p>
+                </div>
             </div>
             <h2 className="text-xl font-bold text-leather-800 mb-6">Gestión de productos</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 {[
-                    { label: 'Gestionar productos', onClick: () => {navigate('/admin/productos')} },
+                    { label: 'Gestionar productos', onClick: () => {navigate('/admin/productos', { state: { user } })}},
                     { label: 'Gestionar descuentos', onClick: () => {navigate('/admin/descuentos')} },
                     { label: 'Gestionar metodos de entrega', onClick: () => {navigate('/admin/metodosEntrega')} },
                     { label: 'Gestionar puntos de entrega', onClick: () => {navigate('/admin/puntosEntrega')} },
