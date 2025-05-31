@@ -167,18 +167,7 @@ const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
         </span>
                   </button>
 
-                  {mostrarPerfil && user && (
-                      <div
-                          onMouseEnter={() => setMostrarPerfil(true)}
-                          onMouseLeave={() => setMostrarPerfil(false)}
-                          className="absolute right-0 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg p-4 z-50"
-                      >
-                        <p className="text-sm"><strong>Usuario:</strong> {user.username}</p>
-                        <p className="text-sm"><strong>Email:</strong> {user.email}</p>
-                        {/*<p className="text-sm"><strong>Rol:</strong> {user.role}</p>*/}
-                        <p className="text-sm"><strong>Estado:</strong> {user.activo ? "Activo" : "Inactivo"}</p>
-                      </div>
-                  )}
+
                 </div>
 
 
