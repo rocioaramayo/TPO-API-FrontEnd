@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Route, Routes, useNavigate } from 'react-router-dom';
-import DescuentosAdminPanel from '../../components/DescuentosAdminPanel';
+import DescuentosAdminPanel from './DescuentosAdminPanel';
 import Dashboard from './Dashboard';
 import AdminNavigation from './AdminNavigation';
 import GestionProductos from './GestionProductos';
@@ -8,6 +8,8 @@ import FormCrearProducto from './FormCrearProducto';
 import FormEditarProducto from './FormEditarProducto';
 import GestionUsuarios from './GestionUsuarios';
 import GestionComprasAdmin from './GestionComprasAdmin';
+import GestionCategorias from './GestionCategorias';
+
 
 const AdminPanel = ({ user, productos }) => {
   const navigate = useNavigate();
@@ -37,12 +39,14 @@ const AdminPanel = ({ user, productos }) => {
         }/>
         <Route path='/descuentos' element={<DescuentosAdminPanel user={user} fullPage={true} visible={true} onClose={() => navigate('/admin')} />} />
         <Route path="/compras" element={<GestionComprasAdmin user={user} />} />
-
+        
+        <Route path='/categorias' element={
+          <GestionCategorias user={user} />
+        } />
       </Routes>
 
 
     </>
   );
 };
-
 export default AdminPanel; 

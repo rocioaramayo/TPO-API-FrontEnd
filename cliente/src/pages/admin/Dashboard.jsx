@@ -144,6 +144,7 @@ const Dashboard = ({user}) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 {[
                     { label: 'Gestionar productos', onClick: () => {navigate('/admin/productos', { state: { user } })}},
+                    { label: 'Gestionar categorías', onClick: () => {navigate('/admin/categorias')} },
                     { label: 'Gestionar descuentos', onClick: () => {navigate('/admin/descuentos')} },
                     { label: 'Gestionar metodos de entrega', onClick: () => {navigate('/admin/metodosEntrega')} },
                     { label: 'Gestionar puntos de entrega', onClick: () => {navigate('/admin/puntosEntrega')} },
@@ -153,6 +154,7 @@ const Dashboard = ({user}) => {
 
                 ].map((btn, index) => (
                     <button
+                        key={index}
                         onClick={btn.onClick}
                         className="bg-leather-600 text-white py-2 px-4 rounded hover:bg-leather-400 transition"
                     >
