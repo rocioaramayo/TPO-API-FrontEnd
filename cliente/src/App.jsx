@@ -10,7 +10,7 @@ import ProductDetail from './pages/ProductDetail.jsx';
 import Nosotros from './pages/Nosotros.jsx';
 import Favoritos from './pages/Favoritos.jsx';
 import AdminPanel from './pages/admin/AdminPanel.jsx';
-import DescuentosAdminPanel from './components/DescuentosAdminPanel';
+import DescuentosAdminPanel from './pages/admin/DescuentosAdminPanel';
 import AdminNavigation from './pages/admin/AdminNavigation.jsx';
 import Contacto from './pages/Contacto.jsx';
 import PreguntasFrecuentes from './pages/PreguntasFrecuentes.jsx';

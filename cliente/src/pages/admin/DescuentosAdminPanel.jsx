@@ -181,7 +181,19 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
           categoriaId: ''
         });
       })
-      .catch(e => setError(e.message));
+      .catch(e => {
+        // Si el error incluye que el código ya existe
+        if (
+          typeof e.message === 'string' &&
+          (e.message.includes('Ya existe un descuento') ||
+            e.message.toLowerCase().includes('codigo ya existe') ||
+            e.message.toLowerCase().includes('código ya existe'))
+        ) {
+          setError('Ese código ya está en uso. Elegí otro código único.');
+        } else {
+          setError(e.message);
+        }
+      });
   };
 
   const handleCrear = (e) => {
@@ -242,7 +254,19 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
           categoriaId: ''
         });
       })
-      .catch(e => setError(e.message))
+      .catch(e => {
+        // Si el error incluye que el código ya existe
+        if (
+          typeof e.message === 'string' &&
+          (e.message.includes('Ya existe un descuento') ||
+            e.message.toLowerCase().includes('codigo ya existe') ||
+            e.message.toLowerCase().includes('código ya existe'))
+        ) {
+          setError('Ese código ya está en uso. Elegí otro código único.');
+        } else {
+          setError(e.message);
+        }
+      })
       .finally(() => setCreating(false));
   };
 

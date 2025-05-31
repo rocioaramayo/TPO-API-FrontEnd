@@ -1,7 +1,6 @@
 // src/components/Navigation.jsx
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import DescuentosAdminPanel from "../components/DescuentosAdminPanel";
 
 
 const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
