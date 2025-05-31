@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import AuthMessage from './AuthMessage';
-
+import FavoriteNotification from './FavoriteNotification'; 
 // Deducir tipo mime a partir del nombre del archivo (si existe)
 function guessMimeType(foto) {
   if (foto?.nombre) {
@@ -36,6 +36,12 @@ const ProductCard = ({
   const navigate = useNavigate();
   const [showAuthMessage, setShowAuthMessage] = useState(false);
   
+   const [showNotification, setShowNotification] = useState(false);
+  const [notificationData, setNotificationData] = useState({
+    isAdded: false,
+    productName: ''
+  });
+
   // formatear precio
   function formatPrice(price) {
     return new Intl.NumberFormat('es-AR', {
@@ -56,8 +62,18 @@ const ProductCard = ({
       setShowAuthMessage(true);
       return;
     }
-    
+
+
+    const willBeAdded = !isFavorite;
+    setNotificationData({
+      isAdded: willBeAdded,
+      productName: nombre
+    });
     onFavoriteClick(id);
+    // Mostrar notificación con un pequeño retraso
+    setTimeout(() => {
+      setShowNotification(true);
+    }, 100);
   }
 
   // Obtener la imagen principal del producto con tipo dinámico
@@ -174,6 +190,13 @@ const ProductCard = ({
       <AuthMessage 
         isOpen={showAuthMessage}
         onClose={() => setShowAuthMessage(false)}
+      />
+
+      <FavoriteNotification
+        isVisible={showNotification}
+        isAdded={notificationData.isAdded}
+        productName={notificationData.productName}
+        onClose={() => setShowNotification(false)}
       />
     </>
   );

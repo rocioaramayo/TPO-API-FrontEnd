@@ -10,7 +10,6 @@ import ProductDetail from './pages/ProductDetail.jsx';
 import Nosotros from './pages/Nosotros.jsx';
 import Favoritos from './pages/Favoritos.jsx';
 import AdminPanel from './pages/admin/AdminPanel.jsx';
-import DescuentosAdminPanel from './pages/admin/DescuentosAdminPanel';
 import AdminNavigation from './pages/admin/AdminNavigation.jsx';
 import Contacto from './pages/Contacto.jsx';
 import PreguntasFrecuentes from './pages/PreguntasFrecuentes.jsx';
@@ -191,14 +190,7 @@ const App = () => {
           </>} 
         />
 
-        <Route 
-          path="/admin/descuentos" 
-          element={
-          <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems} />
-              <DescuentosAdminPanel user={user} fullPage={true} visible={true} onClose={() => {}} />
-          </>} 
-        />
+      
 
         <Route 
           path="/admin/*" 

@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
-
+import FavoriteNotification from '../components/FavoriteNotification';
 const Favoritos = ({ user }) => {
   const [favoritos, setFavoritos] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationData, setNotificationData] = useState({
+    isAdded: false,
+    productName: ''
+  });
   useEffect(() => {
     if (!user) {
       navigate('/login');
@@ -37,30 +41,46 @@ const Favoritos = ({ user }) => {
       });
   }
 
-  function handleFavoritoEliminado(productoId) {
-    console.log('Eliminando favorito:', productoId);
-    
-    // Eliminar el favorito del backend
-    fetch(`http://localhost:8080/api/v1/favoritos/${productoId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${user.token}`,
-        'Content-Type': 'application/json'
+ function handleFavoritoEliminado(productoId) {
+  console.log('Eliminando favorito:', productoId);
+  
+  // ✅ CAPTURAR EL NOMBRE DEL PRODUCTO ANTES DEL FETCH
+  const favorito = favoritos.find(f => f.producto.id === productoId);
+  const nombreProducto = favorito?.producto?.nombre || 'Producto';
+  
+  console.log('Nombre del producto a eliminar:', nombreProducto);
+  
+  // Eliminar el favorito del backend
+  fetch(`http://localhost:8080/api/v1/favoritos/${productoId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${user.token}`,
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(response => {
+      if (response.ok) {
+        console.log('Favorito eliminado exitosamente');
+        
+        // ✅ USAR LA VARIABLE CAPTURADA ANTERIORMENTE
+        setNotificationData({
+          isAdded: false,
+          productName: nombreProducto // ← Ahora está en el scope correcto
+        });
+        
+        setTimeout(() => {
+          setShowNotification(true);
+        }, 100);
+        
+        cargarFavoritos();
+      } else {
+        console.error('Error al eliminar favorito');
       }
     })
-      .then(response => {
-        if (response.ok) {
-          console.log('Favorito eliminado exitosamente');
-          // Recargar favoritos después de eliminar
-          cargarFavoritos();
-        } else {
-          console.error('Error al eliminar favorito');
-        }
-      })
-      .catch(error => {
-        console.error('Error al eliminar favorito:', error);
-      });
-  }
+    .catch(error => {
+      console.error('Error al eliminar favorito:', error);
+    });
+}
 
   if (!user) {
     return null; 
@@ -123,7 +143,12 @@ const Favoritos = ({ user }) => {
           </>
         )}
       </div>
-
+        <FavoriteNotification
+        isVisible={showNotification}
+        isAdded={notificationData.isAdded}
+        productName={notificationData.productName}
+        onClose={() => setShowNotification(false)}
+      />
       <Footer />
     </div>
   );

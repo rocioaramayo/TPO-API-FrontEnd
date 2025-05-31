@@ -18,6 +18,7 @@ import Footer from '../components/Footer';
 import AuthMessage from '../components/AuthMessage';
 import ReviewList from '../components/ReviewList';
 import ReviewForm from '../components/ReviewForm';
+import FavoriteNotification from '../components/FavoriteNotification';
 
 
 
@@ -31,7 +32,11 @@ const ProductDetail = ({ user, onAddToCart }) => {
     const [showAuthMessage, setShowAuthMessage] = useState(false);
     const [reviewsKey, setReviewsKey] = useState(0); // Para forzar recarga de reviews
     const URL = `http://localhost:8080/productos/detalle/${id}`;
-
+    const [showNotification, setShowNotification] = useState(false);
+    const [notificationData, setNotificationData] = useState({
+    isAdded: false,
+    productName: ''
+    });
     useEffect(() => {  
         console.log("Haciendo fetch a:", URL);
         
@@ -99,7 +104,18 @@ const ProductDetail = ({ user, onAddToCart }) => {
         fetch(url, options)
             .then(response => {
                 if (response.ok) {
+                    const wasAdded = !isFavorite;
                     setIsFavorite(!isFavorite);
+                    
+                    
+                    setNotificationData({
+                    isAdded: wasAdded,
+                    productName: producto?.nombre || 'Producto'
+                    });
+                    
+                    setTimeout(() => {
+                    setShowNotification(true);
+                    }, 100);
                 } else {
                     console.error('Error al modificar favorito');
                 }
@@ -380,7 +396,12 @@ const ProductDetail = ({ user, onAddToCart }) => {
                     />
                 </div>
             </div>
-
+            <FavoriteNotification
+                isVisible={showNotification}
+                isAdded={notificationData.isAdded}
+                productName={notificationData.productName}
+                onClose={() => setShowNotification(false)}
+                />
             <Footer />
         </div>
     );
