@@ -7,6 +7,7 @@ import GestionProductos from './GestionProductos';
 import FormCrearProducto from './FormCrearProducto';
 import FormEditarProducto from './FormEditarProducto';
 import GestionUsuarios from './GestionUsuarios';
+import GestionComprasAdmin from './GestionComprasAdmin';
 
 const AdminPanel = ({ user, productos }) => {
   const navigate = useNavigate();
@@ -35,7 +36,11 @@ const AdminPanel = ({ user, productos }) => {
           <FormEditarProducto user={user}/>
         }/>
         <Route path='/descuentos' element={<DescuentosAdminPanel user={user} fullPage={true} visible={true} onClose={() => navigate('/admin')} />} />
+        <Route path="/compras" element={<GestionComprasAdmin user={user} />} />
+
       </Routes>
+
+
     </>
   );
 };

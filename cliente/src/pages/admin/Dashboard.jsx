@@ -148,6 +148,9 @@ const Dashboard = ({user}) => {
                     { label: 'Gestionar metodos de entrega', onClick: () => {navigate('/admin/metodosEntrega')} },
                     { label: 'Gestionar puntos de entrega', onClick: () => {navigate('/admin/puntosEntrega')} },
                     { label: 'Gestionar usuarios', onClick: () => {navigate('/admin/usuarios')} },
+                    { label: 'Ver todas las compras', onClick: () => {navigate('/admin/compras')} }
+
+
                 ].map((btn, index) => (
                     <button
                         onClick={btn.onClick}
