@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DetalleCompra from "./DetalleCompra"; // si están en la misma carpeta
+import DireccionesPanel from "./DireccionesPanel";
+
 
 import {
   FaUser,
@@ -199,7 +201,7 @@ const ProfilePage = ({ user }) => {
                   className={`flex items-center gap-2 text-leather-700 ${activeTab === "envios" ? "underline" : ""}`}
                   onClick={() => setActiveTab("envios")}
               >
-                <FaMapMarkedAlt /> Métodos de Envío
+                <FaMapMarkedAlt /> Direcciones
               </button>
             </nav>
           </div>
@@ -343,12 +345,11 @@ const ProfilePage = ({ user }) => {
               </div>
           )}
 
-          {activeTab === "envios" && (
-              <div className="bg-white p-8 rounded shadow">
-                <h2 className="text-xl font-bold">Métodos de Envío</h2>
-                <p className="mt-2 text-gray-600">Acá irían los métodos de entrega favoritos.</p>
-              </div>
-          )}
+            {activeTab === "envios" && (
+                <DireccionesPanel token={user.token} />
+            )}
+
+
         </main>
 
         {/* Modal contraseña */}
