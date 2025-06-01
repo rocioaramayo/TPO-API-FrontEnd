@@ -231,11 +231,40 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
       cantidad: item.quantity
     }));
 
+    // Validar que el método de pago siempre sea uno permitido
+    const METODOS_PAGO_ENUM = [
+      "EFECTIVO",
+      "TARJETA_CREDITO",
+      "TARJETA_DEBITO",
+      "MERCADO_PAGO",
+      "TRANSFERENCIA"
+    ];
+    let metodoPagoEnum = metodoPago;
+    if (!METODOS_PAGO_ENUM.includes(metodoPagoEnum)) {
+      metodoPagoEnum = "EFECTIVO";
+    }
+
+    // Definir cuotas solo si corresponde (solo para TARJETA_CREDITO y valor > 0)
+    let cuotasValue = null;
+    if (metodoPagoEnum === "TARJETA_CREDITO") {
+      const cuotasInput = document.querySelector('select[name="cuotas"]');
+      if (
+        cuotasInput &&
+        cuotasInput.value &&
+        !isNaN(Number(cuotasInput.value)) &&
+        Number(cuotasInput.value) > 0
+      ) {
+        cuotasValue = Number(cuotasInput.value);
+      }
+    }
+
+    // Solo incluir el campo cuotas si es tarjeta de crédito y hay valor
     const body = {
       items,
       codigoDescuento: aplicado ? cupon.trim() : null,
       metodoEntregaId: metodoEntrega,
-      metodoPago: metodoPago
+      metodoDePago: metodoPagoEnum,
+      ...(metodoPagoEnum === "TARJETA_CREDITO" && cuotasValue ? { cuotas: cuotasValue } : {})
     };
 
     if (metodoSeleccionado?.requiereDireccion) {
@@ -270,6 +299,14 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
         setErrorCheckout("Hubo un error al procesar la compra. Intenta nuevamente.");
       });
   }
+
+  // Limpiar el select de cuotas si el método de pago no es tarjeta de crédito ni débito
+  React.useEffect(() => {
+    if (metodoPago !== "TARJETA_CREDITO" && metodoPago !== "TARJETA_DEBITO") {
+      const cuotasInput = document.querySelector('select[name="cuotas"]');
+      if (cuotasInput) cuotasInput.value = "";
+    }
+  }, [metodoPago]);
 
   return (
     <>
@@ -467,25 +504,7 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                   </div>
                   {/* Inputs para tarjeta */}
                   {(metodoPago === "TARJETA_CREDITO" || metodoPago === "TARJETA_DEBITO") && (
-                    <div className="mb-4 space-y-2">
-                      <input type="text" placeholder="Número de tarjeta" className="border rounded px-3 py-2 w-full" />
-                      <input type="text" placeholder="Nombre del titular" className="border rounded px-3 py-2 w-full" />
-                      <div className="flex gap-2">
-                        <input type="text" placeholder="Vencimiento (MM/AA)" className="border rounded px-3 py-2 w-1/2" />
-                        <input type="text" placeholder="Código de Seguridad" className="border rounded px-3 py-2 w-1/2" />
-                      </div>
-                      {metodoPago === "TARJETA_CREDITO" && (
-                        <div>
-                          <label className="block font-semibold text-leather-700 mb-1">Cuotas disponibles</label>
-                          <select className="border rounded px-3 py-2 w-full">
-                            <option value="">¿En cuántas cuotas deseas pagar?</option>
-                            <option value="3">3 cuotas sin interés</option>
-                            <option value="6">6 cuotas sin interés</option>
-                            <option value="12">12 cuotas sin interés</option>
-                          </select>
-                        </div>
-                      )}
-                    </div>
+                    <TarjetaInputs metodoPago={metodoPago} />
                   )}
                   {/* Instrucción de pago según método */}
                   {(
@@ -670,3 +689,98 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
 };
 
 export default CarritoPage;
+// Inputs de tarjeta con validaciones mejoradas
+function TarjetaInputs({ metodoPago }) {
+  const [numero, setNumero] = React.useState("");
+  const [nombre, setNombre] = React.useState("");
+  const [vencimiento, setVencimiento] = React.useState("");
+  const [ccv, setCcv] = React.useState("");
+  const [cuotas, setCuotas] = React.useState("");
+
+  // Número: solo 16 dígitos
+  function handleNumeroChange(e) {
+    const val = e.target.value.replace(/\D/g, "");
+    setNumero(val.slice(0, 16));
+  }
+  // Nombre: solo letras y espacios
+  function handleNombreChange(e) {
+    const val = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, "");
+    setNombre(val);
+  }
+  // Vencimiento: 4 dígitos con formato MM/AA
+  function handleVencimientoChange(e) {
+    let val = e.target.value.replace(/\D/g, "").slice(0, 4);
+    if (val.length > 2) val = val.slice(0, 2) + "/" + val.slice(2);
+    setVencimiento(val);
+  }
+  // CCV: solo 4 números
+  function handleCcvChange(e) {
+    const val = e.target.value.replace(/\D/g, "");
+    setCcv(val.slice(0, 4));
+  }
+
+  // Reset cuotas si cambia método
+  React.useEffect(() => {
+    if (!["TARJETA_CREDITO", "TARJETA_DEBITO"].includes(metodoPago)) {
+      setCuotas("");
+    }
+  }, [metodoPago]);
+
+  return (
+    <div className="mb-4 space-y-2">
+      <input
+        type="text"
+        placeholder="Número de tarjeta"
+        className="border rounded px-3 py-2 w-full"
+        value={numero}
+        maxLength={16}
+        inputMode="numeric"
+        onChange={handleNumeroChange}
+      />
+      <input
+        type="text"
+        placeholder="Nombre del titular"
+        className="border rounded px-3 py-2 w-full"
+        value={nombre}
+        onChange={handleNombreChange}
+      />
+      <div className="flex gap-2">
+        <input
+          type="text"
+          placeholder="Vencimiento (MM/AA)"
+          className="border rounded px-3 py-2 w-1/2"
+          value={vencimiento}
+          maxLength={5}
+          inputMode="numeric"
+          onChange={handleVencimientoChange}
+        />
+        <input
+          type="text"
+          placeholder="Código de Seguridad"
+          className="border rounded px-3 py-2 w-1/2"
+          value={ccv}
+          maxLength={4}
+          inputMode="numeric"
+          onChange={handleCcvChange}
+        />
+      </div>
+      {/* Solo mostrar cuotas si corresponde */}
+      {["TARJETA_CREDITO", "TARJETA_DEBITO"].includes(metodoPago) && (
+        <div>
+          <label className="block font-semibold text-leather-700 mb-1">Cuotas disponibles</label>
+          <select
+            className="border rounded px-3 py-2 w-full"
+            name="cuotas"
+            value={cuotas}
+            onChange={e => setCuotas(e.target.value)}
+          >
+            <option value="">¿En cuántas cuotas deseas pagar?</option>
+            <option value="3">3 cuotas sin interés</option>
+            <option value="6">6 cuotas sin interés</option>
+            <option value="12">12 cuotas sin interés</option>
+          </select>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import DetalleCompra from "./DetalleCompra"; // si están en la misma carpeta
+
 import {
   FaUser,
   FaMapMarkedAlt,
@@ -20,6 +22,7 @@ const ProfilePage = ({ user }) => {
   const [newPassword, setNewPassword] = useState("");
   const [misCompras, setMisCompras] = useState([]);
   const [activeTab, setActiveTab] = useState("perfil");
+  const [compraDetalle, setCompraDetalle] = useState(null);
 
   useEffect(() => {
     if (user?.token) {
@@ -93,6 +96,23 @@ const ProfilePage = ({ user }) => {
           alert("Hubo un error al guardar los cambios.");
         });
   };
+
+
+  const verDetalleCompra = (id) => {
+      fetch(`http://127.0.0.1:8080/compras/${id}`, {
+          headers: {
+              Authorization: `Bearer ${user.token}`,
+          },
+    })
+        .then((res) => {
+          if (!res.ok) throw new Error("Error al obtener el detalle de la compra");
+          return res.json();
+        })
+        .then(setCompraDetalle)
+        .catch((err) => alert("Error: " + err.message));
+  };
+
+
 
   const handleChangePassword = () => {
     fetch("http://127.0.0.1:8080/api/v1/auth/change-password", {
@@ -254,24 +274,51 @@ const ProfilePage = ({ user }) => {
               </div>
           )}
 
-          {activeTab === "compras" && (
-              <div className="bg-white rounded-2xl shadow-md p-6">
-                <h3 className="text-xl font-bold text-leather-700 mb-4">Mis Compras</h3>
-                {misCompras.length === 0 ? (
-                    <p className="text-leather-500">No tenés compras registradas.</p>
-                ) : (
-                    <ul className="space-y-3">
-                      {misCompras.map((compra, i) => (
-                          <li key={i} className="border rounded-lg p-4 bg-leather-50 shadow-sm">
-                            <p className="font-semibold">Compra #{compra.id}</p>
-                            <p>Fecha: {compra.fecha}</p>
-                            <p>Total: ${compra.total}</p>
-                          </li>
-                      ))}
-                    </ul>
-                )}
-              </div>
-          )}
+            {activeTab === "compras" && (
+                <div className="bg-white rounded-2xl shadow-md p-6">
+                    <h3 className="text-xl font-bold text-leather-700 mb-4">Mis Compras</h3>
+                    {misCompras.length === 0 ? (
+                        <p className="text-leather-500">No tenés compras registradas.</p>
+                    ) : (
+                        <ul className="space-y-3">
+                            {misCompras.map((compra, i) => (
+                                <li key={i} className="border rounded-lg p-4 bg-leather-50 shadow-sm">
+                                    <p className="font-semibold">Compra #{compra.id}</p>
+                                    <p className="text-sm text-leather-600">
+                                        <span className="font-semibold">Fecha:</span>{" "}
+                                        {new Date(compra.fecha).toLocaleDateString()} -{" "}
+                                        {new Date(compra.fecha).toLocaleTimeString()}
+                                    </p>
+                                    <p className="text-sm text-leather-600">
+                                        <span className="font-semibold">Producto:</span>{" "}
+                                        {compra.items?.[0]?.nombreProducto ?? "Producto"}
+                                    </p>
+                                    <p className="text-sm text-leather-600">
+                                        <span className="font-semibold">Total:</span> ${compra.total?.toLocaleString()}
+                                    </p>
+
+                                    <button
+                                        className="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        onClick={() => verDetalleCompra(compra.id)}
+                                    >
+                                        Ver detalle
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    {/* Detalle de compra */}
+                    {compraDetalle && (
+                        <div className="mt-6 bg-white rounded-xl shadow-md p-6 border border-leather-200">
+                            <DetalleCompra compra={compraDetalle} onClose={() => setCompraDetalle(null)} />
+
+                        </div>
+                    )}
+                </div>
+            )}
+
+
 
           {activeTab === "pagos" && (
               <div className="bg-white p-8 rounded shadow">
