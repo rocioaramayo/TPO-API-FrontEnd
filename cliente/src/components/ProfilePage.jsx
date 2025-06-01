@@ -20,6 +20,7 @@ const ProfilePage = ({ user }) => {
   const [newPassword, setNewPassword] = useState("");
   const [misCompras, setMisCompras] = useState([]);
   const [activeTab, setActiveTab] = useState("perfil");
+  const [compraDetalle, setCompraDetalle] = useState(null);
 
   useEffect(() => {
     if (user?.token) {
@@ -93,6 +94,23 @@ const ProfilePage = ({ user }) => {
           alert("Hubo un error al guardar los cambios.");
         });
   };
+
+
+  const verDetalleCompra = (id) => {
+      fetch(`http://127.0.0.1:8080/compras/${id}`, {
+          headers: {
+              Authorization: `Bearer ${user.token}`,
+          },
+    })
+        .then((res) => {
+          if (!res.ok) throw new Error("Error al obtener el detalle de la compra");
+          return res.json();
+        })
+        .then(setCompraDetalle)
+        .catch((err) => alert("Error: " + err.message));
+  };
+
+
 
   const handleChangePassword = () => {
     fetch("http://127.0.0.1:8080/api/v1/auth/change-password", {
@@ -254,24 +272,59 @@ const ProfilePage = ({ user }) => {
               </div>
           )}
 
-          {activeTab === "compras" && (
-              <div className="bg-white rounded-2xl shadow-md p-6">
-                <h3 className="text-xl font-bold text-leather-700 mb-4">Mis Compras</h3>
-                {misCompras.length === 0 ? (
-                    <p className="text-leather-500">No tenés compras registradas.</p>
-                ) : (
-                    <ul className="space-y-3">
-                      {misCompras.map((compra, i) => (
-                          <li key={i} className="border rounded-lg p-4 bg-leather-50 shadow-sm">
-                            <p className="font-semibold">Compra #{compra.id}</p>
-                            <p>Fecha: {compra.fecha}</p>
-                            <p>Total: ${compra.total}</p>
-                          </li>
-                      ))}
-                    </ul>
-                )}
-              </div>
-          )}
+            {activeTab === "compras" && (
+                <div className="bg-white rounded-2xl shadow-md p-6">
+                    <h3 className="text-xl font-bold text-leather-700 mb-4">Mis Compras</h3>
+                    {misCompras.length === 0 ? (
+                        <p className="text-leather-500">No tenés compras registradas.</p>
+                    ) : (
+                        <ul className="space-y-3">
+                            {misCompras.map((compra, i) => (
+                                <li key={i} className="border rounded-lg p-4 bg-leather-50 shadow-sm">
+                                    <p className="font-semibold">Compra #{compra.id}</p>
+                                    <p>Fecha: {compra.fecha}</p>
+                                    <p>Total: ${compra.total}</p>
+                                    <button
+                                        className="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        onClick={() => verDetalleCompra(compra.id)}
+                                    >
+                                        Ver detalle
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    {/* Detalle de compra */}
+                    {compraDetalle && (
+                        <div className="mt-6 bg-white rounded-xl shadow-md p-6 border border-leather-200">
+                            <h3 className="text-lg font-bold text-leather-700 mb-2">
+                                Detalle de la Compra #{compraDetalle.id}
+                            </h3>
+                            <p className="text-sm text-leather-600">Fecha: {compraDetalle.fecha}</p>
+                            <p className="text-sm text-leather-600 mb-2">Total: ${compraDetalle.total}</p>
+
+                            <h4 className="text-md font-semibold mt-4 mb-2">Ítems:</h4>
+                            <ul className="list-disc ml-5 space-y-1">
+                                {compraDetalle.items.map((item, index) => (
+                                    <li key={index}>
+                                        {item.nombreProducto} - {item.cantidad} x ${item.precioUnitario} = ${item.subtotal}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <button
+                                className="mt-4 px-4 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                                onClick={() => setCompraDetalle(null)}
+                            >
+                                Cerrar detalle
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+
+
 
           {activeTab === "pagos" && (
               <div className="bg-white p-8 rounded shadow">
