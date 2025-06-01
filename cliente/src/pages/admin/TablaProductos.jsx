@@ -7,6 +7,7 @@ export default function TablaProductos({}) {
   const navigate = useNavigate()
   const [productos,setProductos] = useState([]);
   const [mostrarAlertaDesactivar, setMostrarAlertaDesactivar] = useState(false);
+  const [mostrarAlertaActivar, setMostrarAlertaActivar] = useState(false);
   const [mostrarAgregarStock, setMostrarAgregarStock] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [stock, setStock] = useState(0);
@@ -16,7 +17,7 @@ export default function TablaProductos({}) {
           .then((data) => {
           setProductos(data.productos);
           });
-  }, [mostrarAlertaDesactivar]);
+  }, [mostrarAlertaDesactivar,mostrarAgregarStock,mostrarAlertaActivar]);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6; // Cambiá este número si querés mostrar más/menos por página
 
@@ -51,9 +52,6 @@ export default function TablaProductos({}) {
     const handleAgregarStock = (e) =>{
         e.preventDefault();
         const id = productoSeleccionado.id;
-        console.log(id)
-        console.log(user.token)
-        console.log(JSON.stringify({ stock: stock }))
         fetch( `http://127.0.0.1:8080/productos/stock/${id}`,{
             method: "PUT",
             headers:{
@@ -66,6 +64,21 @@ export default function TablaProductos({}) {
             setMostrarAgregarStock(false)
             setProductoSeleccionado({})
         })
+    }
+    const handleActivarProducto = (e) =>{
+        e.preventDefault();
+        const id = productoSeleccionado.id;
+        fetch(`http://localhost:8080/productos/activar/${id}`,{
+            method:'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user.token}`,
+            },
+        })
+        .then(()=>{
+            setMostrarAlertaActivar(false);
+            setProductoSeleccionado({});
+        })  
     }
   return (
     <>
@@ -89,7 +102,7 @@ export default function TablaProductos({}) {
             </thead>
             <tbody className="bg-white divide-y divide-leather-100">
             {currentProductos.map((prod) => (
-                <tr key={prod.id} className="hover:bg-leather-50 transition">
+                <tr key={prod.id} className="hover:bg-leather-50 transition ">
                 <td className="px-4 py-3">
                     <button className="px-1" value={prod.id} onClick={handleEdit}>✏️</button>
                     <button className="px-1 text-red-600 hover:text-red-800" value={prod.id} onClick={()=>{
@@ -100,6 +113,10 @@ export default function TablaProductos({}) {
                         setProductoSeleccionado(prod); // o ID del producto
                         setMostrarAgregarStock(true);
                     }}>📦</button>
+                    <button className="px-1" value={prod.id} onClick={()=>{
+                        setProductoSeleccionado(prod);
+                        setMostrarAlertaActivar(true)
+                    }}>✔️</button>
                 </td>
                 <td className="px-4 py-3">{prod.id}</td>
                 <td className="px-4 py-3">{prod.nombre}</td>
@@ -118,7 +135,7 @@ export default function TablaProductos({}) {
                 <td className="px-4 py-3">{prod.descripcion.length > 25 ? prod.descripcion.slice(0,25)+"..." : prod.descripcion}</td>
                 <td className="px-4 py-3">{prod.grosor}</td>
                 <td className="px-4 py-3">{prod.precio}</td>
-                <td className="px-4 py-3">{prod.stock}</td>
+                <td className={`px-4 py-3 ${prod.pocoStock ? "bg-red-200" : ""}`}>{prod.stock}</td>
                 <td className="px-4 py-3">{prod.textura}</td>
                 <td className="px-4 py-3">{prod.tipoCuero}</td>
                 <td className="px-4 py-3">{prod.categoria}</td>
@@ -145,6 +162,29 @@ export default function TablaProductos({}) {
                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                     >
                     Desactivar
+                    </button>
+                </div>
+                </div>
+            </div>
+        )}
+        {mostrarAlertaActivar && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-lg w-[300px]">
+                <h2 className="text-lg font-bold mb-4">¿Estás seguro?</h2>
+                <p className="text-sm mb-6">¿Queres activar el producto {productoSeleccionado.nombre}?</p>
+                
+                <div className="flex justify-between">
+                    <button
+                    onClick={() => setMostrarAlertaActivar(false)}
+                    className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
+                    >
+                    Cancelar
+                    </button>
+                    <button
+                    onClick={handleActivarProducto}
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                    >
+                    Activar
                     </button>
                 </div>
                 </div>

@@ -9,6 +9,7 @@ import FormEditarProducto from './FormEditarProducto';
 import GestionUsuarios from './GestionUsuarios';
 import GestionComprasAdmin from './GestionComprasAdmin';
 import GestionCategorias from './GestionCategorias';
+import GestionEntregas from './GestionEntregas';
 
 
 const AdminPanel = ({ user, productos }) => {
@@ -42,6 +43,9 @@ const AdminPanel = ({ user, productos }) => {
         
         <Route path='/categorias' element={
           <GestionCategorias user={user} />
+        } />
+        <Route path='/entregas' element={
+          <GestionEntregas user={user} />
         } />
       </Routes>
 

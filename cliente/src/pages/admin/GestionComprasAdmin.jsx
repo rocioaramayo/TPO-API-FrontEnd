@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const GestionComprasAdmin = ({ user }) => {
     const [compras, setCompras] = useState([]);
     const [error, setError] = useState(null);
+    const navigate = useNavigate()
 
     useEffect(() => {
         fetch("http://localhost:8080/compras", {
@@ -20,7 +22,11 @@ const GestionComprasAdmin = ({ user }) => {
 
     return (
         <div className="p-6">
-            <h2 className="text-2xl font-bold mb-4">Todas las Compras</h2>
+            <div className='flex justify-between items-center mb-6'>
+                <h2 className="text-2xl font-bold mb-4">Todas las Compras</h2>
+                <button className="py-2 text-leather-800 hover:underline" onClick={() => navigate('/admin')}>Volver al dashboard</button>
+
+            </div>
             {error && <p className="text-red-500">{error}</p>}
             <ul className="space-y-4">
                 {compras.map((compra) => (

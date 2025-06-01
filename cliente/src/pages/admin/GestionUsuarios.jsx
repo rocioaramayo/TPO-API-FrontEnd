@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const GestionUsuarios = ({ user }) => {
     const [usuarios, setUsuarios] = useState([]);
     const [error, setError] = useState(null);
-
+    const navigate = useNavigate();
     useEffect(() => {
         fetch("http://localhost:8080/api/v1/users", {
             headers: {
@@ -73,7 +74,10 @@ const GestionUsuarios = ({ user }) => {
 
     return (
         <div className="p-6">
-            <h2 className="text-xl font-bold mb-4">Gestión de Usuarios</h2>
+            <div className='flex justify-between items-center mb-6'>    
+                <h2 className="text-xl font-bold mb-4">Gestión de Usuarios</h2>
+                <button className="py-2 text-leather-800 hover:underline" onClick={() => navigate('/admin')}>Volver al dashboard</button>
+            </div>
             {error && <p className="text-red-500">{error}</p>}
             <table className="min-w-full bg-white border">
                 <thead>
