@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import DetalleCompra from "./DetalleCompra"; // si están en la misma carpeta
+
 import {
   FaUser,
   FaMapMarkedAlt,
@@ -282,8 +284,19 @@ const ProfilePage = ({ user }) => {
                             {misCompras.map((compra, i) => (
                                 <li key={i} className="border rounded-lg p-4 bg-leather-50 shadow-sm">
                                     <p className="font-semibold">Compra #{compra.id}</p>
-                                    <p>Fecha: {compra.fecha}</p>
-                                    <p>Total: ${compra.total}</p>
+                                    <p className="text-sm text-leather-600">
+                                        <span className="font-semibold">Fecha:</span>{" "}
+                                        {new Date(compra.fecha).toLocaleDateString()} -{" "}
+                                        {new Date(compra.fecha).toLocaleTimeString()}
+                                    </p>
+                                    <p className="text-sm text-leather-600">
+                                        <span className="font-semibold">Producto:</span>{" "}
+                                        {compra.items?.[0]?.nombreProducto ?? "Producto"}
+                                    </p>
+                                    <p className="text-sm text-leather-600">
+                                        <span className="font-semibold">Total:</span> ${compra.total?.toLocaleString()}
+                                    </p>
+
                                     <button
                                         className="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                                         onClick={() => verDetalleCompra(compra.id)}
@@ -298,27 +311,8 @@ const ProfilePage = ({ user }) => {
                     {/* Detalle de compra */}
                     {compraDetalle && (
                         <div className="mt-6 bg-white rounded-xl shadow-md p-6 border border-leather-200">
-                            <h3 className="text-lg font-bold text-leather-700 mb-2">
-                                Detalle de la Compra #{compraDetalle.id}
-                            </h3>
-                            <p className="text-sm text-leather-600">Fecha: {compraDetalle.fecha}</p>
-                            <p className="text-sm text-leather-600 mb-2">Total: ${compraDetalle.total}</p>
+                            <DetalleCompra compra={compraDetalle} onClose={() => setCompraDetalle(null)} />
 
-                            <h4 className="text-md font-semibold mt-4 mb-2">Ítems:</h4>
-                            <ul className="list-disc ml-5 space-y-1">
-                                {compraDetalle.items.map((item, index) => (
-                                    <li key={index}>
-                                        {item.nombreProducto} - {item.cantidad} x ${item.precioUnitario} = ${item.subtotal}
-                                    </li>
-                                ))}
-                            </ul>
-
-                            <button
-                                className="mt-4 px-4 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
-                                onClick={() => setCompraDetalle(null)}
-                            >
-                                Cerrar detalle
-                            </button>
                         </div>
                     )}
                 </div>
