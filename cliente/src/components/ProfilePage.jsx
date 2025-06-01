@@ -23,6 +23,7 @@ const ProfilePage = ({ user }) => {
   const [misCompras, setMisCompras] = useState([]);
   const [activeTab, setActiveTab] = useState("perfil");
   const [compraDetalle, setCompraDetalle] = useState(null);
+  const [compraAbiertaId, setCompraAbiertaId] = useState(null);
 
   useEffect(() => {
     if (user?.token) {
@@ -98,23 +99,33 @@ const ProfilePage = ({ user }) => {
   };
 
 
-  const verDetalleCompra = (id) => {
-      fetch(`http://127.0.0.1:8080/compras/${id}`, {
-          headers: {
-              Authorization: `Bearer ${user.token}`,
-          },
-    })
-        .then((res) => {
-          if (!res.ok) throw new Error("Error al obtener el detalle de la compra");
-          return res.json();
+    const verDetalleCompra = (id) => {
+        if (compraAbiertaId === id) {
+            setCompraAbiertaId(null);
+            setCompraDetalle(null);
+            return;
+        }
+
+        fetch(`http://127.0.0.1:8080/compras/${id}`, {
+            headers: {
+                Authorization: `Bearer ${user.token}`,
+            },
         })
-        .then(setCompraDetalle)
-        .catch((err) => alert("Error: " + err.message));
-  };
+            .then((res) => {
+                if (!res.ok) throw new Error("Error al obtener el detalle de la compra");
+                return res.json();
+            })
+            .then((detalle) => {
+                setCompraDetalle(detalle);
+                setCompraAbiertaId(id);
+            })
+            .catch((err) => alert("Error: " + err.message));
+    };
 
 
 
-  const handleChangePassword = () => {
+
+    const handleChangePassword = () => {
     fetch("http://127.0.0.1:8080/api/v1/auth/change-password", {
       method: "PUT",
       headers: {
@@ -283,7 +294,7 @@ const ProfilePage = ({ user }) => {
                         <ul className="space-y-3">
                             {misCompras.map((compra, i) => (
                                 <li key={i} className="border rounded-lg p-4 bg-leather-50 shadow-sm">
-                                    <p className="font-semibold">Compra #{compra.id}</p>
+                                    <p className="font-semibold text-leather-800 text-lg">Compra #{compra.id}</p>
                                     <p className="text-sm text-leather-600">
                                         <span className="font-semibold">Fecha:</span>{" "}
                                         {new Date(compra.fecha).toLocaleDateString()} -{" "}
@@ -293,7 +304,7 @@ const ProfilePage = ({ user }) => {
                                         <span className="font-semibold">Producto:</span>{" "}
                                         {compra.items?.[0]?.nombreProducto ?? "Producto"}
                                     </p>
-                                    <p className="text-sm text-leather-600">
+                                    <p className="text-sm text-leather-600 mb-2">
                                         <span className="font-semibold">Total:</span> ${compra.total?.toLocaleString()}
                                     </p>
 
@@ -301,26 +312,31 @@ const ProfilePage = ({ user }) => {
                                         className="mt-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                                         onClick={() => verDetalleCompra(compra.id)}
                                     >
-                                        Ver detalle
+                                        {compraAbiertaId === compra.id ? "Ocultar detalle" : "Ver detalle"}
                                     </button>
+
+                                    {/* Detalle de esa compra */}
+                                    {compraAbiertaId === compra.id && compraDetalle && (
+                                        <div className="mt-4">
+                                            <DetalleCompra
+                                                compra={compraDetalle}
+                                                onClose={() => {
+                                                    setCompraDetalle(null);
+                                                    setCompraAbiertaId(null);
+                                                }}
+                                            />
+                                        </div>
+                                    )}
                                 </li>
                             ))}
                         </ul>
-                    )}
-
-                    {/* Detalle de compra */}
-                    {compraDetalle && (
-                        <div className="mt-6 bg-white rounded-xl shadow-md p-6 border border-leather-200">
-                            <DetalleCompra compra={compraDetalle} onClose={() => setCompraDetalle(null)} />
-
-                        </div>
                     )}
                 </div>
             )}
 
 
 
-          {activeTab === "pagos" && (
+            {activeTab === "pagos" && (
               <div className="bg-white p-8 rounded shadow">
                 <h2 className="text-xl font-bold">Métodos de Pago</h2>
                 <p className="mt-2 text-gray-600">Acá irían los métodos de pago del usuario.</p>
