@@ -231,11 +231,30 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
       cantidad: item.quantity
     }));
 
+    // Validar que el método de pago siempre sea uno permitido
+    const METODOS_PAGO_ENUM = [
+      "EFECTIVO",
+      "TARJETA_CREDITO",
+      "TARJETA_DEBITO",
+      "MERCADO_PAGO",
+      "TRANSFERENCIA"
+    ];
+    let metodoPagoEnum = metodoPago;
+    if (!METODOS_PAGO_ENUM.includes(metodoPagoEnum)) {
+      metodoPagoEnum = "EFECTIVO";
+    }
+
+    // Debug: mostrar método de pago enviado
+    console.log("Método de pago enviado:", metodoPagoEnum);
+
     const body = {
       items,
       codigoDescuento: aplicado ? cupon.trim() : null,
       metodoEntregaId: metodoEntrega,
-      metodoPago: metodoPago
+      metodoDePago: metodoPagoEnum,
+      cuotas: (metodoPagoEnum === "TARJETA_CREDITO" && !isNaN(Number(document.querySelector('select[name=\"cuotas\"]')?.value)))
+        ? Number(document.querySelector('select[name=\"cuotas\"]')?.value)
+        : 1
     };
 
     if (metodoSeleccionado?.requiereDireccion) {
@@ -477,7 +496,7 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                       {metodoPago === "TARJETA_CREDITO" && (
                         <div>
                           <label className="block font-semibold text-leather-700 mb-1">Cuotas disponibles</label>
-                          <select className="border rounded px-3 py-2 w-full">
+                          <select className="border rounded px-3 py-2 w-full" name="cuotas">
                             <option value="">¿En cuántas cuotas deseas pagar?</option>
                             <option value="3">3 cuotas sin interés</option>
                             <option value="6">6 cuotas sin interés</option>
