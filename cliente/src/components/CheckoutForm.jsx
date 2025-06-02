@@ -1,0 +1,507 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import PaymentSection from "./PaymentSection";
+import DeliverySection from "./DeliverySection";
+import CheckoutSummary from "./CheckoutSummary";
+
+const CheckoutForm = ({ cartItems, setCartItems, user }) => {
+  const navigate = useNavigate();
+  const isBlocked = !user || !user.token;
+  const API_BASE = "http://localhost:8080";
+
+  // Estados principales
+  const [cupon, setCupon] = React.useState("");
+  const [aplicado, setAplicado] = React.useState(false);
+  const [descuento, setDescuento] = React.useState(0);
+  const [cuponMsg, setCuponMsg] = React.useState("");
+  const [subtotalBD, setSubtotalBD] = React.useState(null);
+  const [montoDescuento, setMontoDescuento] = React.useState(null);
+  const [totalBD, setTotalBD] = React.useState(null);
+
+  // Estados de usuario y checkout
+  const [userInfo, setUserInfo] = React.useState(null);
+  const [metodosEntrega, setMetodosEntrega] = React.useState([]);
+  const [metodoEntrega, setMetodoEntrega] = React.useState("");
+  const [metodoPago, setMetodoPago] = React.useState("");
+  
+  // Estados para direcciones
+  const [direcciones, setDirecciones] = React.useState([]);
+  const [direccionSeleccionada, setDireccionSeleccionada] = React.useState("");
+  const [mostrarFormNuevaDireccion, setMostrarFormNuevaDireccion] = React.useState(false);
+  const [nuevaDireccion, setNuevaDireccion] = React.useState({
+    calle: "",
+    numero: "",
+    piso: "",
+    departamento: "",
+    localidad: "",
+    provincia: "",
+    codigoPostal: "",
+    telefonoContacto: ""
+  });
+  
+  const [puntoRetiroId, setPuntoRetiroId] = React.useState("");
+  const [puntosRetiro, setPuntosRetiro] = React.useState([]);
+  const [costoEnvio, setCostoEnvio] = React.useState(null);
+  const [cotizando, setCotizando] = React.useState(false);
+
+  // Estados de error y loading
+  const [errorCheckout, setErrorCheckout] = React.useState("");
+  const [loadingDirecciones, setLoadingDirecciones] = React.useState(false);
+  const [errorDirecciones, setErrorDirecciones] = React.useState("");
+  const [procesandoCompra, setProcesandoCompra] = React.useState(false);
+
+  // Calcular subtotal
+  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+  // Obtener método seleccionado
+  const metodoSeleccionado = metodosEntrega.find(m => String(m.id) === String(metodoEntrega));
+
+  // useEffect para cargar datos iniciales
+  React.useEffect(() => {
+    if (user?.token) {
+      // Cargar info del usuario
+      fetch(`${API_BASE}/api/v1/users/me`, {
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      })
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(setUserInfo)
+        .catch(() => setUserInfo(null));
+
+      // Cargar direcciones
+      setLoadingDirecciones(true);
+      fetch(`${API_BASE}/direcciones/mias`, {
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      })
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(data => {
+          setDirecciones(data);
+          setErrorDirecciones("");
+        })
+        .catch(err => {
+          setErrorDirecciones(err.message || "Error al cargar direcciones");
+          setDirecciones([]);
+        })
+        .finally(() => setLoadingDirecciones(false));
+    }
+
+    // Cargar métodos de entrega
+    fetch(`${API_BASE}/entregas/metodos/activos`)
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(setMetodosEntrega)
+      .catch(() => setErrorCheckout("Error al cargar métodos de entrega"));
+  }, [user]);
+
+  // useEffect para cotización de envío
+  React.useEffect(() => {
+    if (metodoSeleccionado?.requiereDireccion && direccionSeleccionada) {
+      const direccion = direcciones.find(d => d.id.toString() === direccionSeleccionada);
+      if (direccion) {
+        setCotizando(true);
+        fetch(`${API_BASE}/entregas/cotizar`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": user?.token ? `Bearer ${user.token}` : ""
+          },
+          body: JSON.stringify({
+            direccion: `${direccion.calle} ${direccion.numero}`,
+            localidad: direccion.localidad,
+            provincia: direccion.provincia,
+            codigoPostal: direccion.codigoPostal
+          }),
+        })
+          .then(res => res.ok ? res.json() : Promise.reject())
+          .then(data => setCostoEnvio(data.precio ?? null))
+          .catch(() => setCostoEnvio(null))
+          .finally(() => setCotizando(false));
+      }
+    } else {
+      setCostoEnvio(null);
+    }
+  }, [direccionSeleccionada, direcciones, metodoSeleccionado, user]);
+
+  // useEffect para puntos de retiro
+  React.useEffect(() => {
+    if (metodoSeleccionado?.requierePuntoRetiro && metodoEntrega) {
+      fetch(`${API_BASE}/entregas/puntos/metodo/${metodoEntrega}`)
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(setPuntosRetiro)
+        .catch(() => setPuntosRetiro([]));
+    }
+  }, [metodoSeleccionado, metodoEntrega]);
+
+  // Funciones de manejo
+  const handleAplicarCupon = () => {
+    const codigo = cupon.trim();
+    if (!codigo) {
+      setCuponMsg("Por favor, ingresa un código de descuento");
+      return;
+    }
+    
+    if (!user?.token) {
+      setCuponMsg("Debes estar autenticado para usar cupones");
+      return;
+    }
+
+    const items = cartItems.map(item => ({
+      productoId: item.id || item.productoId,
+      cantidad: item.quantity
+    }));
+
+    fetch(`${API_BASE}/descuentos/validar`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${user.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ codigoDescuento: codigo, items })
+    })
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        if (data.descuentoAplicado) {
+          setDescuento(data.porcentajeDescuento);
+          setAplicado(true);
+          setCuponMsg(`Cupón aplicado: ${data.porcentajeDescuento}% de descuento`);
+          setSubtotalBD(data.subtotalSinDescuento);
+          setMontoDescuento(data.montoDescuento);
+          setTotalBD(data.totalConDescuento);
+        } else {
+          setDescuento(0);
+          setAplicado(false);
+          setCuponMsg(data.mensajeError || 'Cupón inválido');
+          setSubtotalBD(null);
+          setMontoDescuento(null);
+          setTotalBD(null);
+        }
+      })
+      .catch(() => {
+        setDescuento(0);
+        setAplicado(false);
+        setCuponMsg('Error al validar el cupón');
+        setSubtotalBD(null);
+        setMontoDescuento(null);
+        setTotalBD(null);
+      });
+  };
+
+  const handleQuantityChange = (idx, newQty) => {
+    if (newQty < 1) return;
+    setCartItems(items =>
+      items.map((item, i) =>
+        i === idx
+          ? { ...item, quantity: Math.min(newQty, item.stock ?? 99) }
+          : item
+      )
+    );
+  };
+
+  const handleRemove = idx => {
+    setCartItems(items => items.filter((_, i) => i !== idx));
+  };
+
+  const handleCrearNuevaDireccion = () => {
+    if (!user?.token) {
+      setErrorDirecciones("Debes estar autenticado para crear una dirección");
+      return;
+    }
+
+    const camposRequeridos = ['calle', 'numero', 'localidad', 'provincia', 'codigoPostal'];
+    const camposFaltantes = camposRequeridos.filter(campo => !nuevaDireccion[campo]?.trim());
+    
+    if (camposFaltantes.length > 0) {
+      setErrorDirecciones(`Por favor, completa los siguientes campos: ${camposFaltantes.join(', ')}`);
+      return;
+    }
+
+    setLoadingDirecciones(true);
+    setErrorDirecciones("");
+    
+    fetch(`${API_BASE}/direcciones`, {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${user.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(nuevaDireccion)
+    })
+      .then(res => res.ok ? res : Promise.reject(new Error(`Error ${res.status}`)))
+      .then(() => fetch(`${API_BASE}/direcciones/mias`, {
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      }))
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        setDirecciones(data);
+        setMostrarFormNuevaDireccion(false);
+        setNuevaDireccion({
+          calle: "", numero: "", piso: "", departamento: "",
+          localidad: "", provincia: "", codigoPostal: "", telefonoContacto: ""
+        });
+        if (data.length > 0) {
+          setDireccionSeleccionada(data[data.length - 1].id.toString());
+        }
+        setErrorDirecciones("");
+      })
+      .catch(err => setErrorDirecciones(err.message))
+      .finally(() => setLoadingDirecciones(false));
+  };
+
+  const handleProcederPago = () => {
+    setErrorCheckout("");
+    
+    // Validaciones básicas
+    if (!cartItems || cartItems.length === 0) {
+      setErrorCheckout("No hay productos en el carrito.");
+      return;
+    }
+
+    if (!user?.token) {
+      setErrorCheckout("Debes estar autenticado para realizar una compra.");
+      return;
+    }
+
+    if (!metodoEntrega) {
+      setErrorCheckout("Por favor, selecciona un método de entrega.");
+      return;
+    }
+
+    if (!metodoPago) {
+      setErrorCheckout("Por favor, selecciona una forma de pago.");
+      return;
+    }
+
+    // Validaciones específicas de tarjetas
+    if (metodoPago === "TARJETA_CREDITO" || metodoPago === "TARJETA_DEBITO") {
+      const numeroTarjeta = document.querySelector('input[data-tarjeta="numero"]')?.value || "";
+      const nombreTitular = document.querySelector('input[data-tarjeta="nombre"]')?.value || "";
+      const vencimiento = document.querySelector('input[data-tarjeta="vencimiento"]')?.value || "";
+      const ccv = document.querySelector('input[data-tarjeta="ccv"]')?.value || "";
+      
+      if (!numeroTarjeta.trim() || numeroTarjeta.length < 15) {
+        setErrorCheckout("Por favor, ingresa un número de tarjeta válido (mínimo 15 dígitos).");
+        return;
+      }
+      
+      if (!nombreTitular.trim() || nombreTitular.length < 3) {
+        setErrorCheckout("Por favor, ingresa el nombre del titular de la tarjeta.");
+        return;
+      }
+      
+      if (!vencimiento.trim() || vencimiento.length < 5) {
+        setErrorCheckout("Por favor, ingresa la fecha de vencimiento (MM/AA).");
+        return;
+      }
+      
+      if (!ccv.trim() || ccv.length < 3) {
+        setErrorCheckout("Por favor, ingresa el código de seguridad de la tarjeta.");
+        return;
+      }
+
+      if (metodoPago === "TARJETA_CREDITO") {
+        const cuotasSeleccionadas = document.querySelector('select[name="cuotas"]')?.value || "";
+        if (!cuotasSeleccionadas) {
+          setErrorCheckout("Por favor, selecciona la cantidad de cuotas para el pago con tarjeta de crédito.");
+          return;
+        }
+      }
+    }
+
+    // Validar direcciones y puntos de retiro
+    if (metodoSeleccionado?.requiereDireccion) {
+      if (!direccionSeleccionada) {
+        setErrorCheckout("Por favor, selecciona una dirección de envío.");
+        return;
+      }
+      
+      const direccionEncontrada = direcciones.find(d => d.id.toString() === direccionSeleccionada);
+      if (!direccionEncontrada) {
+        setErrorCheckout("La dirección seleccionada no es válida.");
+        return;
+      }
+    }
+    
+    if (metodoSeleccionado?.requierePuntoRetiro) {
+      if (!puntoRetiroId.trim()) {
+        setErrorCheckout("Por favor, selecciona un punto de retiro.");
+        return;
+      }
+    }
+
+    // Procesar compra
+    const items = cartItems.map(item => ({
+      productoId: item.id || item.productoId,
+      cantidad: item.quantity
+    }));
+
+    const METODOS_PAGO_ENUM = ["EFECTIVO", "TARJETA_CREDITO", "TARJETA_DEBITO", "MERCADO_PAGO", "TRANSFERENCIA"];
+    let metodoPagoEnum = METODOS_PAGO_ENUM.includes(metodoPago) ? metodoPago : "EFECTIVO";
+
+    let cuotasValue = 1;
+    if (metodoPagoEnum === "TARJETA_CREDITO") {
+      const cuotasInput = document.querySelector('select[name="cuotas"]');
+      if (cuotasInput && cuotasInput.value && !isNaN(Number(cuotasInput.value))) {
+        cuotasValue = Number(cuotasInput.value);
+      }
+    }
+
+    const body = {
+      items,
+      codigoDescuento: aplicado ? cupon.trim() : null,
+      metodoEntregaId: parseInt(metodoEntrega),
+      metodoDePago: metodoPagoEnum,
+      cuotas: cuotasValue
+    };
+
+    if (metodoSeleccionado?.requiereDireccion) {
+      body.direccionId = parseInt(direccionSeleccionada);
+    }
+    if (metodoSeleccionado?.requierePuntoRetiro) {
+      body.puntoRetiroId = parseInt(puntoRetiroId);
+    }
+
+    setProcesandoCompra(true);
+    setErrorCheckout("");
+
+    fetch(`${API_BASE}/compras`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${user.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    })
+      .then(res => {
+        if (!res.ok) {
+          if (res.status === 400) {
+            return res.json().then(data => {
+              throw new Error(data.message || "Datos de compra inválidos");
+            });
+          }
+          if (res.status === 409) {
+            throw new Error("Algunos productos no tienen suficiente stock disponible");
+          }
+          if (res.status === 401) {
+            throw new Error("Tu sesión ha expirado. Por favor, inicia sesión nuevamente");
+          }
+          throw new Error(`Error ${res.status}: No se pudo procesar la compra`);
+        }
+        return res.json();
+      })
+      .then(() => {
+        alert("¡Compra realizada con éxito!");
+        setCartItems([]);
+        navigate("/");
+      })
+      .catch(err => {
+        setErrorCheckout(err.message || "Hubo un error al procesar la compra. Intenta nuevamente.");
+      })
+      .finally(() => {
+        setProcesandoCompra(false);
+      });
+  };
+
+  if (isBlocked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-xl text-red-600">
+        Debes estar autenticado para acceder al carrito. <br />
+        <button
+          onClick={() => navigate("/")}
+          className="underline text-leather-700 ml-2"
+        >
+          Ir al inicio
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white py-10 px-4 flex flex-col items-center">
+      <div className="max-w-screen-xl w-full">
+        <button
+          className="mb-4 text-sm text-leather-600 hover:underline"
+          onClick={() => navigate(-1)}
+        >
+          &lt; Volver al sitio
+        </button>
+        <h2 className="text-3xl font-bold text-center mb-6">Checkout</h2>
+        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] md:grid-flow-col-dense gap-16">
+          
+          {/* Columna izquierda: datos del comprador, entrega y pago */}
+          <div className="bg-white shadow-md rounded-lg px-8 pt-8 pb-10 flex flex-col gap-4 min-w-[520px] max-w-[1200px] ml-0">
+            
+            {/* Nombre del comprador */}
+            <div className="pb-0">
+              <h3 className="font-semibold text-leather-700 mb-1">Nombre del comprador</h3>
+              <div className="text-gray-800">
+                {userInfo ? `${userInfo.firstName} ${userInfo.lastName}` : "Invitado"}
+              </div>
+              {userInfo && (
+                <div className="text-sm text-gray-600">{userInfo.email}</div>
+              )}
+            </div>
+
+            {/* Sección de Entrega */}
+            <DeliverySection
+              metodosEntrega={metodosEntrega}
+              metodoEntrega={metodoEntrega}
+              setMetodoEntrega={setMetodoEntrega}
+              metodoSeleccionado={metodoSeleccionado}
+              direcciones={direcciones}
+              direccionSeleccionada={direccionSeleccionada}
+              setDireccionSeleccionada={setDireccionSeleccionada}
+              mostrarFormNuevaDireccion={mostrarFormNuevaDireccion}
+              setMostrarFormNuevaDireccion={setMostrarFormNuevaDireccion}
+              nuevaDireccion={nuevaDireccion}
+              setNuevaDireccion={setNuevaDireccion}
+              loadingDirecciones={loadingDirecciones}
+              errorDirecciones={errorDirecciones}
+              handleCrearNuevaDireccion={handleCrearNuevaDireccion}
+              puntosRetiro={puntosRetiro}
+              puntoRetiroId={puntoRetiroId}
+              setPuntoRetiroId={setPuntoRetiroId}
+            />
+
+            {/* Sección de Pago */}
+            <PaymentSection
+              metodoPago={metodoPago}
+              setMetodoPago={setMetodoPago}
+              metodoSeleccionado={metodoSeleccionado}
+            />
+
+            {/* Errores */}
+            {errorCheckout && (
+              <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                <strong>Error:</strong> {errorCheckout}
+              </div>
+            )}
+          </div>
+
+          {/* Columna derecha: productos, cupón y resumen de pedido */}
+          <CheckoutSummary
+            cartItems={cartItems}
+            handleQuantityChange={handleQuantityChange}
+            handleRemove={handleRemove}
+            cupon={cupon}
+            setCupon={setCupon}
+            aplicado={aplicado}
+            setAplicado={setAplicado}
+            setCuponMsg={setCuponMsg}
+            handleAplicarCupon={handleAplicarCupon}
+            cuponMsg={cuponMsg}
+            subtotal={subtotal}
+            subtotalBD={subtotalBD}
+            descuento={descuento}
+            montoDescuento={montoDescuento}
+            totalBD={totalBD}
+            metodoSeleccionado={metodoSeleccionado}
+            cotizando={cotizando}
+            costoEnvio={costoEnvio}
+            handleProcederPago={handleProcederPago}
+            procesandoCompra={procesandoCompra}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CheckoutForm;
