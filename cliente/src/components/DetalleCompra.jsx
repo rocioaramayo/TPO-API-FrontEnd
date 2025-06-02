@@ -1,7 +1,9 @@
-import React from "react";
+
 
 const DetalleCompra = ({ compra, onClose }) => {
     if (!compra) return null;
+
+    console.log("DetalleCompra recibió:", compra); // Debug
 
     return (
         <div className="mt-6 bg-white rounded-xl shadow-md p-6 border border-leather-200">
@@ -9,7 +11,7 @@ const DetalleCompra = ({ compra, onClose }) => {
                 Detalle de la Compra #{compra.id}
             </h3>
 
-            <div className="mb-4 text-leather-600">
+            <div className="mb-4 text-leather-600 space-y-2">
                 <p>
                     <span className="font-semibold">Fecha:</span>{" "}
                     {compra.fecha ? new Date(compra.fecha).toLocaleString() : "-"}
@@ -18,61 +20,133 @@ const DetalleCompra = ({ compra, onClose }) => {
                     <span className="font-semibold">Método de entrega:</span>{" "}
                     {compra.metodoEntrega || "-"}
                 </p>
-                <p>
-                    <span className="font-semibold">Dirección:</span>{" "}
-                    {compra.direccionEntrega || compra.puntoRetiro || "-"}
-                </p>
-                <p>
-                    <span className="font-semibold">Teléfono de contacto:</span>{" "}
-                    {compra.telefonoContacto || "-"}
-                </p>
+                
+                {/* Información de dirección - Compatible con ambas estructuras */}
+                {compra.direccionEntrega && (
+                    <div className="bg-gray-50 p-3 rounded border">
+                        <p className="font-semibold text-leather-700 mb-1">Dirección de envío:</p>
+                        {typeof compra.direccionEntrega === 'object' ? (
+                            // Nueva estructura: direccionEntrega es un objeto
+                            <>
+                                <p>{compra.direccionEntrega.calle} {compra.direccionEntrega.numero}</p>
+                                {(compra.direccionEntrega.piso || compra.direccionEntrega.departamento) && (
+                                    <p>
+                                        {compra.direccionEntrega.piso && `Piso ${compra.direccionEntrega.piso}`}
+                                        {compra.direccionEntrega.piso && compra.direccionEntrega.departamento && ", "}
+                                        {compra.direccionEntrega.departamento && `Depto ${compra.direccionEntrega.departamento}`}
+                                    </p>
+                                )}
+                                <p>{compra.direccionEntrega.localidad}, {compra.direccionEntrega.provincia}</p>
+                                <p>CP: {compra.direccionEntrega.codigoPostal}</p>
+                                {compra.direccionEntrega.telefonoContacto && (
+                                    <p>Tel: {compra.direccionEntrega.telefonoContacto}</p>
+                                )}
+                            </>
+                        ) : (
+                            // Estructura antigua: direccionEntrega es string
+                            <>
+                                <p>{compra.direccionEntrega}</p>
+                                {compra.localidadEntrega && (
+                                    <p>{compra.localidadEntrega}, {compra.provinciaEntrega}</p>
+                                )}
+                                {compra.codigoPostalEntrega && (
+                                    <p>CP: {compra.codigoPostalEntrega}</p>
+                                )}
+                                {compra.telefonoContacto && (
+                                    <p>Tel: {compra.telefonoContacto}</p>
+                                )}
+                            </>
+                        )}
+                    </div>
+                )}
+
+                {/* Información de punto de retiro */}
+                {compra.puntoRetiro && (
+                    <div className="bg-gray-50 p-3 rounded border">
+                        <p className="font-semibold text-leather-700 mb-1">Punto de retiro:</p>
+                        <p>{compra.puntoRetiro}</p>
+                    </div>
+                )}
+
+                {/* Costo de envío */}
+                {compra.costoEnvio && compra.costoEnvio > 0 && (
+                    <p>
+                        <span className="font-semibold">Costo de envío:</span>{" "}
+                        ${compra.costoEnvio.toFixed(2)}
+                    </p>
+                )}
+
+                {/* Método de pago */}
+                {compra.metodoDePago && (
+                    <p>
+                        <span className="font-semibold">Método de pago:</span>{" "}
+                        {formatearMetodoPago(compra.metodoDePago)}
+                        {compra.cuotas && compra.cuotas > 1 && ` (${compra.cuotas} cuotas)`}
+                    </p>
+                )}
             </div>
 
             <h4 className="text-lg font-semibold text-leather-700 mb-2">Ítems comprados</h4>
-            <table className="w-full text-left text-sm border">
-                <thead className="bg-leather-100 text-leather-700">
-                <tr>
-                    <th className="p-2 border">Producto</th>
-                    <th className="p-2 border">Cantidad</th>
-                    <th className="p-2 border">Precio unitario</th>
-                    <th className="p-2 border">Subtotal</th>
-                </tr>
-                </thead>
-                <tbody>
-                {compra.items?.map((item, index) => (
-                    <tr key={index} className="border-t">
-                        <td className="p-2 border">{item.nombreProducto}</td>
-                        <td className="p-2 border">{item.cantidad}</td>
-                        <td className="p-2 border">
-                            ${item.precioUnitario?.toFixed(2) ?? 0}
-                        </td>
-                        <td className="p-2 border">${item.subtotal?.toFixed(2) ?? 0}</td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
+            {compra.items && compra.items.length > 0 ? (
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm border">
+                        <thead className="bg-leather-100 text-leather-700">
+                        <tr>
+                            <th className="p-2 border">Producto</th>
+                            <th className="p-2 border">Cantidad</th>
+                            <th className="p-2 border">Precio unitario</th>
+                            <th className="p-2 border">Subtotal</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {compra.items.map((item, index) => (
+                            <tr key={index} className="border-t">
+                                <td className="p-2 border">{item.nombreProducto || "Producto sin nombre"}</td>
+                                <td className="p-2 border">{item.cantidad || 0}</td>
+                                <td className="p-2 border">
+                                    ${(item.precioUnitario || 0).toFixed(2)}
+                                </td>
+                                <td className="p-2 border">
+                                    ${(item.subtotal || 0).toFixed(2)}
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <p className="text-gray-500 italic">No hay ítems para mostrar</p>
+            )}
 
-            <div className="mt-4 text-right text-leather-800">
+            <div className="mt-4 text-right text-leather-800 space-y-1">
                 <p>
                     <span className="font-semibold">Subtotal:</span>{" "}
-                    ${(compra.subtotal ?? 0).toFixed(2)}
+                    ${(compra.subtotal || 0).toFixed(2)}
                 </p>
-                {compra.montoDescuento > 0 && (
+                {compra.montoDescuento && compra.montoDescuento > 0 && (
                     <>
-                        <p>
+                        <p className="text-green-600">
                             <span className="font-semibold">Descuento:</span> -$
-                            {(compra.montoDescuento ?? 0).toFixed(2)} (
-                            {compra.porcentajeDescuento}%)
+                            {(compra.montoDescuento || 0).toFixed(2)}
+                            {compra.porcentajeDescuento && ` (${compra.porcentajeDescuento}%)`}
                         </p>
-                        <p>
-                            <span className="font-semibold">Código aplicado:</span>{" "}
-                            {compra.codigoDescuento}
-                        </p>
+                        {compra.codigoDescuento && (
+                            <p className="text-green-600">
+                                <span className="font-semibold">Código aplicado:</span>{" "}
+                                {compra.codigoDescuento}
+                            </p>
+                        )}
                     </>
                 )}
-                <p>
+                {compra.costoEnvio && compra.costoEnvio > 0 && (
+                    <p>
+                        <span className="font-semibold">Envío:</span>{" "}
+                        ${compra.costoEnvio.toFixed(2)}
+                    </p>
+                )}
+                <p className="border-t pt-2">
                     <span className="font-bold text-lg">Total:</span>{" "}
-                    ${(compra.total ?? 0).toFixed(2)}
+                    ${(compra.total || 0).toFixed(2)}
                 </p>
             </div>
 
@@ -84,6 +158,18 @@ const DetalleCompra = ({ compra, onClose }) => {
             </button>
         </div>
     );
+};
+
+// Función helper para formatear método de pago
+const formatearMetodoPago = (metodo) => {
+    const metodos = {
+        'EFECTIVO': 'Efectivo',
+        'TARJETA_CREDITO': 'Tarjeta de Crédito',
+        'TARJETA_DEBITO': 'Tarjeta de Débito',
+        'MERCADO_PAGO': 'Mercado Pago',
+        'TRANSFERENCIA': 'Transferencia Bancaria'
+    };
+    return metodos[metodo] || metodo;
 };
 
 export default DetalleCompra;
