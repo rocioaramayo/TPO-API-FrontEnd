@@ -27,6 +27,9 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
   // Definir flag de bloqueo por autenticación
   const isBlocked = !user || !user.token;
 
+  // URL base consistente
+  const API_BASE = "http://localhost:8080";
+
   if (!cartItems) {
     return (
       <div className="min-h-screen flex items-center justify-center text-xl text-red-600">
@@ -76,51 +79,92 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
   const [costoEnvio, setCostoEnvio] = React.useState(null);
   const [cotizando, setCotizando] = React.useState(false);
 
+  // Estados de error y loading mejorados
+  const [errorCheckout, setErrorCheckout] = React.useState("");
+  const [loadingDirecciones, setLoadingDirecciones] = React.useState(false);
+  const [errorDirecciones, setErrorDirecciones] = React.useState("");
+  const [procesandoCompra, setProcesandoCompra] = React.useState(false);
+
   // Efecto para obtener datos del usuario autenticado
   React.useEffect(() => {
     if (user?.token) {
-      fetch("http://127.0.0.1:8080/api/v1/users/me", {
+      fetch(`${API_BASE}/api/v1/users/me`, {
         headers: {
           'Authorization': `Bearer ${user.token}`
         }
       })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Error ${res.status}: No se pudo cargar información del usuario`);
+          }
+          return res.json();
+        })
         .then(data => setUserInfo(data))
-        .catch(() => setUserInfo(null));
+        .catch(err => {
+          console.error("Error al cargar usuario:", err);
+          setUserInfo(null);
+        });
     }
   }, [user]);
 
-  // Cargar direcciones del usuario - NUEVO
+  // Cargar direcciones del usuario - MEJORADO
   React.useEffect(() => {
     if (user?.token) {
-      fetch("http://localhost:8080/direcciones/mias", {
+      setLoadingDirecciones(true);
+      setErrorDirecciones("");
+      
+      fetch(`${API_BASE}/direcciones/mias`, {
         headers: {
           'Authorization': `Bearer ${user.token}`
         }
       })
-      .then(res => res.json())
-      .then(data => setDirecciones(data))
-      .catch(err => console.error("Error al cargar direcciones:", err));
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Error ${res.status}: No se pudieron cargar las direcciones`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        setDirecciones(data);
+        setErrorDirecciones("");
+      })
+      .catch(err => {
+        console.error("Error al cargar direcciones:", err);
+        setErrorDirecciones(err.message);
+        setDirecciones([]);
+      })
+      .finally(() => {
+        setLoadingDirecciones(false);
+      });
     }
   }, [user]);
 
-  // Traer métodos de entrega activos al montar
+  // Traer métodos de entrega activos al montar - MEJORADO
   React.useEffect(() => {
-    fetch("http://localhost:8080/entregas/metodos/activos")
-      .then(res => res.json())
-      .then(setMetodosEntrega);
+    fetch(`${API_BASE}/entregas/metodos/activos`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Error ${res.status}: No se pudieron cargar los métodos de entrega`);
+        }
+        return res.json();
+      })
+      .then(setMetodosEntrega)
+      .catch(err => {
+        console.error("Error al cargar métodos de entrega:", err);
+        setErrorCheckout("Error al cargar métodos de entrega. Por favor, recarga la página.");
+      });
   }, []);
 
   // Definir el método seleccionado
   const metodoSeleccionado = metodosEntrega.find(m => String(m.id) === String(metodoEntrega));
 
-  // useEffect actualizado para cotización de envío - MODIFICADO
+  // useEffect mejorado para cotización de envío
   React.useEffect(() => {
     if (metodoSeleccionado?.requiereDireccion && direccionSeleccionada) {
       const direccion = direcciones.find(d => d.id.toString() === direccionSeleccionada);
       if (direccion) {
         setCotizando(true);
-        fetch("http://localhost:8080/entregas/cotizar", {
+        fetch(`${API_BASE}/entregas/cotizar`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -133,14 +177,21 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
             codigoPostal: direccion.codigoPostal
           }),
         })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Error ${res.status}: No se pudo cotizar el envío`);
+          }
+          return res.json();
+        })
         .then(data => {
           setCostoEnvio(data.precio ?? null);
           setCotizando(false);
         })
-        .catch(() => {
+        .catch(err => {
+          console.error("Error al cotizar envío:", err);
           setCostoEnvio(null);
           setCotizando(false);
+          // No mostrar error al usuario para cotización, es opcional
         });
       }
     } else {
@@ -150,20 +201,41 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
 
   React.useEffect(() => {
     if (metodoSeleccionado?.requierePuntoRetiro && metodoEntrega) {
-      fetch(`http://localhost:8080/entregas/puntos/metodo/${metodoEntrega}`)
-        .then(res => res.json())
+      fetch(`${API_BASE}/entregas/puntos/metodo/${metodoEntrega}`)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Error ${res.status}: No se pudieron cargar los puntos de retiro`);
+          }
+          return res.json();
+        })
         .then(setPuntosRetiro)
-        .catch(err => console.error("Error al obtener puntos:", err));
+        .catch(err => {
+          console.error("Error al obtener puntos:", err);
+          setPuntosRetiro([]);
+        });
     }
   }, [metodoSeleccionado, metodoEntrega]);
 
-  const [errorCheckout, setErrorCheckout] = React.useState("");
-
-  // Función para crear nueva dirección - NUEVA
+  // Función para crear nueva dirección - MEJORADA
   const handleCrearNuevaDireccion = () => {
-    if (!user?.token) return;
+    if (!user?.token) {
+      setErrorDirecciones("Debes estar autenticado para crear una dirección");
+      return;
+    }
+
+    // Validación mejorada
+    const camposRequeridos = ['calle', 'numero', 'localidad', 'provincia', 'codigoPostal'];
+    const camposFaltantes = camposRequeridos.filter(campo => !nuevaDireccion[campo]?.trim());
     
-    fetch("http://localhost:8080/direcciones", {
+    if (camposFaltantes.length > 0) {
+      setErrorDirecciones(`Por favor, completa los siguientes campos: ${camposFaltantes.join(', ')}`);
+      return;
+    }
+
+    setLoadingDirecciones(true);
+    setErrorDirecciones("");
+    
+    fetch(`${API_BASE}/direcciones`, {
       method: "POST",
       headers: {
         'Authorization': `Bearer ${user.token}`,
@@ -172,15 +244,28 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
       body: JSON.stringify(nuevaDireccion)
     })
     .then(res => {
-      if (res.ok) {
-        // Recargar direcciones
-        return fetch("http://localhost:8080/direcciones/mias", {
-          headers: { 'Authorization': `Bearer ${user.token}` }
-        });
+      if (!res.ok) {
+        if (res.status === 400) {
+          return res.json().then(data => {
+            throw new Error(data.message || "Datos de dirección inválidos");
+          });
+        }
+        throw new Error(`Error ${res.status}: No se pudo crear la dirección`);
       }
-      throw new Error("Error al crear dirección");
+      return res;
     })
-    .then(res => res.json())
+    .then(() => {
+      // Recargar direcciones
+      return fetch(`${API_BASE}/direcciones/mias`, {
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Error al recargar direcciones");
+      }
+      return res.json();
+    })
     .then(data => {
       setDirecciones(data);
       setMostrarFormNuevaDireccion(false);
@@ -192,13 +277,28 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
       if (data.length > 0) {
         setDireccionSeleccionada(data[data.length - 1].id.toString());
       }
+      setErrorDirecciones("");
     })
-    .catch(err => console.error("Error:", err));
+    .catch(err => {
+      console.error("Error:", err);
+      setErrorDirecciones(err.message);
+    })
+    .finally(() => {
+      setLoadingDirecciones(false);
+    });
   };
 
   const handleAplicarCupon = () => {
     const codigo = cupon.trim();
-    if (!codigo || !user?.token) return;
+    if (!codigo) {
+      setCuponMsg("Por favor, ingresa un código de descuento");
+      return;
+    }
+    
+    if (!user?.token) {
+      setCuponMsg("Debes estar autenticado para usar cupones");
+      return;
+    }
 
     const items = cartItems.map(item => {
       return {
@@ -207,7 +307,7 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
       }
     });
 
-    fetch('http://localhost:8080/descuentos/validar', {
+    fetch(`${API_BASE}/descuentos/validar`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${user.token}`,
@@ -218,7 +318,12 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
         items
       })
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Error ${res.status}: No se pudo validar el cupón`);
+        }
+        return res.json();
+      })
       .then(data => {
         if (data.descuentoAplicado) {
           setDescuento(data.porcentajeDescuento);
@@ -236,10 +341,11 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
           setTotalBD(null);
         }
       })
-      .catch(() => {
+      .catch(err => {
+        console.error("Error al aplicar cupón:", err);
         setDescuento(0);
         setAplicado(false);
-        setCuponMsg('Cupón inválido');
+        setCuponMsg(err.message || 'Error al validar el cupón');
         setSubtotalBD(null);
         setMontoDescuento(null);
         setTotalBD(null);
@@ -264,23 +370,82 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
 
   const handleProcederPago = () => {
     setErrorCheckout("");
+    
+    // Validación del carrito
+    if (!cartItems || cartItems.length === 0) {
+      setErrorCheckout("No hay productos en el carrito.");
+      return;
+    }
+
+    // Validación de autenticación
+    if (!user?.token) {
+      setErrorCheckout("Debes estar autenticado para realizar una compra.");
+      return;
+    }
+
+    // Validación de método de entrega
     if (!metodoEntrega) {
       setErrorCheckout("Por favor, selecciona un método de entrega.");
       return;
     }
 
+    // Validación de método de pago
     if (!metodoPago) {
       setErrorCheckout("Por favor, selecciona una forma de pago.");
       return;
     }
 
-    // Validar campos según flags del método seleccionado - MODIFICADO
+    // Validaciones específicas para tarjetas - NUEVO
+    if (metodoPago === "TARJETA_CREDITO" || metodoPago === "TARJETA_DEBITO") {
+      const numeroTarjeta = document.querySelector('input[data-tarjeta="numero"]')?.value || "";
+      const nombreTitular = document.querySelector('input[data-tarjeta="nombre"]')?.value || "";
+      const vencimiento = document.querySelector('input[data-tarjeta="vencimiento"]')?.value || "";
+      const ccv = document.querySelector('input[data-tarjeta="ccv"]')?.value || "";
+      
+      if (!numeroTarjeta.trim() || numeroTarjeta.length < 15) {
+        setErrorCheckout("Por favor, ingresa un número de tarjeta válido (mínimo 15 dígitos).");
+        return;
+      }
+      
+      if (!nombreTitular.trim() || nombreTitular.length < 3) {
+        setErrorCheckout("Por favor, ingresa el nombre del titular de la tarjeta.");
+        return;
+      }
+      
+      if (!vencimiento.trim() || vencimiento.length < 5) {
+        setErrorCheckout("Por favor, ingresa la fecha de vencimiento (MM/AA).");
+        return;
+      }
+      
+      if (!ccv.trim() || ccv.length < 3) {
+        setErrorCheckout("Por favor, ingresa el código de seguridad de la tarjeta.");
+        return;
+      }
+
+      // Validación específica para tarjeta de crédito (cuotas obligatorias)
+      if (metodoPago === "TARJETA_CREDITO") {
+        const cuotasSeleccionadas = document.querySelector('select[name="cuotas"]')?.value || "";
+        if (!cuotasSeleccionadas) {
+          setErrorCheckout("Por favor, selecciona la cantidad de cuotas para el pago con tarjeta de crédito.");
+          return;
+        }
+      }
+    }
+
+    // Validar campos según flags del método seleccionado - MEJORADO
     if (metodoSeleccionado?.requiereDireccion) {
       if (!direccionSeleccionada) {
         setErrorCheckout("Por favor, selecciona una dirección de envío.");
         return;
       }
+      
+      const direccionEncontrada = direcciones.find(d => d.id.toString() === direccionSeleccionada);
+      if (!direccionEncontrada) {
+        setErrorCheckout("La dirección seleccionada no es válida. Por favor, selecciona otra.");
+        return;
+      }
     }
+    
     if (metodoSeleccionado?.requierePuntoRetiro) {
       if (!puntoRetiroId.trim()) {
         setErrorCheckout("Por favor, selecciona un punto de retiro.");
@@ -307,56 +472,74 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
       metodoPagoEnum = "EFECTIVO";
     }
 
-    // Definir cuotas solo si corresponde (solo para TARJETA_CREDITO y valor > 0)
-    let cuotasValue = null;
+    // Definir cuotas solo si corresponde - MEJORADO
+    let cuotasValue = 1; // Default para débito y otros métodos
     if (metodoPagoEnum === "TARJETA_CREDITO") {
       const cuotasInput = document.querySelector('select[name="cuotas"]');
-      if (
-        cuotasInput &&
-        cuotasInput.value &&
-        !isNaN(Number(cuotasInput.value)) &&
-        Number(cuotasInput.value) > 0
-      ) {
+      if (cuotasInput && cuotasInput.value && !isNaN(Number(cuotasInput.value))) {
         cuotasValue = Number(cuotasInput.value);
+      } else {
+        // Si no se seleccionó cuotas para crédito, ya se validó arriba
+        cuotasValue = 1;
       }
     }
 
-    // Solo incluir el campo cuotas si es tarjeta de crédito y hay valor
+    // Construir body para POST - MEJORADO
     const body = {
       items,
       codigoDescuento: aplicado ? cupon.trim() : null,
-      metodoEntregaId: metodoEntrega,
+      metodoEntregaId: parseInt(metodoEntrega),
       metodoDePago: metodoPagoEnum,
-      ...(metodoPagoEnum === "TARJETA_CREDITO" && cuotasValue ? { cuotas: cuotasValue } : {})
+      cuotas: cuotasValue // Siempre incluir cuotas (1 por defecto)
     };
 
-    // Body actualizado para usar direccionId - MODIFICADO
+    // Body actualizado para usar direccionId - MEJORADO
     if (metodoSeleccionado?.requiereDireccion) {
       body.direccionId = parseInt(direccionSeleccionada);
     }
     if (metodoSeleccionado?.requierePuntoRetiro) {
-      body.puntoRetiroId = puntoRetiroId.trim();
+      body.puntoRetiroId = parseInt(puntoRetiroId);
     }
 
-    fetch('http://localhost:8080/compras', {
+    setProcesandoCompra(true);
+    setErrorCheckout("");
+
+    fetch(`${API_BASE}/compras`, {
       method: 'POST',
       headers: {
-        'Authorization': user?.token ? `Bearer ${user.token}` : undefined,
+        'Authorization': `Bearer ${user.token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(body)
     })
       .then(res => {
-        if (!res.ok) throw new Error("Error en la compra");
+        if (!res.ok) {
+          if (res.status === 400) {
+            return res.json().then(data => {
+              throw new Error(data.message || "Datos de compra inválidos");
+            });
+          }
+          if (res.status === 409) {
+            throw new Error("Algunos productos no tienen suficiente stock disponible");
+          }
+          if (res.status === 401) {
+            throw new Error("Tu sesión ha expirado. Por favor, inicia sesión nuevamente");
+          }
+          throw new Error(`Error ${res.status}: No se pudo procesar la compra`);
+        }
         return res.json();
       })
       .then(data => {
-        alert("Compra realizada con éxito.");
+        alert("¡Compra realizada con éxito!");
         setCartItems([]);
         navigate("/");
       })
-      .catch(() => {
-        setErrorCheckout("Hubo un error al procesar la compra. Intenta nuevamente.");
+      .catch(err => {
+        console.error("Error en compra:", err);
+        setErrorCheckout(err.message || "Hubo un error al procesar la compra. Intenta nuevamente.");
+      })
+      .finally(() => {
+        setProcesandoCompra(false);
       });
   }
 
@@ -433,7 +616,7 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                     ))}
                   </div>
                   
-                  {/* Sección de direcciones - COMPLETAMENTE NUEVA */}
+                  {/* Sección de direcciones - CON MANEJO DE ERRORES MEJORADO */}
                   {metodoSeleccionado?.requiereDireccion && (
                     <div className="mt-4 space-y-4">
                       <div>
@@ -441,7 +624,22 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                           Seleccionar dirección de envío
                         </label>
                         
-                        {direcciones.length > 0 && (
+                        {/* Mostrar errores de direcciones */}
+                        {errorDirecciones && (
+                          <div className="mb-3 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                            {errorDirecciones}
+                          </div>
+                        )}
+
+                        {/* Loading state */}
+                        {loadingDirecciones && (
+                          <div className="mb-3 flex items-center gap-2 text-leather-600">
+                            <span className="animate-spin border-2 border-leather-300 border-t-leather-700 rounded-full w-4 h-4"></span>
+                            <span>Cargando direcciones...</span>
+                          </div>
+                        )}
+                        
+                        {!loadingDirecciones && direcciones.length > 0 && (
                           <div className="space-y-2 mb-4">
                             {direcciones.map(dir => (
                               <label key={dir.id} className="flex items-start gap-3 p-3 border rounded cursor-pointer hover:bg-gray-50">
@@ -477,6 +675,7 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                           type="button"
                           onClick={() => setMostrarFormNuevaDireccion(!mostrarFormNuevaDireccion)}
                           className="text-leather-700 hover:underline text-sm font-medium"
+                          disabled={loadingDirecciones}
                         >
                           {direcciones.length === 0 ? "Agregar dirección" : "+ Agregar nueva dirección"}
                         </button>
@@ -486,17 +685,19 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                             <div className="flex gap-2">
                               <input
                                 type="text"
-                                placeholder="Calle"
+                                placeholder="Calle *"
                                 value={nuevaDireccion.calle}
                                 onChange={e => setNuevaDireccion({...nuevaDireccion, calle: e.target.value})}
                                 className="border rounded px-3 py-2 flex-1"
+                                required
                               />
                               <input
                                 type="text"
-                                placeholder="Número"
+                                placeholder="Número *"
                                 value={nuevaDireccion.numero}
                                 onChange={e => setNuevaDireccion({...nuevaDireccion, numero: e.target.value})}
                                 className="border rounded px-3 py-2 w-24"
+                                required
                               />
                             </div>
                             <div className="flex gap-2">
@@ -518,26 +719,29 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                             <div className="flex gap-2">
                               <input
                                 type="text"
-                                placeholder="Localidad"
+                                placeholder="Localidad *"
                                 value={nuevaDireccion.localidad}
                                 onChange={e => setNuevaDireccion({...nuevaDireccion, localidad: e.target.value})}
                                 className="border rounded px-3 py-2 flex-1"
+                                required
                               />
                               <input
                                 type="text"
-                                placeholder="Provincia"
+                                placeholder="Provincia *"
                                 value={nuevaDireccion.provincia}
                                 onChange={e => setNuevaDireccion({...nuevaDireccion, provincia: e.target.value})}
                                 className="border rounded px-3 py-2 flex-1"
+                                required
                               />
                             </div>
                             <div className="flex gap-2">
                               <input
                                 type="text"
-                                placeholder="Código Postal"
+                                placeholder="Código Postal *"
                                 value={nuevaDireccion.codigoPostal}
                                 onChange={e => setNuevaDireccion({...nuevaDireccion, codigoPostal: e.target.value})}
                                 className="border rounded px-3 py-2 flex-1"
+                                required
                               />
                               <input
                                 type="text"
@@ -552,16 +756,17 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                                 type="button"
                                 onClick={() => setMostrarFormNuevaDireccion(false)}
                                 className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100"
+                                disabled={loadingDirecciones}
                               >
                                 Cancelar
                               </button>
                               <button
                                 type="button"
                                 onClick={handleCrearNuevaDireccion}
-                                className="px-4 py-2 bg-leather-700 text-white rounded hover:bg-leather-800"
-                                disabled={!nuevaDireccion.calle || !nuevaDireccion.numero || !nuevaDireccion.localidad}
+                                className="px-4 py-2 bg-leather-700 text-white rounded hover:bg-leather-800 disabled:opacity-50"
+                                disabled={loadingDirecciones || !nuevaDireccion.calle || !nuevaDireccion.numero || !nuevaDireccion.localidad}
                               >
-                                Guardar dirección
+                                {loadingDirecciones ? "Guardando..." : "Guardar dirección"}
                               </button>
                             </div>
                           </div>
@@ -652,35 +857,69 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                   {(metodoPago === "TARJETA_CREDITO" || metodoPago === "TARJETA_DEBITO") && (
                     <TarjetaInputs metodoPago={metodoPago} />
                   )}
-                  {/* Instrucción de pago según método */}
+                  {/* Instrucción de pago según método - MEJORADO */}
                   {(
                     metodoPago === "TARJETA_CREDITO" ||
                     metodoPago === "TARJETA_DEBITO" ||
                     metodoPago === "MERCADO_PAGO" ||
-                    metodoPago === "TRANSFERENCIA"
+                    metodoPago === "TRANSFERENCIA" ||
+                    metodoPago === "EFECTIVO"
                   ) && (
                     <div className="mt-2">
-                      {["TARJETA_CREDITO", "TARJETA_DEBITO"].includes(metodoPago) && (
-                        <p className="text-sm text-gray-700">
-                          Vas a completar el pago con tu tarjeta de forma segura.
-                        </p>
+                      {metodoPago === "TARJETA_CREDITO" && (
+                        <div className="p-3 bg-leather-50 border border-leather-200 rounded">
+                          <p className="text-sm text-leather-800 font-medium mb-1">💳 Pago con Tarjeta de Crédito</p>
+                          <p className="text-sm text-leather-700">
+                            Completa todos los datos de tu tarjeta y selecciona la cantidad de cuotas. 
+                            Todas las cuotas son sin interés.
+                          </p>
+                        </div>
+                      )}
+                      {metodoPago === "TARJETA_DEBITO" && (
+                        <div className="p-3 bg-leather-100 border border-leather-300 rounded">
+                          <p className="text-sm text-leather-800 font-medium mb-1">💳 Pago con Tarjeta de Débito</p>
+                          <p className="text-sm text-leather-700">
+                            Completa todos los datos de tu tarjeta. El pago se realizará en una sola cuota 
+                            con débito inmediato de tu cuenta.
+                          </p>
+                        </div>
                       )}
                       {metodoPago === "MERCADO_PAGO" && (
-                        <p className="text-sm text-gray-700">
-                          Después de hacer clic en 'Finalizar el pedido' serás redirigido a Mercado Pago para completar tu compra de forma segura.
-                        </p>
+                        <div className="p-3 bg-leather-50 border border-leather-200 rounded">
+                          <p className="text-sm text-leather-800 font-medium mb-1">🔄 Pago con Mercado Pago</p>
+                          <p className="text-sm text-leather-700">
+                            Después de hacer clic en 'Finalizar el pedido' serás redirigido a Mercado Pago 
+                            para completar tu compra de forma segura con cualquier método disponible.
+                          </p>
+                        </div>
                       )}
                       {metodoPago === "TRANSFERENCIA" && (
-                        <p className="text-sm text-gray-700">
-                          Por favor, transferí a ALIAS: CUERO.ARG y envianos el comprobante a pagos@cueroarg.com.ar.
-                        </p>
+                        <div className="p-3 bg-leather-100 border border-leather-300 rounded">
+                          <p className="text-sm text-leather-800 font-medium mb-1">🏦 Pago por Transferencia</p>
+                          <p className="text-sm text-leather-700">
+                            <strong>ALIAS:</strong> CUERO.ARG<br/>
+                            <strong>Email comprobante:</strong> pagos@cueroarg.com.ar<br/>
+                            <span className="text-xs">Envía el comprobante para confirmar tu pedido.</span>
+                          </p>
+                        </div>
+                      )}
+                      {metodoPago === "EFECTIVO" && (
+                        <div className="p-3 bg-leather-50 border border-leather-200 rounded">
+                          <p className="text-sm text-leather-800 font-medium mb-1">💵 Pago en Efectivo</p>
+                          <p className="text-sm text-leather-700">
+                            Paga en efectivo al momento de retirar tu pedido en nuestra tienda. 
+                            Asegurate de tener el monto exacto para agilizar la entrega.
+                          </p>
+                        </div>
                       )}
                     </div>
                   )}
                 </div>
-                {/* Errores */}
+                {/* Errores - MEJORADO */}
                 {errorCheckout && (
-                  <div className="text-red-600 font-semibold">{errorCheckout}</div>
+                  <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                    <strong>Error:</strong> {errorCheckout}
+                  </div>
                 )}
               </div>
               {/* Columna derecha: productos, cupón y resumen de pedido */}
@@ -819,10 +1058,18 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                   </div>
                   {/* Botón de finalizar pedido */}
                   <button
-                    className="w-full bg-leather-700 hover:bg-leather-800 text-white font-bold py-3 rounded transition"
+                    className="w-full bg-leather-700 hover:bg-leather-800 text-white font-bold py-3 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleProcederPago}
+                    disabled={procesandoCompra || cartItems.length === 0}
                   >
-                    Finalizar pedido
+                    {procesandoCompra ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
+                        Procesando...
+                      </span>
+                    ) : (
+                      "Finalizar pedido"
+                    )}
                   </button>
                 </div>
               </div>
@@ -843,91 +1090,204 @@ function TarjetaInputs({ metodoPago }) {
   const [vencimiento, setVencimiento] = React.useState("");
   const [ccv, setCcv] = React.useState("");
   const [cuotas, setCuotas] = React.useState("");
+  const [erroresCampos, setErroresCampos] = React.useState({});
 
-  // Número: solo 16 dígitos
+  // Número: solo dígitos, máximo 16
   function handleNumeroChange(e) {
     const val = e.target.value.replace(/\D/g, "");
-    setNumero(val.slice(0, 16));
+    const formatted = val.slice(0, 16);
+    setNumero(formatted);
+    
+    // Validación en tiempo real
+    if (formatted.length > 0 && formatted.length < 15) {
+      setErroresCampos(prev => ({...prev, numero: "El número debe tener al menos 15 dígitos"}));
+    } else {
+      setErroresCampos(prev => {
+        const {numero, ...rest} = prev;
+        return rest;
+      });
+    }
   }
-  // Nombre: solo letras y espacios
+
+  // Nombre: solo letras y espacios, mínimo 3 caracteres
   function handleNombreChange(e) {
     const val = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, "");
     setNombre(val);
+    
+    // Validación en tiempo real
+    if (val.length > 0 && val.length < 3) {
+      setErroresCampos(prev => ({...prev, nombre: "El nombre debe tener al menos 3 caracteres"}));
+    } else {
+      setErroresCampos(prev => {
+        const {nombre, ...rest} = prev;
+        return rest;
+      });
+    }
   }
-  // Vencimiento: 4 dígitos con formato MM/AA
+
+  // Vencimiento: formato MM/AA
   function handleVencimientoChange(e) {
     let val = e.target.value.replace(/\D/g, "").slice(0, 4);
     if (val.length > 2) val = val.slice(0, 2) + "/" + val.slice(2);
     setVencimiento(val);
+    
+    // Validación en tiempo real
+    if (val.length > 0 && val.length < 5) {
+      setErroresCampos(prev => ({...prev, vencimiento: "Formato requerido: MM/AA"}));
+    } else if (val.length === 5) {
+      const [mes, año] = val.split('/');
+      const mesNum = parseInt(mes);
+      if (mesNum < 1 || mesNum > 12) {
+        setErroresCampos(prev => ({...prev, vencimiento: "Mes inválido (01-12)"}));
+      } else {
+        setErroresCampos(prev => {
+          const {vencimiento, ...rest} = prev;
+          return rest;
+        });
+      }
+    }
   }
-  // CCV: solo 4 números
+
+  // CCV: solo números, 3-4 dígitos
   function handleCcvChange(e) {
     const val = e.target.value.replace(/\D/g, "");
     setCcv(val.slice(0, 4));
+    
+    // Validación en tiempo real
+    if (val.length > 0 && val.length < 3) {
+      setErroresCampos(prev => ({...prev, ccv: "El código debe tener 3-4 dígitos"}));
+    } else {
+      setErroresCampos(prev => {
+        const {ccv, ...rest} = prev;
+        return rest;
+      });
+    }
   }
 
   // Reset cuotas si cambia método
   React.useEffect(() => {
-    if (!["TARJETA_CREDITO", "TARJETA_DEBITO"].includes(metodoPago)) {
+    if (metodoPago !== "TARJETA_CREDITO") {
       setCuotas("");
     }
   }, [metodoPago]);
 
   return (
-    <div className="mb-4 space-y-2">
-      <input
-        type="text"
-        placeholder="Número de tarjeta"
-        className="border rounded px-3 py-2 w-full"
-        value={numero}
-        maxLength={16}
-        inputMode="numeric"
-        onChange={handleNumeroChange}
-      />
-      <input
-        type="text"
-        placeholder="Nombre del titular"
-        className="border rounded px-3 py-2 w-full"
-        value={nombre}
-        onChange={handleNombreChange}
-      />
-      <div className="flex gap-2">
+    <div className="mb-4 space-y-3">
+      <div className="space-y-2">
         <input
           type="text"
-          placeholder="Vencimiento (MM/AA)"
-          className="border rounded px-3 py-2 w-1/2"
-          value={vencimiento}
-          maxLength={5}
+          placeholder="Número de tarjeta *"
+          className={`border rounded px-3 py-2 w-full ${erroresCampos.numero ? 'border-red-500' : 'border-gray-300'}`}
+          value={numero}
+          maxLength={16}
           inputMode="numeric"
-          onChange={handleVencimientoChange}
+          onChange={handleNumeroChange}
+          data-tarjeta="numero"
+          required
         />
-        <input
-          type="text"
-          placeholder="Código de Seguridad"
-          className="border rounded px-3 py-2 w-1/2"
-          value={ccv}
-          maxLength={4}
-          inputMode="numeric"
-          onChange={handleCcvChange}
-        />
+        {erroresCampos.numero && (
+          <p className="text-red-500 text-xs">{erroresCampos.numero}</p>
+        )}
       </div>
-      {/* Solo mostrar cuotas si corresponde */}
-      {["TARJETA_CREDITO", "TARJETA_DEBITO"].includes(metodoPago) && (
-        <div>
-          <label className="block font-semibold text-leather-700 mb-1">Cuotas disponibles</label>
+
+      <div className="space-y-2">
+        <input
+          type="text"
+          placeholder="Nombre del titular *"
+          className={`border rounded px-3 py-2 w-full ${erroresCampos.nombre ? 'border-red-500' : 'border-gray-300'}`}
+          value={nombre}
+          onChange={handleNombreChange}
+          data-tarjeta="nombre"
+          required
+        />
+        {erroresCampos.nombre && (
+          <p className="text-red-500 text-xs">{erroresCampos.nombre}</p>
+        )}
+      </div>
+
+      <div className="flex gap-2">
+        <div className="flex-1 space-y-2">
+          <input
+            type="text"
+            placeholder="Vencimiento (MM/AA) *"
+            className={`border rounded px-3 py-2 w-full ${erroresCampos.vencimiento ? 'border-red-500' : 'border-gray-300'}`}
+            value={vencimiento}
+            maxLength={5}
+            inputMode="numeric"
+            onChange={handleVencimientoChange}
+            data-tarjeta="vencimiento"
+            required
+          />
+          {erroresCampos.vencimiento && (
+            <p className="text-red-500 text-xs">{erroresCampos.vencimiento}</p>
+          )}
+        </div>
+        <div className="flex-1 space-y-2">
+          <input
+            type="text"
+            placeholder="Código de Seguridad *"
+            className={`border rounded px-3 py-2 w-full ${erroresCampos.ccv ? 'border-red-500' : 'border-gray-300'}`}
+            value={ccv}
+            maxLength={4}
+            inputMode="numeric"
+            onChange={handleCcvChange}
+            data-tarjeta="ccv"
+            required
+          />
+          {erroresCampos.ccv && (
+            <p className="text-red-500 text-xs">{erroresCampos.ccv}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Solo mostrar cuotas para TARJETA_CREDITO */}
+      {metodoPago === "TARJETA_CREDITO" && (
+        <div className="space-y-2">
+          <label className="block font-semibold text-leather-700 mb-1">
+            Cuotas disponibles *
+          </label>
           <select
-            className="border rounded px-3 py-2 w-full"
+            className="border rounded px-3 py-2 w-full border-gray-300"
             name="cuotas"
             value={cuotas}
             onChange={e => setCuotas(e.target.value)}
+            required
           >
-            <option value="">¿En cuántas cuotas deseas pagar?</option>
+            <option value="">Selecciona cantidad de cuotas</option>
+            <option value="1">1 cuota (pago al contado)</option>
             <option value="3">3 cuotas sin interés</option>
             <option value="6">6 cuotas sin interés</option>
             <option value="12">12 cuotas sin interés</option>
+            <option value="18">18 cuotas sin interés</option>
           </select>
         </div>
       )}
+
+      {/* Información adicional según el método */}
+      <div className="mt-3 p-3 bg-leather-50 rounded text-sm">
+        {metodoPago === "TARJETA_CREDITO" && (
+          <div>
+            <p className="font-medium text-leather-700 mb-1">💳 Tarjeta de Crédito</p>
+            <ul className="text-leather-600 text-xs space-y-1">
+              <li>• Todos los campos son obligatorios</li>
+              <li>• Debes seleccionar la cantidad de cuotas</li>
+              <li>• Todas las cuotas son sin interés</li>
+              <li>• Procesamiento seguro y encriptado</li>
+            </ul>
+          </div>
+        )}
+        {metodoPago === "TARJETA_DEBITO" && (
+          <div>
+            <p className="font-medium text-leather-700 mb-1">💳 Tarjeta de Débito</p>
+            <ul className="text-leather-600 text-xs space-y-1">
+              <li>• Todos los campos son obligatorios</li>
+              <li>• Pago único (sin cuotas)</li>
+              <li>• Débito inmediato de tu cuenta</li>
+              <li>• Procesamiento seguro y encriptado</li>
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
