@@ -18,6 +18,25 @@ const DireccionesPanel = ({ token }) => {
     // URL base consistente
     const API_BASE = "http://localhost:8080";
 
+    const handleBorrar = (id) => {
+        fetch(`${API_BASE}/direcciones/${id}/desactivar`, {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((res) => {
+            if (!res.ok) throw new Error("No se pudo borrar la dirección");
+            // Recargar direcciones
+            return fetch(`${API_BASE}/direcciones/mias`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+        })
+        .then((res) => res.json())
+        .then(setDirecciones)
+        .catch((err) => {
+            alert("Error al borrar dirección: " + err.message);
+        });
+    };
+
     useEffect(() => {
         if (token) {
             setLoading(true);
@@ -137,6 +156,12 @@ const DireccionesPanel = ({ token }) => {
                             {dir.telefonoContacto && (
                                 <p><strong>Teléfono:</strong> {dir.telefonoContacto}</p>
                             )}
+                            <button
+                                className="ml-4 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                onClick={() => handleBorrar(dir.id)}
+                            >
+                                Borrar
+                            </button>
                         </li>
                     ))}
                 </ul>
