@@ -226,12 +226,6 @@ const ProfilePage = ({ user }) => {
                 <FaUser /> Perfil
               </button>
               <button
-                  className={`flex items-center gap-2 text-leather-700 ${activeTab === "pagos" ? "underline" : ""}`}
-                  onClick={() => setActiveTab("pagos")}
-              >
-                <FaCreditCard /> Métodos de Pago
-              </button>
-              <button
                   className={`flex items-center gap-2 text-leather-700 ${activeTab === "compras" ? "underline" : ""}`}
                   onClick={() => setActiveTab("compras")}
               >
