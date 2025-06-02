@@ -33,7 +33,8 @@ const CheckoutSummary = ({
   cotizando,
   costoEnvio,
   handleProcederPago,
-  procesandoCompra
+  procesandoCompra,
+  errorCategoria, // nuevo prop agregado
 }) => {
   
   return (
@@ -59,6 +60,10 @@ const CheckoutSummary = ({
           setCuponMsg={setCuponMsg}
           handleAplicarCupon={handleAplicarCupon}
           cuponMsg={cuponMsg}
+          descuento={descuento}
+          montoDescuento={montoDescuento}
+          totalBD={totalBD}
+          errorCategoria={errorCategoria} // prop pasado al componente
         />
         
         {/* Resumen del pedido */}
@@ -179,7 +184,11 @@ const CouponSection = ({
   setAplicado, 
   setCuponMsg, 
   handleAplicarCupon, 
-  cuponMsg 
+  cuponMsg,
+  descuento,
+  montoDescuento,
+  totalBD,
+  errorCategoria // nuevo prop
 }) => (
   <div>
     <div className="space-y-2">
@@ -204,9 +213,15 @@ const CouponSection = ({
           Usar
         </button>
       </div>
+      {/* Mostrar mensaje de cupón o error de categoría */}
       {cuponMsg && (
         <div className={`text-sm ${aplicado && descuento > 0 ? "text-green-700" : "text-red-500"}`}>
           {cuponMsg}
+        </div>
+      )}
+      {errorCategoria && (
+        <div className="text-sm text-red-500">
+          {errorCategoria}
         </div>
       )}
     </div>

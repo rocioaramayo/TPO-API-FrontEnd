@@ -17,6 +17,8 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
   const [subtotalBD, setSubtotalBD] = React.useState(null);
   const [montoDescuento, setMontoDescuento] = React.useState(null);
   const [totalBD, setTotalBD] = React.useState(null);
+  // Estado para error de categoría de cupón
+  const [errorCategoria, setErrorCategoria] = React.useState("");
 
   // Estados de usuario y checkout
   const [userInfo, setUserInfo] = React.useState(null);
@@ -130,14 +132,13 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
     }
   }, [metodoSeleccionado, metodoEntrega]);
 
-  // Funciones de manejo
+  // Nueva función corregida para aplicar cupón con manejo de validación y errores y control de categoría
   const handleAplicarCupon = () => {
     const codigo = cupon.trim();
     if (!codigo) {
       setCuponMsg("Por favor, ingresa un código de descuento");
       return;
     }
-    
     if (!user?.token) {
       setCuponMsg("Debes estar autenticado para usar cupones");
       return;
@@ -154,11 +155,22 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
         'Authorization': `Bearer ${user.token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ codigoDescuento: codigo, items })
+      body: JSON.stringify({
+        codigoDescuento: codigo,
+        items
+      })
     })
-      .then(res => res.ok ? res.json() : Promise.reject())
-      .then(data => {
-        if (data.descuentoAplicado) {
+    .then(res => {
+      if (!res.ok) {
+        return res.json().then(data => {
+          throw new Error(data.message || "Error al validar el cupón");
+        });
+      }
+      return res.json();
+    })
+    .then(data => {
+      if (data.descuentoAplicado) {
+        if (data.montoDescuento > 0) {
           setDescuento(data.porcentajeDescuento);
           setAplicado(true);
           setCuponMsg(`Cupón aplicado: ${data.porcentajeDescuento}% de descuento`);
@@ -166,22 +178,30 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
           setMontoDescuento(data.montoDescuento);
           setTotalBD(data.totalConDescuento);
         } else {
+          setCuponMsg("El cupón pertenece a otra categoría");
           setDescuento(0);
           setAplicado(false);
-          setCuponMsg(data.mensajeError || 'Cupón inválido');
           setSubtotalBD(null);
           setMontoDescuento(null);
           setTotalBD(null);
         }
-      })
-      .catch(() => {
+      } else {
         setDescuento(0);
         setAplicado(false);
-        setCuponMsg('Error al validar el cupón');
+        setCuponMsg(data.mensajeError || 'Cupón inválido');
         setSubtotalBD(null);
         setMontoDescuento(null);
         setTotalBD(null);
-      });
+      }
+    })
+    .catch(err => {
+      setDescuento(0);
+      setAplicado(false);
+      setCuponMsg(err.message || 'Error al validar el cupón');
+      setSubtotalBD(null);
+      setMontoDescuento(null);
+      setTotalBD(null);
+    });
   };
 
   const handleQuantityChange = (idx, newQty) => {
@@ -487,6 +507,7 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
             setCuponMsg={setCuponMsg}
             handleAplicarCupon={handleAplicarCupon}
             cuponMsg={cuponMsg}
+            errorCategoria={errorCategoria}
             subtotal={subtotal}
             subtotalBD={subtotalBD}
             descuento={descuento}
