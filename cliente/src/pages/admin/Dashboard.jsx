@@ -146,7 +146,6 @@ const Dashboard = ({user}) => {
                     { label: 'Gestionar productos', onClick: () => {navigate('/admin/productos', { state: { user } })}},
                     { label: 'Gestionar categorías', onClick: () => {navigate('/admin/categorias')} },
                     { label: 'Gestionar descuentos', onClick: () => {navigate('/admin/descuentos')} },
-                    { label: 'Gestionar metodos de entrega', onClick: () => {navigate('/admin/metodosEntrega')} },
                     { label: 'Gestionar puntos de entrega', onClick: () => {navigate('/admin/entregas')} },
                     { label: 'Gestionar usuarios', onClick: () => {navigate('/admin/usuarios')} },
                     { label: 'Ver todas las compras', onClick: () => {navigate('/admin/compras')} }

@@ -10,7 +10,6 @@ import GestionUsuarios from './GestionUsuarios';
 import GestionComprasAdmin from './GestionComprasAdmin';
 import GestionCategorias from './GestionCategorias';
 import GestionEntregas from './GestionEntregas';
-import GestionMetodosDeEntrega from './GestionMetodosDeEntrega'; // ✅ NUEVO
 
 const AdminPanel = ({ user, productos }) => {
   const navigate = useNavigate();
@@ -38,8 +37,6 @@ const AdminPanel = ({ user, productos }) => {
         <Route path="/compras" element={<GestionComprasAdmin user={user} />} />
         <Route path='/categorias' element={<GestionCategorias user={user} />} />
 
-        {/* ✅ NUEVA RUTA PARA MÉTODOS DE ENTREGA */}
-        <Route path='/metodosEntrega' element={<GestionMetodosDeEntrega user={user} />} />
       </Routes>
     </>
   );
