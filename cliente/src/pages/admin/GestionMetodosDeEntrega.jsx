@@ -13,6 +13,7 @@ const GestionMetodosDeEntrega = ({ user }) => {
     activo: true,
   });
   const [editandoId, setEditandoId] = useState(null);
+  const [errores, setErrores] = useState({});
 
   const fetchMetodos = () => {
     fetch("http://localhost:8080/entregas/metodos", {
@@ -35,8 +36,20 @@ const GestionMetodosDeEntrega = ({ user }) => {
     }));
   };
 
+  const validar = () => {
+    const nuevosErrores = {};
+    if (!formulario.nombre.trim()) nuevosErrores.nombre = "El nombre es obligatorio.";
+    if (!formulario.descripcion.trim()) nuevosErrores.descripcion = "La descripción es obligatoria.";
+    if (formulario.costoBase < 0) nuevosErrores.costoBase = "El costo no puede ser negativo.";
+    if (formulario.tiempoEstimadoDias < 0) nuevosErrores.tiempoEstimadoDias = "El tiempo debe ser 0 o mayor.";
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validar()) return;
+
     const url = editandoId
       ? `http://localhost:8080/entregas/metodos/${editandoId}`
       : "http://localhost:8080/entregas/metodos";
@@ -64,6 +77,7 @@ const GestionMetodosDeEntrega = ({ user }) => {
           requierePuntoRetiro: false,
           activo: true,
         });
+        setErrores({});
         setModoEdicion(false);
         setEditandoId(null);
         fetchMetodos();
@@ -81,6 +95,7 @@ const GestionMetodosDeEntrega = ({ user }) => {
       requierePuntoRetiro: metodo.requierePuntoRetiro,
       activo: metodo.activo,
     });
+    setErrores({});
     setEditandoId(metodo.id);
     setModoEdicion(true);
   };
@@ -107,9 +122,10 @@ const GestionMetodosDeEntrega = ({ user }) => {
             name="nombre"
             value={formulario.nombre}
             onChange={handleChange}
+            placeholder="Ej: Envío a domicilio"
             className="border p-2 rounded w-full"
-            required
           />
+          {errores.nombre && <p className="text-red-600 text-sm mt-1">{errores.nombre}</p>}
         </div>
         <div>
           <label className="block font-semibold">Descripción:</label>
@@ -118,8 +134,10 @@ const GestionMetodosDeEntrega = ({ user }) => {
             name="descripcion"
             value={formulario.descripcion}
             onChange={handleChange}
+            placeholder="Ej: Entrega en la dirección del cliente"
             className="border p-2 rounded w-full"
           />
+          {errores.descripcion && <p className="text-red-600 text-sm mt-1">{errores.descripcion}</p>}
         </div>
         <div>
           <label className="block font-semibold">Costo base:</label>
@@ -128,8 +146,10 @@ const GestionMetodosDeEntrega = ({ user }) => {
             name="costoBase"
             value={formulario.costoBase}
             onChange={handleChange}
+            placeholder="Ej: 1500"
             className="border p-2 rounded w-full"
           />
+          {errores.costoBase && <p className="text-red-600 text-sm mt-1">{errores.costoBase}</p>}
         </div>
         <div>
           <label className="block font-semibold">Tiempo estimado (días):</label>
@@ -138,8 +158,10 @@ const GestionMetodosDeEntrega = ({ user }) => {
             name="tiempoEstimadoDias"
             value={formulario.tiempoEstimadoDias}
             onChange={handleChange}
+            placeholder="Ej: 3"
             className="border p-2 rounded w-full"
           />
+          {errores.tiempoEstimadoDias && <p className="text-red-600 text-sm mt-1">{errores.tiempoEstimadoDias}</p>}
         </div>
         <div className="flex gap-4">
           <label className="flex items-center gap-2">
@@ -191,6 +213,7 @@ const GestionMetodosDeEntrega = ({ user }) => {
                 requierePuntoRetiro: false,
                 activo: true,
               });
+              setErrores({});
             }}
             className="ml-2 text-gray-600 underline"
           >
