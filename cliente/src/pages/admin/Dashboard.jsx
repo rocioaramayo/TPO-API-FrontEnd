@@ -141,13 +141,12 @@ const Dashboard = ({user}) => {
             </div>
             <h2 className="text-xl font-bold text-leather-800 mb-6">Gestión de productos</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-12">
                 {[
                     { label: 'Gestionar productos', onClick: () => {navigate('/admin/productos', { state: { user } })}},
                     { label: 'Gestionar categorías', onClick: () => {navigate('/admin/categorias')} },
                     { label: 'Gestionar descuentos', onClick: () => {navigate('/admin/descuentos')} },
-                    { label: 'Gestionar metodos de entrega', onClick: () => {navigate('/admin/metodosEntrega')} },
-                    { label: 'Gestionar puntos de entrega', onClick: () => {navigate('/admin/entregas')} },
+                    { label: 'Gestionar puntos de entrega', onClick: () => {navigate('/admin/entregas',{ state: { user } })} },
                     { label: 'Gestionar usuarios', onClick: () => {navigate('/admin/usuarios')} },
                     { label: 'Ver todas las compras', onClick: () => {navigate('/admin/compras')} }
 

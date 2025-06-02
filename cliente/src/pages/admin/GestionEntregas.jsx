@@ -7,20 +7,24 @@ export default function GestionEntregas({}) {
   const navigate = useNavigate()
   const [metodosEntrega,setMetodosEntrega] = useState([]);
   const [puntosEntrega,setPuntosEntrega] = useState([]);
-  const [mostrarAlertaDesactivar, setMostrarAlertaDesactivar] = useState(false);
-  const [mostrarAlertaActivar, setMostrarAlertaActivar] = useState(false);
+  const [mostrarAlertaDesactivarMetodo, setMostrarAlertaDesactivarMetodo] = useState(false);
+  const [mostrarAlertaDesactivarPunto, setMostrarAlertaDesactivarPunto] = useState(false);
+  const [mostrarAlertaActivarMetodo, setMostrarAlertaActivarMetodo] = useState(false);
+  const [mostrarAlertaActivarPunto, setMostrarAlertaActivarPunto] = useState(false);
+  const [metodoSeleccionado, setMetodoSeleccionado] = useState({});
+  const [puntoSeleccionado, setPuntoSeleccionado] = useState({});
 
   useEffect(() => {
-    fetch("http://localhost:8080/entregas/metodos/activos")
+    fetch("http://localhost:8080/entregas/metodos")
       .then(res => res.json())
       .then(data => setMetodosEntrega(data));
-  }, []);
+  }, [mostrarAlertaDesactivarMetodo, mostrarAlertaActivarMetodo]);
   useEffect(() => {
-    fetch(`http://localhost:8080/entregas/puntos/metodo/1`)
+    fetch(`http://localhost:8080/entregas/puntos`)
         .then(res => res.json())
         .then(setPuntosEntrega)
         .catch(err => console.error("Error al obtener puntos:", err));
-  }, [])
+  }, [mostrarAlertaDesactivarPunto, mostrarAlertaActivarPunto])
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 3; // Cambiá este número si querés mostrar más/menos por página
 
@@ -31,34 +35,78 @@ export default function GestionEntregas({}) {
     // Calcular el total de páginas
     const totalPages = Math.ceil(puntosEntrega.length / itemsPerPage);
 
-    const handleDesactivar = (e) => {
+    const handleDesactivarMetodo = (e) => {
         e.preventDefault();
-        
-        fetch(`http://localhost:8080/productos/${id}`,{
+        const id = metodoSeleccionado?.id;
+        if (!user?.token || user.token.split('.').length !== 3) {
+            alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
+            return;
+        }
+        fetch(`http://localhost:8080/entregas/metodos/${id}`,{
             method:'DELETE',
             headers: {
                 'Authorization': `Bearer ${user.token}`,
             },
         })
         .then(()=>{
-            setMostrarAlertaDesactivar(false)
-            set({})
+            setMostrarAlertaDesactivarMetodo(false)
+            setMetodoSeleccionado({});
         })  
     }
     
-    const handleActivarProducto = (e) =>{
+    const handleActivarMetodo = (e) =>{
         e.preventDefault();
-        
-        fetch(`http://localhost:8080/productos/activar/${id}`,{
+        const id = metodoSeleccionado?.id;
+        if (!user?.token || user.token.split('.').length !== 3) {
+            alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
+            return;
+        }
+        fetch(`http://localhost:8080/entregas/metodos/${id}`,{
             method:'PUT',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${user.token}`,
             },
         })
         .then(()=>{
-            setMostrarAlertaActivar(false);
-            set({});
+            setMostrarAlertaActivarMetodo(false);
+            setMetodoSeleccionado({});
+        })  
+    }
+    const handleDesactivarPunto = (e) => {
+        e.preventDefault();
+        const id = puntoSeleccionado?.id;
+        if (!user?.token || user.token.split('.').length !== 3) {
+            alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
+            return;
+        }
+        fetch(`http://localhost:8080/entregas/puntos/${id}`,{
+            method:'DELETE',
+            headers: {
+                'Authorization': `Bearer ${user.token}`,
+            },
+        })
+        .then(()=>{
+            setMostrarAlertaDesactivarPunto(false)
+            setPuntoSeleccionado({});
+        })  
+    }
+    
+    const handleActivarPunto = (e) =>{
+        e.preventDefault();
+        const id = puntoSeleccionado?.id;
+        if (!user?.token || user.token.split('.').length !== 3) {
+            alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
+            return;
+        }
+        fetch(`http://localhost:8080/entregas/puntos/${id}`,{
+            method:'PUT',
+            headers: {
+                'Authorization': `Bearer ${user.token}`,
+            },
+        })
+        .then(()=>{
+            setMostrarAlertaActivarPunto(false);
+            setMetodoSeleccionado({});
         })  
     }
   return (
@@ -89,12 +137,13 @@ export default function GestionEntregas({}) {
                 <tr key={punto.id} className="hover:bg-leather-50 transition ">
                 <td className="px-4 py-3">
                     <button className="px-1 text-red-600 hover:text-red-800" value={punto.id} onClick={()=>{
-                        set(punto);
-                        setMostrarAlertaDesactivar(true);
+                        console.log(punto)
+                        setPuntoSeleccionado(punto)
+                        setMostrarAlertaDesactivarPunto(true);
                     }}>🗑️</button>
                     <button className="px-1" value={punto.id} onClick={()=>{
-                        set(punto);
-                        setMostrarAlertaActivar(true)
+                        setPuntoSeleccionado(punto)
+                        setMostrarAlertaActivarPunto(true)
                     }}>✔️</button>
                 </td>
                 <td className="px-4 py-3">{punto.nombre}</td>
@@ -123,21 +172,24 @@ export default function GestionEntregas({}) {
             </tbody>
         </table>
         </div>
-        {mostrarAlertaDesactivar && (
+        {mostrarAlertaDesactivarMetodo && (
             <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
                 <div className="bg-white p-6 rounded-lg shadow-lg w-[300px]">
                 <h2 className="text-lg font-bold mb-4">¿Estás seguro?</h2>
-                <p className="text-sm mb-6">¿Queres desactivar el producto?</p>
+                <p className="text-sm mb-6">¿Queres desactivar el metodo de entrega?</p>
                 
                 <div className="flex justify-between">
                     <button
-                    onClick={() => setMostrarAlertaDesactivar(false)}
+                    onClick={() => {
+                        setMostrarAlertaDesactivarMetodo(false)
+                        setPuntoSeleccionado()}
+                    }
                     className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
                     >
                     Cancelar
                     </button>
                     <button
-                    onClick={handleDesactivar}
+                    onClick={handleDesactivarMetodo}
                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                     >
                     Desactivar
@@ -146,7 +198,53 @@ export default function GestionEntregas({}) {
                 </div>
             </div>
         )}
-        {mostrarAlertaActivar && (
+        {mostrarAlertaDesactivarPunto && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-lg w-[300px]">
+                <h2 className="text-lg font-bold mb-4">¿Estás seguro?</h2>
+                <p className="text-sm mb-6">¿Queres desactivar el metodo de entrega?</p>
+                
+                <div className="flex justify-between">
+                    <button
+                    onClick={() => setMostrarAlertaDesactivarPunto(false)}
+                    className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
+                    >
+                    Cancelar
+                    </button>
+                    <button
+                    onClick={handleDesactivarPunto}
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    >
+                    Desactivar
+                    </button>
+                </div>
+                </div>
+            </div>
+        )}
+        {mostrarAlertaActivarMetodo && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-lg w-[300px]">
+                <h2 className="text-lg font-bold mb-4">¿Estás seguro?</h2>
+                <p className="text-sm mb-6">¿Queres activar el metodo de entrega?</p>
+                
+                <div className="flex justify-between">
+                    <button
+                    onClick={() => setMostrarAlertaActivarMetodo(false)}
+                    className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
+                    >
+                    Cancelar
+                    </button>
+                    <button
+                    onClick={handleActivarMetodo}
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                    >
+                    Activar
+                    </button>
+                </div>
+                </div>
+            </div>
+        )}
+        {mostrarAlertaActivarPunto && (
             <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
                 <div className="bg-white p-6 rounded-lg shadow-lg w-[300px]">
                 <h2 className="text-lg font-bold mb-4">¿Estás seguro?</h2>
@@ -154,13 +252,13 @@ export default function GestionEntregas({}) {
                 
                 <div className="flex justify-between">
                     <button
-                    onClick={() => setMostrarAlertaActivar(false)}
+                    onClick={() => setMostrarAlertaActivarPunto(false)}
                     className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
                     >
                     Cancelar
                     </button>
                     <button
-                    onClick={handleActivarProducto}
+                    onClick={handleActivarPunto}
                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                     >
                     Activar
@@ -207,12 +305,12 @@ export default function GestionEntregas({}) {
                 <tr key={punto.id} className="hover:bg-leather-50 transition ">
                 <td className="px-4 py-3">
                     <button className="px-1 text-red-600 hover:text-red-800" value={punto.id} onClick={()=>{
-                        set(punto);
-                        setMostrarAlertaDesactivar(true);
+                        setMetodoSeleccionado(punto)
+                        setMostrarAlertaDesactivarMetodo(true);
                     }}>🗑️</button>
                     <button className="px-1" value={punto.id} onClick={()=>{
-                        set(punto);
-                        setMostrarAlertaActivar(true)
+                        setMetodoSeleccionado(punto)
+                        setMostrarAlertaActivarMetodo(true)
                     }}>✔️</button>
                 </td>
                 <td className="px-4 py-3">{punto.nombre}</td>
