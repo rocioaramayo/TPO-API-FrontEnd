@@ -12,6 +12,7 @@ function guessMimeType(foto) {
   // Default
   return "image/jpeg";
 }
+
 import React from "react";
 import { FaCreditCard, FaUniversity } from "react-icons/fa";
 import { MdOutlineCreditCard } from "react-icons/md";
@@ -49,6 +50,32 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
   // Estado local para datos del usuario
   const [userInfo, setUserInfo] = React.useState(null);
 
+  // Estados para checkout
+  const [metodosEntrega, setMetodosEntrega] = React.useState([]);
+  const [metodoEntrega, setMetodoEntrega] = React.useState(""); // id del método de entrega
+  const [metodoPago, setMetodoPago] = React.useState("");
+  
+  // Estados para direcciones - NUEVOS
+  const [direcciones, setDirecciones] = React.useState([]);
+  const [direccionSeleccionada, setDireccionSeleccionada] = React.useState("");
+  const [mostrarFormNuevaDireccion, setMostrarFormNuevaDireccion] = React.useState(false);
+  const [nuevaDireccion, setNuevaDireccion] = React.useState({
+    calle: "",
+    numero: "",
+    piso: "",
+    departamento: "",
+    localidad: "",
+    provincia: "",
+    codigoPostal: "",
+    telefonoContacto: ""
+  });
+  
+  const [puntoRetiroId, setPuntoRetiroId] = React.useState("");
+  const [puntosRetiro, setPuntosRetiro] = React.useState([]);
+  // Estado para cotización de envío
+  const [costoEnvio, setCostoEnvio] = React.useState(null);
+  const [cotizando, setCotizando] = React.useState(false);
+
   // Efecto para obtener datos del usuario autenticado
   React.useEffect(() => {
     if (user?.token) {
@@ -63,20 +90,19 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
     }
   }, [user]);
 
-  // Estados para checkout
-  const [metodosEntrega, setMetodosEntrega] = React.useState([]);
-  const [metodoEntrega, setMetodoEntrega] = React.useState(""); // id del método de entrega
-  const [metodoPago, setMetodoPago] = React.useState("");
-  const [direccion, setDireccion] = React.useState("");
-  const [localidad, setLocalidad] = React.useState("");
-  const [provincia, setProvincia] = React.useState("");
-  const [codigoPostal, setCodigoPostal] = React.useState("");
-  const [telefono, setTelefono] = React.useState("");
-  const [puntoRetiroId, setPuntoRetiroId] = React.useState("");
-  const [puntosRetiro, setPuntosRetiro] = React.useState([]);
-  // Estado para cotización de envío
-  const [costoEnvio, setCostoEnvio] = React.useState(null);
-  const [cotizando, setCotizando] = React.useState(false);
+  // Cargar direcciones del usuario - NUEVO
+  React.useEffect(() => {
+    if (user?.token) {
+      fetch("http://localhost:8080/direcciones/mias", {
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => setDirecciones(data))
+      .catch(err => console.error("Error al cargar direcciones:", err));
+    }
+  }, [user]);
 
   // Traer métodos de entrega activos al montar
   React.useEffect(() => {
@@ -87,28 +113,26 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
 
   // Definir el método seleccionado
   const metodoSeleccionado = metodosEntrega.find(m => String(m.id) === String(metodoEntrega));
+
+  // useEffect actualizado para cotización de envío - MODIFICADO
   React.useEffect(() => {
-    if (
-      metodoSeleccionado?.requiereDireccion &&
-      direccion.trim() &&
-      localidad.trim() &&
-      provincia.trim() &&
-      codigoPostal.trim()
-    ) {
-      setCotizando(true);
-      fetch("http://localhost:8080/entregas/cotizar", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": user?.token ? `Bearer ${user.token}` : ""
-        },
-        body: JSON.stringify({
-          direccion,
-          localidad,
-          provincia,
-          codigoPostal
-        }),
-      })
+    if (metodoSeleccionado?.requiereDireccion && direccionSeleccionada) {
+      const direccion = direcciones.find(d => d.id.toString() === direccionSeleccionada);
+      if (direccion) {
+        setCotizando(true);
+        fetch("http://localhost:8080/entregas/cotizar", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": user?.token ? `Bearer ${user.token}` : ""
+          },
+          body: JSON.stringify({
+            direccion: `${direccion.calle} ${direccion.numero}`,
+            localidad: direccion.localidad,
+            provincia: direccion.provincia,
+            codigoPostal: direccion.codigoPostal
+          }),
+        })
         .then(res => res.json())
         .then(data => {
           setCostoEnvio(data.precio ?? null);
@@ -118,10 +142,12 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
           setCostoEnvio(null);
           setCotizando(false);
         });
+      }
     } else {
       setCostoEnvio(null);
     }
-  }, [direccion, localidad, provincia, codigoPostal, metodoSeleccionado]);
+  }, [direccionSeleccionada, direcciones, metodoSeleccionado, user]);
+
   React.useEffect(() => {
     if (metodoSeleccionado?.requierePuntoRetiro && metodoEntrega) {
       fetch(`http://localhost:8080/entregas/puntos/metodo/${metodoEntrega}`)
@@ -132,6 +158,43 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
   }, [metodoSeleccionado, metodoEntrega]);
 
   const [errorCheckout, setErrorCheckout] = React.useState("");
+
+  // Función para crear nueva dirección - NUEVA
+  const handleCrearNuevaDireccion = () => {
+    if (!user?.token) return;
+    
+    fetch("http://localhost:8080/direcciones", {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${user.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(nuevaDireccion)
+    })
+    .then(res => {
+      if (res.ok) {
+        // Recargar direcciones
+        return fetch("http://localhost:8080/direcciones/mias", {
+          headers: { 'Authorization': `Bearer ${user.token}` }
+        });
+      }
+      throw new Error("Error al crear dirección");
+    })
+    .then(res => res.json())
+    .then(data => {
+      setDirecciones(data);
+      setMostrarFormNuevaDireccion(false);
+      setNuevaDireccion({
+        calle: "", numero: "", piso: "", departamento: "",
+        localidad: "", provincia: "", codigoPostal: "", telefonoContacto: ""
+      });
+      // Seleccionar automáticamente la nueva dirección (última creada)
+      if (data.length > 0) {
+        setDireccionSeleccionada(data[data.length - 1].id.toString());
+      }
+    })
+    .catch(err => console.error("Error:", err));
+  };
 
   const handleAplicarCupon = () => {
     const codigo = cupon.trim();
@@ -211,10 +274,10 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
       return;
     }
 
-    // Validar campos según flags del método seleccionado
+    // Validar campos según flags del método seleccionado - MODIFICADO
     if (metodoSeleccionado?.requiereDireccion) {
-      if (!direccion.trim() || !localidad.trim() || !provincia.trim() || !codigoPostal.trim() || !telefono.trim()) {
-        setErrorCheckout("Por favor, completa todos los campos de envío.");
+      if (!direccionSeleccionada) {
+        setErrorCheckout("Por favor, selecciona una dirección de envío.");
         return;
       }
     }
@@ -267,12 +330,9 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
       ...(metodoPagoEnum === "TARJETA_CREDITO" && cuotasValue ? { cuotas: cuotasValue } : {})
     };
 
+    // Body actualizado para usar direccionId - MODIFICADO
     if (metodoSeleccionado?.requiereDireccion) {
-      body.direccionEntrega = direccion.trim();
-      body.localidadEntrega = localidad.trim();
-      body.provinciaEntrega = provincia.trim();
-      body.codigoPostalEntrega = codigoPostal.trim();
-      body.telefonoContacto = telefono.trim();
+      body.direccionId = parseInt(direccionSeleccionada);
     }
     if (metodoSeleccionado?.requierePuntoRetiro) {
       body.puntoRetiroId = puntoRetiroId.trim();
@@ -372,58 +432,144 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                       </label>
                     ))}
                   </div>
+                  
+                  {/* Sección de direcciones - COMPLETAMENTE NUEVA */}
                   {metodoSeleccionado?.requiereDireccion && (
-                    <div className="mt-4 space-y-2">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Nombre"
-                          value={userInfo ? `${userInfo.firstName} ${userInfo.lastName}` : ""}
-                          readOnly
-                          className="border rounded px-3 py-2 w-1/2 bg-gray-50 text-gray-500"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Teléfono"
-                          value={telefono}
-                          onChange={e => setTelefono(e.target.value)}
-                          className="border rounded px-3 py-2 w-1/2"
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Dirección"
-                          value={direccion}
-                          onChange={e => setDireccion(e.target.value)}
-                          className="border rounded px-3 py-2 w-1/2"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Localidad"
-                          value={localidad}
-                          onChange={e => setLocalidad(e.target.value)}
-                          className="border rounded px-3 py-2 w-1/2"
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Código Postal"
-                          value={codigoPostal}
-                          onChange={e => setCodigoPostal(e.target.value)}
-                          className="border rounded px-3 py-2 w-1/2"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Provincia"
-                          value={provincia}
-                          onChange={e => setProvincia(e.target.value)}
-                          className="border rounded px-3 py-2 w-1/2"
-                        />
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <label className="block font-semibold text-leather-700 mb-2">
+                          Seleccionar dirección de envío
+                        </label>
+                        
+                        {direcciones.length > 0 && (
+                          <div className="space-y-2 mb-4">
+                            {direcciones.map(dir => (
+                              <label key={dir.id} className="flex items-start gap-3 p-3 border rounded cursor-pointer hover:bg-gray-50">
+                                <input
+                                  type="radio"
+                                  name="direccionEnvio"
+                                  value={dir.id}
+                                  checked={direccionSeleccionada === dir.id.toString()}
+                                  onChange={e => setDireccionSeleccionada(e.target.value)}
+                                  className="mt-1"
+                                />
+                                <div className="flex-1">
+                                  <div className="font-medium">
+                                    {dir.calle} {dir.numero}
+                                    {dir.piso && `, Piso ${dir.piso}`}
+                                    {dir.departamento && `, Depto ${dir.departamento}`}
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    {dir.localidad}, {dir.provincia} - CP: {dir.codigoPostal}
+                                  </div>
+                                  {dir.telefonoContacto && (
+                                    <div className="text-sm text-gray-600">
+                                      Tel: {dir.telefonoContacto}
+                                    </div>
+                                  )}
+                                </div>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => setMostrarFormNuevaDireccion(!mostrarFormNuevaDireccion)}
+                          className="text-leather-700 hover:underline text-sm font-medium"
+                        >
+                          {direcciones.length === 0 ? "Agregar dirección" : "+ Agregar nueva dirección"}
+                        </button>
+
+                        {mostrarFormNuevaDireccion && (
+                          <div className="mt-4 p-4 border rounded bg-gray-50 space-y-3">
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Calle"
+                                value={nuevaDireccion.calle}
+                                onChange={e => setNuevaDireccion({...nuevaDireccion, calle: e.target.value})}
+                                className="border rounded px-3 py-2 flex-1"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Número"
+                                value={nuevaDireccion.numero}
+                                onChange={e => setNuevaDireccion({...nuevaDireccion, numero: e.target.value})}
+                                className="border rounded px-3 py-2 w-24"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Piso (opcional)"
+                                value={nuevaDireccion.piso}
+                                onChange={e => setNuevaDireccion({...nuevaDireccion, piso: e.target.value})}
+                                className="border rounded px-3 py-2 flex-1"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Depto (opcional)"
+                                value={nuevaDireccion.departamento}
+                                onChange={e => setNuevaDireccion({...nuevaDireccion, departamento: e.target.value})}
+                                className="border rounded px-3 py-2 flex-1"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Localidad"
+                                value={nuevaDireccion.localidad}
+                                onChange={e => setNuevaDireccion({...nuevaDireccion, localidad: e.target.value})}
+                                className="border rounded px-3 py-2 flex-1"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Provincia"
+                                value={nuevaDireccion.provincia}
+                                onChange={e => setNuevaDireccion({...nuevaDireccion, provincia: e.target.value})}
+                                className="border rounded px-3 py-2 flex-1"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Código Postal"
+                                value={nuevaDireccion.codigoPostal}
+                                onChange={e => setNuevaDireccion({...nuevaDireccion, codigoPostal: e.target.value})}
+                                className="border rounded px-3 py-2 flex-1"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Teléfono"
+                                value={nuevaDireccion.telefonoContacto}
+                                onChange={e => setNuevaDireccion({...nuevaDireccion, telefonoContacto: e.target.value})}
+                                className="border rounded px-3 py-2 flex-1"
+                              />
+                            </div>
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                type="button"
+                                onClick={() => setMostrarFormNuevaDireccion(false)}
+                                className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-100"
+                              >
+                                Cancelar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleCrearNuevaDireccion}
+                                className="px-4 py-2 bg-leather-700 text-white rounded hover:bg-leather-800"
+                                disabled={!nuevaDireccion.calle || !nuevaDireccion.numero || !nuevaDireccion.localidad}
+                              >
+                                Guardar dirección
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
+
                   {metodoSeleccionado?.requierePuntoRetiro && (
                     <div className="mt-4">
                       <select
@@ -653,7 +799,7 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
                         ) : costoEnvio !== null ? (
                           <span>${costoEnvio.toLocaleString("es-AR")}</span>
                         ) : (
-                          <span>Introduce la dirección</span>
+                          <span>Selecciona dirección</span>
                         )
                       ) : (
                         <span>-</span>
@@ -689,6 +835,7 @@ const CarritoPage = ({ cartItems, setCartItems, user }) => {
 };
 
 export default CarritoPage;
+
 // Inputs de tarjeta con validaciones mejoradas
 function TarjetaInputs({ metodoPago }) {
   const [numero, setNumero] = React.useState("");
