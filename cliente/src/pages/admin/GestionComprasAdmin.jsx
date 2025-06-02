@@ -8,7 +8,7 @@ const GestionComprasAdmin = ({ user }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch("http://localhost:8080/api/v1/users/admin/compras", {
+        fetch("http://localhost:8080/compras/admin/compras", {
             headers: {
                 Authorization: `Bearer ${user.token}`,
             },
