@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import TablaProductos from "./TablaProductos";
 import FormCrearProducto from "./FormCrearProducto";
 
-const GestionProductos = () => {
+const GestionProductos = ({user}) => {
   const [productos, setProductos] = useState(null);
   const [mostrarCrearProducto, setMostrarCrearProducto] = useState(false);
   const navigate = useNavigate();
@@ -32,10 +32,10 @@ const GestionProductos = () => {
         </div>
       </div>
       {mostrarCrearProducto && (
-        <FormCrearProducto setMostrarCrearProducto={setMostrarCrearProducto}/>
+        <FormCrearProducto user={user}  setMostrarCrearProducto={setMostrarCrearProducto}/>
       )}
 
-      <TablaProductos />
+      <TablaProductos mostrarCrearProducto={mostrarCrearProducto} user={user}/>
     </div>
   );
 };

@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-const FormCrearMetodoEntrega = ({setMostrarCrearMetodo}) => {
-    const location = useLocation();
-    const user = location.state?.user || {};
+const FormCrearMetodoEntrega = ({user, setMostrarCrearMetodo}) => {
     const navigate = useNavigate();
     // const [metodosEntrega,setMetodosEntrega] = useState({});
     // const [metodoEntrega,setMetodoEntrega] = useState({});
@@ -91,7 +89,7 @@ const FormCrearMetodoEntrega = ({setMostrarCrearMetodo}) => {
       
       // Opcional: redirigir después de unos segundos
       setTimeout(() => {
-        navigate('/admin/');
+        setMostrarCrearMetodo(false)
       }, 3000);
     })
     .catch(error => {

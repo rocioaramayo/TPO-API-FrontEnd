@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-const FormCrearPuntoEntrega = ({setMostrarCrearPunto}) => {
-    const location = useLocation();
-    const user = location.state?.user || {};
+const FormCrearPuntoEntrega = ({user, setMostrarCrearPunto}) => {
     const navigate = useNavigate();
     const [metodosEntrega,setMetodosEntrega] = useState({});
     const [metodoEntrega,setMetodoEntrega] = useState({});
@@ -118,7 +116,7 @@ const FormCrearPuntoEntrega = ({setMostrarCrearPunto}) => {
       
       // Opcional: redirigir después de unos segundos
       setTimeout(() => {
-        navigate('/admin/');
+        setMostrarCrearPunto(false)
       }, 3000);
     })
     .catch(error => {

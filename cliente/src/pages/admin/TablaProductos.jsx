@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import FormEditarProducto from "./FormEditarProducto";
 
-export default function TablaProductos({}) {
-  const location = useLocation();
-  const user = location.state?.user || {};
+export default function TablaProductos({user, mostrarCrearProducto}) {
   const navigate = useNavigate()
   const [productos,setProductos] = useState([]);
   const [mostrarAlertaDesactivar, setMostrarAlertaDesactivar] = useState(false);
@@ -20,7 +18,7 @@ export default function TablaProductos({}) {
           .then((data) => {
           setProductos(data.productos);
           });
-  }, [mostrarAlertaDesactivar,mostrarAgregarStock,mostrarAlertaActivar]);
+  }, [mostrarAlertaDesactivar,mostrarAgregarStock,mostrarAlertaActivar, mostrarCrearProducto]);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6; // Cambiá este número si querés mostrar más/menos por página
 

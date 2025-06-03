@@ -3,9 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import FormCrearMetodoEntrega from "./FormCrearMetodoEntrega";
 import FormCrearPuntoEntrega from "./FormCrearPuntoEntrega";
 
-export default function GestionEntregas({}) {
-  const location = useLocation();
-  const user = location.state?.user || {};
+export default function GestionEntregas({user}) {
   const navigate = useNavigate();
   const [metodosEntrega, setMetodosEntrega] = useState([]);
   const [puntosEntrega, setPuntosEntrega] = useState([]);
@@ -24,21 +22,28 @@ export default function GestionEntregas({}) {
     fetch("http://localhost:8080/entregas/metodos")
       .then(res => res.json())
       .then(data => setMetodosEntrega(data));
-  }, [mostrarAlertaDesactivarMetodo, mostrarAlertaActivarMetodo]);
+  }, [mostrarAlertaDesactivarMetodo, mostrarAlertaActivarMetodo, mostrarCrearMetodo]);
 
   useEffect(() => {
     fetch("http://localhost:8080/entregas/puntos")
       .then(res => res.json())
       .then(setPuntosEntrega)
       .catch(err => console.error("Error al obtener puntos:", err));
-  }, [mostrarAlertaDesactivarPunto, mostrarAlertaActivarPunto]);
+  }, [mostrarAlertaDesactivarPunto, mostrarAlertaActivarPunto, mostrarCrearPunto]);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3;
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentPuntosEntrega = puntosEntrega?.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(puntosEntrega.length / itemsPerPage);
+  const [currentPagePuntos, setCurrentPagePuntos] = useState(1);
+  const itemsPerPagePuntos = 2;
+  const startIndexPuntos = (currentPagePuntos - 1) * itemsPerPagePuntos;
+  const endIndexPuntos = startIndexPuntos + itemsPerPagePuntos;
+  const currentPuntosEntrega = puntosEntrega?.slice(startIndexPuntos, endIndexPuntos);
+  const totalPagesPuntos = Math.ceil(puntosEntrega.length / itemsPerPagePuntos);
+ 
+  const [currentPageMetodos, setCurrentPageMetodos] = useState(1);
+  const itemsPerPageMetodos = 2;
+  const startIndexMetodos = (currentPageMetodos - 1) * itemsPerPageMetodos;
+  const endIndexMetodos = startIndexMetodos + itemsPerPageMetodos;
+  const currentMetodosEntrega = metodosEntrega?.slice(startIndexMetodos, endIndexMetodos);
+  const totalPagesMetodos = Math.ceil(metodosEntrega.length / itemsPerPageMetodos);
 
   const handleDesactivarMetodo = (e) => {
     e.preventDefault();
@@ -316,26 +321,26 @@ export default function GestionEntregas({}) {
             </div>
         )}
         {mostrarCrearMetodo && (
-           <FormCrearMetodoEntrega setMostrarCrearMetodo={setMostrarCrearMetodo}/>
+           <FormCrearMetodoEntrega user={user} setMostrarCrearMetodo={setMostrarCrearMetodo}/>
         )}
         {mostrarCrearPunto && (
-           <FormCrearPuntoEntrega setMostrarCrearPunto={setMostrarCrearPunto}/>
+           <FormCrearPuntoEntrega user={user} setMostrarCrearPunto={setMostrarCrearPunto}/>
         )}
         <div className="flex justify-center mt-4 gap-2">
             <button
                 className="btn-outline-leather"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
+                onClick={() => setCurrentPagePuntos((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPagePuntos === 1}
             >
                 ← Anterior
             </button>
             <span className="text-sm text-gray-600">
-                Página {currentPage} de {totalPages}
+                Página {currentPagePuntos} de {totalPagesPuntos}
             </span>
             <button
                 className="btn-outline-leather"
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPagePuntos((prev) => Math.min(prev + 1, totalPagesPuntos))}
+                disabled={currentPagePuntos === totalPagesPuntos}
             >
                 Siguiente →
             </button>
@@ -355,7 +360,7 @@ export default function GestionEntregas({}) {
             </tr>
             </thead>
             <tbody className="bg-white divide-y divide-leather-100">
-            {metodosEntrega.map((punto) => (
+            {currentMetodosEntrega.map((punto) => (
                 <tr key={punto.id} className="hover:bg-leather-50 transition ">
                 <td className="px-4 py-3">
                     <button className="px-1 text-red-600 hover:text-red-800" value={punto.id} onClick={()=>{
@@ -387,6 +392,25 @@ export default function GestionEntregas({}) {
             ))}
             </tbody>
         </table>
+        <div className="flex justify-center mt-4 gap-2">
+            <button
+                className="btn-outline-leather"
+                onClick={() => setCurrentPageMetodos((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPageMetodos === 1}
+            >
+                ← Anterior
+            </button>
+            <span className="text-sm text-gray-600">
+                Página {currentPageMetodos} de {totalPagesMetodos}
+            </span>
+            <button
+                className="btn-outline-leather"
+                onClick={() => setCurrentPageMetodos((prev) => Math.min(prev + 1, totalPagesMetodos))}
+                disabled={currentPageMetodos === totalPagesMetodos}
+            >
+                Siguiente →
+            </button>
+        </div>
     </>
   );
 }

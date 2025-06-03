@@ -29,14 +29,14 @@ const AdminPanel = ({ user, productos }) => {
         <Route path='/' element={<Dashboard user={user} />} />
         <Route path='/productos' element={<GestionProductos user={user} />} />
         <Route path='/usuarios' element={<GestionUsuarios user={user} />} />
-        <Route path='/productos/crear' element={<FormCrearProducto user={user} />} />
-        <Route path='/productos/editar/*' element={<FormEditarProducto user={user} />} />
+        {/* <Route path='/productos/crear' element={<FormCrearProducto user={user} />} /> */}
+        {/* <Route path='/productos/editar/*' element={<FormEditarProducto user={user} />} /> */}
         <Route path='/descuentos' element={
           <DescuentosAdminPanel user={user} fullPage={true} visible={true} onClose={() => navigate('/admin')} />
         } />
-        <Route path='/entregas' element={<GestionEntregas />} />
-        <Route path='/entregas/crearMetodo' element={<FormCrearMetodoEntrega />} />
-        <Route path='/entregas/crearPunto' element={<FormCrearPuntoEntrega />} />
+        <Route path='/entregas' element={<GestionEntregas user={user} />} />
+        {/* <Route path='/entregas/crearMetodo' element={<FormCrearMetodoEntrega />} /> */}
+        {/* <Route path='/entregas/crearPunto' element={<FormCrearPuntoEntrega />} /> */}
 
         <Route path="/compras" element={<GestionComprasAdmin user={user} />} />
         <Route path='/categorias' element={<GestionCategorias user={user} />} />
