@@ -31,15 +31,10 @@ const FormEditarProducto = ({ user , setMostrarEditarProducto, id }) => {
     }));
     console.log(producto)
   };
-  const handleChangeImagenes = (e) =>{
-    const {name} = e.target;
+  const handleChangeImagenes = (e) => {
     const archivos = Array.from(e.target.files);
-    setImagenes(prev => [...prev, ...archivos])
-    setProducto(prev =>({
-      ...prev,
-      [name]: producto.imagenes
-    }))
-  }
+    setImagenes(archivos); // Reemplaza completamente las imágenes
+  };
   const handleEditarProducto = (e) => {
     e.preventDefault();
     setLoading(true);
@@ -65,10 +60,13 @@ const FormEditarProducto = ({ user , setMostrarEditarProducto, id }) => {
     formData.append('tipoCuero', producto.tipoCuero);
     formData.append('instruccionesCuidado', producto.instrucciones)
     formData.append('categoryId', categoria.id);
-    // Agregar imágenes
-    producto.fotos.forEach((imagen) => {
-      formData.append('files', imagen); // el backend espera 'fotos'
-    });
+    // Solo agregar imágenes si se seleccionaron nuevas
+    if (imagenes.length > 0) {
+      imagenes.forEach((imagen) => {
+        formData.append('files', imagen);
+      });
+    }
+    // Si no se seleccionan nuevas imágenes, el backend mantendrá las existentes
     
     fetch(`http://127.0.0.1:8080/productos/${id}`, {
       method: 'PUT',
@@ -80,7 +78,7 @@ const FormEditarProducto = ({ user , setMostrarEditarProducto, id }) => {
     .then(response =>{
       return response.text().then(text =>{
         let data = {};
-        try{data = json.parse(text);}
+        try{data = JSON.parse(text);}
         catch(e){ data = {message: text}; }
         if (!response.ok) {
           let errorMessage = 'Error al editar producto';
@@ -380,12 +378,28 @@ return (
                     required
                   />
               </div>
-            {/*Imagenes */}
-            <label 
-              htmlFor="imagenes" 
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Imágenes
+            {/* Imágenes actuales */}
+            {producto?.fotos?.length > 0 && imagenes.length === 0 && (
+              <div className="mb-3">
+                <div className="font-semibold mb-1">Imágenes actuales:</div>
+                <div className="flex gap-3 flex-wrap">
+                  {producto.fotos.map((url, idx) => (
+                    <img
+                      key={idx}
+                      src={url}
+                      alt={`img-actual-${idx}`}
+                      className="h-20 w-20 object-cover rounded shadow border"
+                    />
+                  ))}
+                </div>
+                <span className="block text-xs text-gray-500 mt-1">
+                  Si no seleccionás nuevas imágenes, se mantendrán las actuales.
+                </span>
+              </div>
+            )}
+
+            <label htmlFor="imagenes" className="block text-sm font-medium text-gray-700 mb-2">
+              Imágenes nuevas
             </label>
             <div className="flex flex-col items-start gap-2">
               <label
@@ -406,10 +420,10 @@ return (
               </label>
               <span className="text-sm font-medium text-gray-700 ml-1 select-none">
                 {imagenes.length === 0
-                  ? 'Sin archivos seleccionados'
-                  : `${imagenes.length} archivo${imagenes.length > 1 ? 's' : ''} seleccionados`}
+                  ? 'No seleccionaste nuevas imágenes. Se mantendrán las actuales.'
+                  : `Vas a subir ${imagenes.length} nueva${imagenes.length > 1 ? 's' : ''} imagen${imagenes.length > 1 ? 'es' : ''}. Esto reemplazará las actuales.`}
               </span>
-              {/* Previsualización de imágenes seleccionadas */}
+              {/* Previsualización de nuevas imágenes seleccionadas */}
               {imagenes.length > 0 && (
                 <div className="flex flex-wrap gap-4 mt-4">
                   {imagenes.map((imagen, idx) => (
