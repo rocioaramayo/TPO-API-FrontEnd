@@ -1,6 +1,21 @@
 import { useEffect, useState } from 'react';
 import { data, Link, useNavigate, useParams } from 'react-router-dom';
 
+// Deducir tipo mime a partir del nombre del archivo (si existe)
+function guessMimeType(foto) {
+  if (foto?.nombre) {
+    const ext = foto.nombre.split('.').pop().toLowerCase();
+    if (ext === "png") return "image/png";
+    if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+    if (ext === "gif") return "image/gif";
+    if (ext === "webp") return "image/webp";
+  }
+  // Si empieza con "/9j/" probablemente es JPEG
+  if (foto?.image && foto.image.startsWith("/9j/")) return "image/jpeg";
+  // Default
+  return "image/jpeg";
+}
+
 const FormEditarProducto = ({ user , setMostrarEditarProducto, id }) => {
   const [categorias,setCategorias] = useState([])
   const navigate = useNavigate();
@@ -9,6 +24,28 @@ const FormEditarProducto = ({ user , setMostrarEditarProducto, id }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [imagenes, setImagenes] = useState([]);
+
+  // Handler para eliminar una foto actual del producto
+  const handleEliminarFoto = (fotoId) => {
+    if (!window.confirm("¿Seguro que querés eliminar esta foto?")) return;
+    fetch(`http://localhost:8080/productos/${id}/fotos/${fotoId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${user.token}`
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        setProducto(prev => ({
+          ...prev,
+          fotos: prev.fotos.filter(f => f.id !== fotoId)
+        }));
+      } else {
+        alert("No se pudo eliminar la foto");
+      }
+    })
+    .catch(() => alert("No se pudo eliminar la foto (error de red)"));
+  };
   useEffect(()=>{
     fetch(`http://localhost:8080/productos/detalle/${id}`)
     .then(response => response.json())
@@ -383,14 +420,28 @@ return (
               <div className="mb-3">
                 <div className="font-semibold mb-1">Imágenes actuales:</div>
                 <div className="flex gap-3 flex-wrap">
-                  {producto.fotos.map((url, idx) => (
-                    <img
-                      key={idx}
-                      src={url}
-                      alt={`img-actual-${idx}`}
-                      className="h-20 w-20 object-cover rounded shadow border"
-                    />
-                  ))}
+                  {producto.fotos.map((foto, idx) => {
+                    const mimeType = guessMimeType(foto);
+                    return (
+                      <div key={foto.id || idx} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => handleEliminarFoto(foto.id)}
+                          className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full p-1 text-red-500 hover:bg-red-100 shadow-sm z-10"
+                          aria-label="Eliminar imagen actual"
+                          tabIndex={0}
+                          title="Eliminar imagen"
+                        >
+                          ×
+                        </button>
+                        <img
+                          src={`data:${mimeType};base64,${foto.file}`}
+                          alt={`img-actual-${idx}`}
+                          className="h-20 w-20 object-cover rounded shadow border"
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
                 <span className="block text-xs text-gray-500 mt-1">
                   Si no seleccionás nuevas imágenes, se mantendrán las actuales.
