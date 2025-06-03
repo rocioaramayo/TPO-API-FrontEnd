@@ -9,6 +9,7 @@ export default function TablaProductos({user, mostrarCrearProducto}) {
   const [mostrarAlertaActivar, setMostrarAlertaActivar] = useState(false);
   const [mostrarAgregarStock, setMostrarAgregarStock] = useState(false);
   const [mostrarEditarProducto, setMostrarEditarProducto] = useState(false);
+  const [errorStock, setErrorStock] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [id, setId] = useState(null);
   const [stock, setStock] = useState(0);
@@ -28,10 +29,7 @@ export default function TablaProductos({user, mostrarCrearProducto}) {
     const currentProductos = productos?.slice(startIndex, endIndex);
     // Calcular el total de páginas
     const totalPages = Math.ceil(productos.length / itemsPerPage);
-    const handleEdit = (e) => {
-      e.preventDefault();
-      navigate(`/admin/productos/editar/${e.target.value}`)
-    }
+    
     const handleDesactivar = (e) => {
         e.preventDefault();
         const id = productoSeleccionado.id;
@@ -51,8 +49,8 @@ export default function TablaProductos({user, mostrarCrearProducto}) {
     }
     const handleAgregarStock = (e) =>{
         e.preventDefault();
-        if (stock < 0) {
-            alert("El stock tiene que ser positivo.")
+        if ((productoSeleccionado.stock + parseInt(stock)) < 0) {
+            setErrorStock(true);
         }else{
             const id = productoSeleccionado.id;
             fetch( `http://127.0.0.1:8080/productos/stock/${id}`,{
@@ -61,12 +59,14 @@ export default function TablaProductos({user, mostrarCrearProducto}) {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${user.token}`,
                 },
-                body: JSON.stringify({ stock: stock }) 
+                body: JSON.stringify({ stock: parseInt(stock) }) 
             })
             .then(()=>{
                 setMostrarAgregarStock(false)
+                setErrorStock(false)
                 setProductoSeleccionado({})
-            })
+                setStock(0)
+            })            
         }
     }
     const handleActivarProducto = (e) =>{
@@ -200,6 +200,16 @@ export default function TablaProductos({user, mostrarCrearProducto}) {
         {mostrarAgregarStock && (
             <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
                 <div className="bg-white p-6 rounded-lg shadow-lg w-[500px]">
+                    {errorStock && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 text-sm">
+                            <div className="flex items-center">
+                                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                El stock debe ser positivo o igual a 0.
+                            </div>
+                        </div>
+                    )}
                 <h2 className="text-lg font-bold mb-4">¿Agregar stock?</h2>
                 <p className="text-sm mb-6">¿Cuantas unidades de {productoSeleccionado.nombre} quieres agregar?</p>
                 
@@ -210,7 +220,7 @@ export default function TablaProductos({user, mostrarCrearProducto}) {
                     >
                     Cancelar
                     </button>
-                    <input className="" min="0" type="number" onChange={handleChangeStock} placeholder="Stock" />
+                    <input className="" type="number" onChange={handleChangeStock} placeholder="Stock" />
                     <button
                     onClick={handleAgregarStock}
                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
