@@ -11,6 +11,7 @@ import GestionComprasAdmin from './GestionComprasAdmin';
 import GestionCategorias from './GestionCategorias';
 import GestionEntregas from './GestionEntregas';
 import FormCrearPuntoEntrega from './FormCrearPuntoEntrega';
+import FormCrearMetodoEntrega from './FormCrearMetodoEntrega';
 
 const AdminPanel = ({ user, productos }) => {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const AdminPanel = ({ user, productos }) => {
           <DescuentosAdminPanel user={user} fullPage={true} visible={true} onClose={() => navigate('/admin')} />
         } />
         <Route path='/entregas' element={<GestionEntregas />} />
+        <Route path='/entregas/crearMetodo' element={<FormCrearMetodoEntrega />} />
         <Route path='/entregas/crearPunto' element={<FormCrearPuntoEntrega />} />
 
         <Route path="/compras" element={<GestionComprasAdmin user={user} />} />
