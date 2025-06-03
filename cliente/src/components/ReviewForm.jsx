@@ -53,7 +53,8 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
 
     const requestBody = {
       productoId: parseInt(productoId),
-      estrellas: reviewData.rating, // Cambio: usar 'estrellas' como espera el backend
+      estrellas: reviewData.rating,
+      titulo: reviewData.titulo.trim() || null, // Enviar título o null si está vacío
       comentario: reviewData.comentario
     };
 
@@ -77,10 +78,8 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
         if (!response.ok) {
           let errorMessage = 'Error al enviar la reseña';
           
-          // Mapear errores específicos del backend
           switch (response.status) {
             case 403:
-              // Usuario no autorizado (no compró el producto)
               errorMessage = 'No estás autorizado para dejar una reseña. Solo pueden opinar quienes compraron este producto.';
               break;
             case 404:
@@ -93,19 +92,17 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
               }
               break;
             case 400:
-              if (data.message) {
-                errorMessage = data.message;
-              } else {
-                errorMessage = 'Datos de la reseña inválidos';
-              }
+              errorMessage = data.message || text || 'Datos de la reseña inválidos';
               break;
             case 409:
-              // Conflict - Ya dejó una reseña
-              errorMessage = 'Ya has dejado una reseña para este producto';
+              // Conflict - Ya dejó una reseña (usar el mensaje del servidor)
+              errorMessage = data.message || text || 'Ya has dejado una reseña para este producto';
               break;
             default:
               if (data.message) {
                 errorMessage = data.message;
+              } else if (text) {
+                errorMessage = text;
               } else if (response.statusText && response.statusText !== 'OK') {
                 errorMessage = response.statusText;
               }
@@ -286,7 +283,12 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
                   className="w-full px-3 py-2 border border-leather-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-leather-500 focus:border-leather-500 transition-colors"
                   maxLength="100"
                 />
-                <p className="text-xs text-leather-500 mt-1">Máximo 100 caracteres</p>
+                <div className="flex justify-between items-center mt-1">
+                  <p className="text-xs text-leather-500">Máximo 100 caracteres</p>
+                  <p className="text-xs text-leather-400">
+                    {reviewData.titulo.length}/100
+                  </p>
+                </div>
               </div>
 
               {/* Comentario */}

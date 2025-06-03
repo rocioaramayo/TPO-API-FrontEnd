@@ -14,6 +14,7 @@ const ReviewList = ({ productoId }) => {
 
   const cargarReviews = () => {
     setLoading(true);
+    setError(null);
     const url = `http://localhost:8080/reviews/${productoId}`;
     fetch(url)
       .then(response => {
@@ -23,9 +24,11 @@ const ReviewList = ({ productoId }) => {
         return response.json();
       })
       .then(data => {
+        console.log('Reviews cargadas:', data); // Para debug
         setReviews(data);
       })
       .catch(error => {
+        console.error('Error al cargar reviews:', error);
         setError(`No se pudieron cargar las reseñas: ${error.message}`);
       })
       .finally(() => {
@@ -35,7 +38,7 @@ const ReviewList = ({ productoId }) => {
 
   const calcularPromedioRating = () => {
     if (reviews.length === 0) return 0;
-    const suma = reviews.reduce((acc, review) => acc + review.rating, 0);
+    const suma = reviews.reduce((acc, review) => acc + (review.rating || 0), 0);
     return (suma / reviews.length).toFixed(1);
   };
 
@@ -66,6 +69,12 @@ const ReviewList = ({ productoId }) => {
       <div className="py-8">
         <div className="text-center text-red-600">
           <p>{error}</p>
+          <button 
+            onClick={cargarReviews}
+            className="mt-2 px-4 py-2 bg-leather-800 text-white rounded-lg hover:bg-leather-900 transition-colors"
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
@@ -85,7 +94,7 @@ const ReviewList = ({ productoId }) => {
                 {/* Render de estrellas promedio */}
                 {(() => {
                   const stars = [];
-                  const rating = Math.round(calcularPromedioRating());
+                  const rating = Math.round(parseFloat(calcularPromedioRating()));
                   for (let i = 1; i <= 5; i++) {
                     stars.push(
                       <svg
