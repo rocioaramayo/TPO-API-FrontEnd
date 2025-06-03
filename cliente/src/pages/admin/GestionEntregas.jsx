@@ -6,9 +6,9 @@ import FormCrearPuntoEntrega from "./FormCrearPuntoEntrega";
 export default function GestionEntregas({}) {
   const location = useLocation();
   const user = location.state?.user || {};
-  const navigate = useNavigate()
-  const [metodosEntrega,setMetodosEntrega] = useState([]);
-  const [puntosEntrega,setPuntosEntrega] = useState([]);
+  const navigate = useNavigate();
+  const [metodosEntrega, setMetodosEntrega] = useState([]);
+  const [puntosEntrega, setPuntosEntrega] = useState([]);
   const [mostrarAlertaDesactivarMetodo, setMostrarAlertaDesactivarMetodo] = useState(false);
   const [mostrarAlertaDesactivarPunto, setMostrarAlertaDesactivarPunto] = useState(false);
   const [mostrarAlertaActivarMetodo, setMostrarAlertaActivarMetodo] = useState(false);
@@ -17,114 +17,152 @@ export default function GestionEntregas({}) {
   const [puntoSeleccionado, setPuntoSeleccionado] = useState({});
   const [mostrarCrearMetodo, setMostrarCrearMetodo] = useState(false);
   const [mostrarCrearPunto, setMostrarCrearPunto] = useState(false);
+  const [success, setSuccess] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetch("http://localhost:8080/entregas/metodos")
       .then(res => res.json())
       .then(data => setMetodosEntrega(data));
   }, [mostrarAlertaDesactivarMetodo, mostrarAlertaActivarMetodo]);
+
   useEffect(() => {
-    fetch(`http://localhost:8080/entregas/puntos`)
-        .then(res => res.json())
-        .then(setPuntosEntrega)
-        .catch(err => console.error("Error al obtener puntos:", err));
-  }, [mostrarAlertaDesactivarPunto, mostrarAlertaActivarPunto])
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 3; // Cambiá este número si querés mostrar más/menos por página
+    fetch("http://localhost:8080/entregas/puntos")
+      .then(res => res.json())
+      .then(setPuntosEntrega)
+      .catch(err => console.error("Error al obtener puntos:", err));
+  }, [mostrarAlertaDesactivarPunto, mostrarAlertaActivarPunto]);
 
-    // Calcular los productos visibles
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentPuntosEntrega = puntosEntrega?.slice(startIndex, endIndex);
-    // Calcular el total de páginas
-    const totalPages = Math.ceil(puntosEntrega.length / itemsPerPage);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPuntosEntrega = puntosEntrega?.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(puntosEntrega.length / itemsPerPage);
 
-    const handleDesactivarMetodo = (e) => {
-        e.preventDefault();
-        const id = metodoSeleccionado?.id;
-        if (!user?.token || user.token.split('.').length !== 3) {
-            alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
-            return;
-        }
-        fetch(`http://localhost:8080/entregas/metodos/${id}`,{
-            method:'DELETE',
-            headers: {
-                'Authorization': `Bearer ${user.token}`,
-            },
-        })
-        .then(()=>{
-            setMostrarAlertaDesactivarMetodo(false)
-            setMetodoSeleccionado({});
-        })  
+  const handleDesactivarMetodo = (e) => {
+    e.preventDefault();
+    const id = metodoSeleccionado?.id;
+    if (!user?.token || user.token.split('.').length !== 3) {
+      alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
+      return;
     }
-    
-    const handleActivarMetodo = (e) =>{
-        e.preventDefault();
-        const id = metodoSeleccionado?.id;
-        if (!user?.token || user.token.split('.').length !== 3) {
-            alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
-            return;
-        }
-        fetch(`http://localhost:8080/entregas/metodos/${id}`,{
-            method:'PUT',
-            headers: {
-                'Authorization': `Bearer ${user.token}`,
-            },
-        })
-        .then(()=>{
-            setMostrarAlertaActivarMetodo(false);
-            setMetodoSeleccionado({});
-        })  
+    fetch(`http://localhost:8080/entregas/metodos/${id}` ,{
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${user.token}` },
+    })
+    .then(() => {
+      setMostrarAlertaDesactivarMetodo(false);
+      setMetodoSeleccionado({});
+      setSuccess("Método desactivado correctamente.");
+      setTimeout(() => setSuccess(null), 3000);
+    })
+    .catch(() => {
+      setError("Error al desactivar método.");
+      setTimeout(() => setError(null), 3000);
+    });
+  };
+
+  const handleActivarMetodo = (e) => {
+    e.preventDefault();
+    const id = metodoSeleccionado?.id;
+    if (!user?.token || user.token.split('.').length !== 3) {
+      alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
+      return;
     }
-    const handleDesactivarPunto = (e) => {
-        e.preventDefault();
-        const id = puntoSeleccionado?.id;
-        if (!user?.token || user.token.split('.').length !== 3) {
-            alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
-            return;
-        }
-        fetch(`http://localhost:8080/entregas/puntos/${id}`,{
-            method:'DELETE',
-            headers: {
-                'Authorization': `Bearer ${user.token}`,
-            },
-        })
-        .then(()=>{
-            setMostrarAlertaDesactivarPunto(false)
-            setPuntoSeleccionado({});
-        })  
+    fetch(`http://localhost:8080/entregas/metodos/${id}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${user.token}` },
+    })
+    .then(() => {
+      setMostrarAlertaActivarMetodo(false);
+      setMetodoSeleccionado({});
+      setSuccess("Método activado correctamente.");
+      setTimeout(() => setSuccess(null), 3000);
+    })
+    .catch(() => {
+      setError("Error al activar método.");
+      setTimeout(() => setError(null), 3000);
+    });
+  };
+
+  const handleDesactivarPunto = (e) => {
+    e.preventDefault();
+    const id = puntoSeleccionado?.id;
+    if (!user?.token || user.token.split('.').length !== 3) {
+      alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
+      return;
     }
-    
-    const handleActivarPunto = (e) =>{
-        e.preventDefault();
-        const id = puntoSeleccionado?.id;
-        if (!user?.token || user.token.split('.').length !== 3) {
-            alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
-            return;
-        }
-        fetch(`http://localhost:8080/entregas/puntos/${id}`,{
-            method:'PUT',
-            headers: {
-                'Authorization': `Bearer ${user.token}`,
-            },
-        })
-        .then(()=>{
-            setMostrarAlertaActivarPunto(false);
-            setMetodoSeleccionado({});
-        })  
+    fetch(`http://localhost:8080/entregas/puntos/${id}` ,{
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${user.token}` },
+    })
+    .then(() => {
+      setMostrarAlertaDesactivarPunto(false);
+      setPuntoSeleccionado({});
+      setSuccess("Punto desactivado correctamente.");
+      setTimeout(() => setSuccess(null), 3000);
+    })
+    .catch(() => {
+      setError("Error al desactivar punto.");
+      setTimeout(() => setError(null), 3000);
+    });
+  };
+
+  const handleActivarPunto = (e) => {
+    e.preventDefault();
+    const id = puntoSeleccionado?.id;
+    if (!user?.token || user.token.split('.').length !== 3) {
+      alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
+      return;
     }
+    fetch(`http://localhost:8080/entregas/puntos/${id}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${user.token}` },
+    })
+    .then(() => {
+      setMostrarAlertaActivarPunto(false);
+      setMetodoSeleccionado({});
+      setSuccess("Punto activado correctamente.");
+      setTimeout(() => setSuccess(null), 3000);
+    })
+    .catch(() => {
+      setError("Error al activar punto.");
+      setTimeout(() => setError(null), 3000);
+    });
+  };
+
   return (
     <>
-        <div className="flex items-center justify-between p-2">
-            <h2 className="text-2xl font-bold text-leather-800">Puntos de entrega</h2>
-            <button onClick={() => setMostrarCrearPunto(true)} className="bg-leather-600 text-white p-2 px-4 rounded hover:bg-leather-400 transition">
-                    + Agregar nuevo punto de entrega
-            </button>
-            <button onClick={() => setMostrarCrearMetodo(true)} className="bg-leather-600 text-white p-2 px-4 rounded hover:bg-leather-400 transition">
-                    + Agregar nuevo metodo de entrega
-            </button>
-            <button className="py-2 text-leather-800 hover:underline" onClick={() => navigate('/admin')}>Volver al dashboard</button>
+      <div className="flex items-center justify-between p-2">
+        <div>
+          <h2 className="text-2xl font-bold text-leather-800">Gestión de Entregas</h2>
+          <p className="text-leather-600">Administrá los métodos y puntos de entrega</p>
         </div>
+        <div className="flex gap-3">
+          <button onClick={() => setMostrarCrearPunto(true)} className="bg-leather-800 text-white py-2 px-4 rounded hover:bg-leather-900 transition">
+            + Agregar nuevo punto de Entrega
+          </button>
+          <button onClick={() => setMostrarCrearMetodo(true)} className="bg-leather-800 text-white py-2 px-4 rounded hover:bg-leather-900 transition">
+            + agregar nuevo método de Entrega
+          </button>
+          <button onClick={() => navigate('/admin')} className="bg-gray-100 text-gray-700 py-2 px-4 rounded hover:bg-gray-200 transition">
+            Volver al Dashboard
+          </button>
+        </div>
+      </div>
+
+      {/* Mensajes de éxito / error */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 mx-4">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4 mx-4">
+          {success}
+        </div>
+      )}
         <div className="overflow-x-auto shadow-cognac rounded-lg border border-leather-200">
         <table className="min-w-full divide-y divide-leather-200 text-sm text-gray-700">
             <thead className="bg-leather-100 text-left text-cognac-700 font-semibold">
