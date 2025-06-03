@@ -48,23 +48,26 @@ export default function TablaProductos({user, mostrarCrearProducto}) {
     }
     const handleChangeStock = (e) => {
         setStock(e.target.value);
-        console.log(stock)
     }
     const handleAgregarStock = (e) =>{
         e.preventDefault();
-        const id = productoSeleccionado.id;
-        fetch( `http://127.0.0.1:8080/productos/stock/${id}`,{
-            method: "PUT",
-            headers:{
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user.token}`,
-            },
-            body: JSON.stringify({ stock: stock }) 
-        })
-        .then(()=>{
-            setMostrarAgregarStock(false)
-            setProductoSeleccionado({})
-        })
+        if (stock < 0) {
+            alert("El stock tiene que ser positivo.")
+        }else{
+            const id = productoSeleccionado.id;
+            fetch( `http://127.0.0.1:8080/productos/stock/${id}`,{
+                method: "PUT",
+                headers:{
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                body: JSON.stringify({ stock: stock }) 
+            })
+            .then(()=>{
+                setMostrarAgregarStock(false)
+                setProductoSeleccionado({})
+            })
+        }
     }
     const handleActivarProducto = (e) =>{
         e.preventDefault();
@@ -207,7 +210,7 @@ export default function TablaProductos({user, mostrarCrearProducto}) {
                     >
                     Cancelar
                     </button>
-                    <input className="" type="number" onChange={handleChangeStock} placeholder="Stock" />
+                    <input className="" min="0" type="number" onChange={handleChangeStock} placeholder="Stock" />
                     <button
                     onClick={handleAgregarStock}
                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
