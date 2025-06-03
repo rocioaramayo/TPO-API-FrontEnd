@@ -160,7 +160,8 @@ const GestionCategorias = ({ user }) => {
 
       {/* Formulario para crear categoría */}
       {showCreateForm && (
-        <div className="bg-white border border-leather-200 rounded-lg p-6 mb-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">   
           <h3 className="text-lg font-semibold text-leather-800 mb-4">Crear Nueva Categoría</h3>
           <form onSubmit={handleCrearCategoria} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -216,6 +217,7 @@ const GestionCategorias = ({ user }) => {
               </button>
             </div>
           </form>
+        </div>
         </div>
       )}
 
