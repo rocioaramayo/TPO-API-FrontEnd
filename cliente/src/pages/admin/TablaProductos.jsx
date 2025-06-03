@@ -18,7 +18,7 @@ export default function TablaProductos({user, mostrarCrearProducto}) {
           .then((data) => {
           setProductos(data.productos);
           });
-  }, [mostrarAlertaDesactivar,mostrarAgregarStock,mostrarAlertaActivar, mostrarCrearProducto]);
+  }, [mostrarAlertaDesactivar,mostrarAgregarStock,mostrarAlertaActivar, mostrarCrearProducto, mostrarEditarProducto]);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6; // Cambiá este número si querés mostrar más/menos por página
 
@@ -219,7 +219,7 @@ export default function TablaProductos({user, mostrarCrearProducto}) {
             </div>
         )}
         {mostrarEditarProducto && (
-            <FormEditarProducto id={id} setMostrarEditarProducto={setMostrarEditarProducto}/>
+            <FormEditarProducto user={user} id={id} setMostrarEditarProducto={setMostrarEditarProducto}/>
         )}
         <div className="flex justify-center mt-4 gap-2">
             <button
