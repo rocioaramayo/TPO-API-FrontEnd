@@ -18,7 +18,7 @@ import PoliticaPrivacidad from './pages/PoliticaPrivacidad.jsx';
 import ProfilePage from "./components/ProfilePage.jsx";
 import CartSidebar from "./components/CartSidebar";
 import CheckoutPage from './pages/CheckoutPage.jsx';
-
+import AdminProfilePage from "./pages/admin/AdminProfilePage.jsx"; // ⬅️ arriba junto a los otros imports
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -119,14 +119,18 @@ const App = () => {
         />
 
           <Route
-              path="/perfil"
-              element={
-                  <>
-                      <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-                      <ProfilePage user={user} onLogout={handleLogout} />
-                  </>
-              }
-          />
+  path="/perfil"
+  element={
+    <>
+      <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+      {user?.role === "ADMIN" ? (
+        <AdminProfilePage user={user} onLogout={handleLogout} />
+      ) : (
+        <ProfilePage user={user} onLogout={handleLogout} />
+      )}
+    </>
+  }
+/>
 
           <Route
           path="/register" 
