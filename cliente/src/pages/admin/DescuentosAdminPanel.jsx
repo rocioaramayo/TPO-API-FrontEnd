@@ -285,10 +285,21 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
     return (
       <div className="min-h-screen bg-cream-50 py-12 px-4">
         <div className="max-w-5xl mx-auto px-6 py-4 font-sans">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-leather-800">Gestión de descuentos</h2>
-            <button className="py-2 text-leather-800 hover:underline" onClick={() => navigate('/admin')}>Volver al dashboard</button>
-          </div>
+          <div className="flex justify-between items-center mb-6">
+  <div>
+    <h2 className="text-2xl font-bold text-leather-800">Gestión de Descuentos</h2>
+    <p className="text-leather-600">Administrá y configurá los descuentos aplicables</p>
+  </div>
+  <div className="flex gap-3">
+    <button
+      onClick={() => navigate('/admin')}
+      className="bg-gray-100 text-gray-700 py-2 px-4 rounded font-medium hover:bg-gray-200 transition-colors"
+    >
+      Volver al Dashboard
+    </button>
+  </div>
+</div>
+
           <form onSubmit={handleCrear} className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div>
               <label className="block text-xs text-leather-700 mb-1">Código</label>

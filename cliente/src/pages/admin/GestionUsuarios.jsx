@@ -73,12 +73,21 @@ const GestionUsuarios = ({ user }) => {
 
     return (
         <div className="px-6 py-4 font-sans">
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-leather-800">Gestión de Usuarios</h2>
-                <button className="py-2 text-leather-800 hover:underline" onClick={() => navigate('/admin')}>
-                    Volver al dashboard
-                </button>
-            </div>
+            <div className="flex justify-between items-center mb-6">
+  <div>
+    <h2 className="text-2xl font-bold text-leather-800">Gestión de Usuarios</h2>
+    <p className="text-leather-600">Administrá los usuarios registrados del sistema</p>
+  </div>
+  <div className="flex gap-3">
+    <button
+      onClick={() => navigate('/admin')}
+      className="bg-gray-100 text-gray-700 py-2 px-4 rounded font-medium hover:bg-gray-200 transition-colors"
+    >
+      Volver al Dashboard
+    </button>
+  </div>
+</div>
+
 
             {error && <p className="text-red-500 mb-4">{error}</p>}
 
