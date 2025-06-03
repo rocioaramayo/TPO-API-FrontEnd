@@ -32,14 +32,14 @@ export default function GestionEntregas({user}) {
   }, [mostrarAlertaDesactivarPunto, mostrarAlertaActivarPunto, mostrarCrearPunto]);
 
   const [currentPagePuntos, setCurrentPagePuntos] = useState(1);
-  const itemsPerPagePuntos = 2;
+  const itemsPerPagePuntos = 4;
   const startIndexPuntos = (currentPagePuntos - 1) * itemsPerPagePuntos;
   const endIndexPuntos = startIndexPuntos + itemsPerPagePuntos;
   const currentPuntosEntrega = puntosEntrega?.slice(startIndexPuntos, endIndexPuntos);
   const totalPagesPuntos = Math.ceil(puntosEntrega.length / itemsPerPagePuntos);
  
   const [currentPageMetodos, setCurrentPageMetodos] = useState(1);
-  const itemsPerPageMetodos = 2;
+  const itemsPerPageMetodos = 4;
   const startIndexMetodos = (currentPageMetodos - 1) * itemsPerPageMetodos;
   const endIndexMetodos = startIndexMetodos + itemsPerPageMetodos;
   const currentMetodosEntrega = metodosEntrega?.slice(startIndexMetodos, endIndexMetodos);

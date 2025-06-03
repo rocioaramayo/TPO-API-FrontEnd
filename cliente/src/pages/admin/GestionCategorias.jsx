@@ -74,7 +74,7 @@ const GestionCategorias = ({ user }) => {
         }
         
         if (!response.ok) {
-          let errorMessage = 'Error al crear categoría';
+          let errorMessage = 'La categoría ya está registrada';
           
           if (text.includes('CategoriaDuplicadaException')) {
             errorMessage = 'La categoría ya está registrada';
