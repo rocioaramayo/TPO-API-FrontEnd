@@ -266,9 +266,9 @@ const FormNuevaDireccion = ({
 
 // Componente para puntos de retiro
 const PuntosRetiroSection = ({ puntosRetiro, puntoRetiroId, setPuntoRetiroId }) => {
-  
+  const puntoSeleccionado = puntosRetiro.find(p => String(p.id) === String(puntoRetiroId));
   return (
-    <div className="mt-4">
+    <div className="mt-4 space-y-2">
       <select
         value={puntoRetiroId}
         onChange={e => setPuntoRetiroId(e.target.value)}
@@ -281,6 +281,18 @@ const PuntosRetiroSection = ({ puntosRetiro, puntoRetiroId, setPuntoRetiroId }) 
           </option>
         ))}
       </select>
+      {puntoSeleccionado && (
+        <div className="border rounded p-3 bg-gray-50">
+          <div className="font-bold mb-1">{puntoSeleccionado.nombre}</div>
+          <div classNamuhe="text-sm"><span className="font-semibold">Dirección:</span> {puntoSeleccionado.direccion}</div>
+          <div className="text-sm"><span className="font-semibold">Localidad:</span> {puntoSeleccionado.localidad}</div>
+          <div className="text-sm"><span className="font-semibold">Provincia:</span> {puntoSeleccionado.provincia}</div>
+          <div className="text-sm"><span className="font-semibold">Código postal:</span> {puntoSeleccionado.codigoPostal}</div>
+          <div className="text-sm"><span className="font-semibold">Horario:</span> {puntoSeleccionado.horarioAtencion || puntoSeleccionado.horario}</div>
+          <div className="text-sm"><span className="font-semibold">Teléfono:</span> {puntoSeleccionado.telefono}</div>
+          <div className="text-sm"><span className="font-semibold">Email:</span> {puntoSeleccionado.email}</div>
+        </div>
+      )}
     </div>
   );
 };
