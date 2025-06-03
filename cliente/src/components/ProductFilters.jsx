@@ -4,11 +4,11 @@ const ProductFilters = ({
   onOrdenChange, 
   onLimpiarFiltros, 
   categorias, 
+  tiposCuero,
+  colores,
   filtrosActivos 
 }) => {
   
-  const tiposCuero = ['Nobuck', 'Plena flor', 'Flor corregida', 'Ante'];
-  const colores = ['Negro', 'Marrón', 'Cognac', 'Café', 'Natural'];
   const opcionesOrden = [
     { value: 'nombre_asc', label: 'Nombre A-Z' },
     { value: 'nombre_desc', label: 'Nombre Z-A' },

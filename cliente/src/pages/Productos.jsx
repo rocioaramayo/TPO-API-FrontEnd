@@ -9,6 +9,8 @@ const Productos = ({ user }) => {
   // Estados principales
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [tiposCuero, setTiposCuero] = useState([]);
+  const [colores, setColores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -50,12 +52,25 @@ const Productos = ({ user }) => {
     { value: 'stock_desc', label: 'Mayor stock', ordenarPor: 'stock', orden: 'desc' }
   ];
 
-  // Cargar categorías al inicio
+  // Cargar categorías, tipos de cuero y colores al inicio
   useEffect(() => {
+    // Cargar categorías
     fetch('http://localhost:8080/categories')
       .then(response => response.json())
       .then(data => setCategorias(data))
       .catch(error => console.error('Error al cargar categorías:', error));
+
+    // Cargar tipos de cuero
+    fetch('http://localhost:8080/productos/tipos-cuero')
+      .then(response => response.json())
+      .then(data => setTiposCuero(data))
+      .catch(error => console.error('Error al cargar tipos de cuero:', error));
+
+    // Cargar colores
+    fetch('http://localhost:8080/productos/colores')
+      .then(response => response.json())
+      .then(data => setColores(data))
+      .catch(error => console.error('Error al cargar colores:', error));
   }, []);
 
   // Cargar productos (con filtros)
@@ -179,6 +194,8 @@ const Productos = ({ user }) => {
               onOrdenChange={handleOrdenChange}
               onLimpiarFiltros={limpiarFiltros}
               categorias={categorias}
+              tiposCuero={tiposCuero}
+              colores={colores}
               filtrosActivos={filtrosActivos}
             />
           </div>
