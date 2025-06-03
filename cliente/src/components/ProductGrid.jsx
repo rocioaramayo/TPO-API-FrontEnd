@@ -3,6 +3,15 @@ import { useState, useEffect } from 'react';
 
 const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
   const [favoritos, setFavoritos] = useState([]);
+  
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8; 
+
+  // Resetear a página 1 cuando cambien los productos (por filtros)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [productos]);
 
   useEffect(() => {
     if (user && user.token) {
@@ -40,7 +49,7 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
       return;
     }
 
-  const esFavorito = favoritos.includes(productoId);
+    const esFavorito = favoritos.includes(productoId);
     const method = esFavorito ? 'DELETE' : 'POST';
     const url = esFavorito
       ? `http://localhost:8080/api/v1/favoritos/${productoId}`
@@ -86,6 +95,12 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
       });
   }
 
+  // Calcular productos para la página actual
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProductos = productos.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(productos.length / itemsPerPage);
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -123,16 +138,96 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {productos.map((producto) => (
-        <ProductCard 
-          key={producto.id}
-          {...producto}
-          user={user}
-          isFavorite={favoritos.includes(producto.id)}
-          onFavoriteClick={handleFavoriteClick}
-        />
-      ))}
+    <div>
+      {/* Información de productos */}
+      <div className="flex justify-between items-center mb-6">
+        <p className="text-leather-600">
+          Mostrando {startIndex + 1}-{Math.min(endIndex, productos.length)} de {productos.length} productos
+        </p>
+        {totalPages > 1 && (
+          <p className="text-leather-600 text-sm">
+            Página {currentPage} de {totalPages}
+          </p>
+        )}
+      </div>
+
+      {/* Grid de productos */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {currentProductos.map((producto) => (
+          <ProductCard 
+            key={producto.id}
+            {...producto}
+            user={user}
+            isFavorite={favoritos.includes(producto.id)}
+            onFavoriteClick={handleFavoriteClick}
+          />
+        ))}
+      </div>
+
+      {/* Controles de paginación */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center mt-8 gap-4">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="flex items-center gap-2 px-4 py-2 border border-leather-300 rounded-lg text-leather-700 hover:bg-leather-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Anterior
+          </button>
+
+          {/* Números de página */}
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(page => {
+                // Mostrar solo algunas páginas alrededor de la actual
+                const delta = 2;
+                return page === 1 || page === totalPages || 
+                       (page >= currentPage - delta && page <= currentPage + delta);
+              })
+              .map((page, index, array) => {
+                // Agregar "..." si hay saltos
+                const elements = [];
+                if (index > 0 && array[index - 1] < page - 1) {
+                  elements.push(
+                    <span key={`dots-${page}`} className="px-2 py-1 text-leather-500">
+                      ...
+                    </span>
+                  );
+                }
+                
+                elements.push(
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                      currentPage === page
+                        ? 'bg-leather-800 text-white'
+                        : 'text-leather-700 hover:bg-leather-100'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+                
+                return elements;
+              })}
+          </div>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="flex items-center gap-2 px-4 py-2 border border-leather-300 rounded-lg text-leather-700 hover:bg-leather-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Siguiente
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
