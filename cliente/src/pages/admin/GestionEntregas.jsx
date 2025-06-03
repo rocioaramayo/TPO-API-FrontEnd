@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import FormCrearMetodoEntrega from "./FormCrearMetodoEntrega";
+import FormCrearPuntoEntrega from "./FormCrearPuntoEntrega";
 
 export default function GestionEntregas({}) {
   const location = useLocation();
@@ -13,6 +15,8 @@ export default function GestionEntregas({}) {
   const [mostrarAlertaActivarPunto, setMostrarAlertaActivarPunto] = useState(false);
   const [metodoSeleccionado, setMetodoSeleccionado] = useState({});
   const [puntoSeleccionado, setPuntoSeleccionado] = useState({});
+  const [mostrarCrearMetodo, setMostrarCrearMetodo] = useState(false);
+  const [mostrarCrearPunto, setMostrarCrearPunto] = useState(false);
 
   useEffect(() => {
     fetch("http://localhost:8080/entregas/metodos")
@@ -113,10 +117,10 @@ export default function GestionEntregas({}) {
     <>
         <div className="flex items-center justify-between p-2">
             <h2 className="text-2xl font-bold text-leather-800">Puntos de entrega</h2>
-            <button onClick={() => navigate('/admin/entregas/crearPunto', { state: { user } })} className="bg-leather-600 text-white p-2 px-4 rounded hover:bg-leather-400 transition">
+            <button onClick={() => setMostrarCrearPunto(true)} className="bg-leather-600 text-white p-2 px-4 rounded hover:bg-leather-400 transition">
                     + Agregar nuevo punto de entrega
             </button>
-            <button onClick={() => navigate('/admin/entregas/crearMetodo', { state: { user } })} className="bg-leather-600 text-white p-2 px-4 rounded hover:bg-leather-400 transition">
+            <button onClick={() => setMostrarCrearMetodo(true)} className="bg-leather-600 text-white p-2 px-4 rounded hover:bg-leather-400 transition">
                     + Agregar nuevo metodo de entrega
             </button>
             <button className="py-2 text-leather-800 hover:underline" onClick={() => navigate('/admin')}>Volver al dashboard</button>
@@ -272,6 +276,12 @@ export default function GestionEntregas({}) {
                 </div>
                 </div>
             </div>
+        )}
+        {mostrarCrearMetodo && (
+           <FormCrearMetodoEntrega setMostrarCrearMetodo={setMostrarCrearMetodo}/>
+        )}
+        {mostrarCrearPunto && (
+           <FormCrearPuntoEntrega setMostrarCrearPunto={setMostrarCrearPunto}/>
         )}
         <div className="flex justify-center mt-4 gap-2">
             <button

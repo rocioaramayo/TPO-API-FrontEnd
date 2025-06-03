@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-const FormCrearPuntoEntrega = () => {
+const FormCrearPuntoEntrega = ({setMostrarCrearPunto}) => {
     const location = useLocation();
     const user = location.state?.user || {};
     const navigate = useNavigate();
@@ -98,7 +98,7 @@ const FormCrearPuntoEntrega = () => {
       });
     })
     .then(data => {
-      console.log('Producto creado con éxito:', data);
+      console.log('Punto de entrega creado con éxito:', data);
       setSuccess(true);
       setError(null);
       
@@ -131,7 +131,7 @@ const FormCrearPuntoEntrega = () => {
     });
   };
   return(
-    <div className="min-h-screen bg-cream-50 flex items-center justify-center px-6 py-8">
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
         <div className="w-full max-w-4xl">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
                 <div className='flex justify-between items-center mb-6'>
@@ -140,7 +140,7 @@ const FormCrearPuntoEntrega = () => {
                     </h1>
                     <button 
                         type="button"
-                        onClick={()=>navigate('/admin/entregas')}
+                        onClick={() => setMostrarCrearPunto(false)}
                         className="bg-gray-100 text-gray-700 py-2 px-4 rounded font-medium hover:bg-gray-200 transition-colors">
                         Volver
                     </button>
@@ -152,7 +152,7 @@ const FormCrearPuntoEntrega = () => {
                         <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        ¡Producto creado exitosamente! Redirigiendo...
+                        ¡Punto de entrega creado exitosamente! Redirigiendo...
                     </div>
                     </div>
                 )}
