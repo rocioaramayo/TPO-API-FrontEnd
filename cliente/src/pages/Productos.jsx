@@ -105,13 +105,11 @@ const Productos = ({ user }) => {
 
     const URL = `http://localhost:8080/productos/filtrar?${params}`;
     
-    console.log('🔍 Buscando con filtros:', filtros); // ✅ Debug
-    console.log('🌐 URL de búsqueda:', URL); // ✅ Debug
+
     
     fetch(URL)
       .then(response => response.json())
       .then(data => {
-        console.log('📦 Productos encontrados:', data.content?.length || 0); // ✅ Debug
         setProductos(data.content || []);
         setLoading(false);
       })
