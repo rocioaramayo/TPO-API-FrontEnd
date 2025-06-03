@@ -14,8 +14,9 @@ const DireccionesPanel = ({ token }) => {
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [submitIntentado, setSubmitIntentado] = useState(false);
+    const [mensaje, setMensaje] = useState(null);
 
-    // URL base consistente
     const API_BASE = "http://localhost:8080";
 
     const handleBorrar = (id) => {
@@ -25,7 +26,6 @@ const DireccionesPanel = ({ token }) => {
         })
         .then((res) => {
             if (!res.ok) throw new Error("No se pudo borrar la dirección");
-            // Recargar direcciones
             return fetch(`${API_BASE}/direcciones/mias`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -33,7 +33,7 @@ const DireccionesPanel = ({ token }) => {
         .then((res) => res.json())
         .then(setDirecciones)
         .catch((err) => {
-            alert("Error al borrar dirección: " + err.message);
+            setMensaje({ tipo: "error", texto: "Error al borrar dirección: " + err.message });
         });
     };
 
@@ -41,18 +41,13 @@ const DireccionesPanel = ({ token }) => {
         if (token) {
             setLoading(true);
             fetch(`${API_BASE}/direcciones/mias`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             })
                 .then((res) => {
-                    if (!res.ok) {
-                        throw new Error(`HTTP ${res.status}: Error al cargar direcciones`);
-                    }
+                    if (!res.ok) throw new Error(`HTTP ${res.status}: Error al cargar direcciones`);
                     return res.json();
                 })
                 .then((data) => {
-                    console.log("Direcciones cargadas:", data); // Debug
                     setDirecciones(data);
                     setError(null);
                 })
@@ -61,17 +56,21 @@ const DireccionesPanel = ({ token }) => {
                     setError(err.message);
                     setDirecciones([]);
                 })
-                .finally(() => {
-                    setLoading(false);
-                });
+                .finally(() => setLoading(false));
         }
     }, [token]);
 
     const handleGuardar = () => {
-        // Validación básica
-        if (!nuevaDireccion.calle || !nuevaDireccion.numero || !nuevaDireccion.localidad || 
-            !nuevaDireccion.provincia || !nuevaDireccion.codigoPostal) {
-            alert("Por favor, completa los campos obligatorios: calle, número, localidad, provincia y código postal.");
+        setSubmitIntentado(true);
+
+        const camposObligatorios = ["calle", "numero", "localidad", "provincia", "codigoPostal"];
+        const faltantes = camposObligatorios.filter(campo => !nuevaDireccion[campo]?.trim());
+
+        if (faltantes.length > 0) {
+            setMensaje({
+                tipo: "error",
+                texto: "Completá los campos obligatorios: " + faltantes.join(", "),
+            });
             return;
         }
 
@@ -84,13 +83,11 @@ const DireccionesPanel = ({ token }) => {
             body: JSON.stringify(nuevaDireccion),
         })
             .then((res) => {
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}: Error al guardar dirección`);
-                }
+                if (!res.ok) throw new Error(`HTTP ${res.status}: Error al guardar dirección`);
                 return res;
             })
             .then(() => {
-                alert("Dirección guardada correctamente");
+                setMensaje({ tipo: "success", texto: "Dirección guardada correctamente" });
                 setNuevaDireccion({
                     calle: "",
                     numero: "",
@@ -101,8 +98,8 @@ const DireccionesPanel = ({ token }) => {
                     codigoPostal: "",
                     telefonoContacto: "",
                 });
+                setSubmitIntentado(false);
 
-                // Recargar direcciones
                 return fetch(`${API_BASE}/direcciones/mias`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
@@ -114,7 +111,7 @@ const DireccionesPanel = ({ token }) => {
             .then(setDirecciones)
             .catch((err) => {
                 console.error("Error:", err);
-                alert(`Error: ${err.message}`);
+                setMensaje({ tipo: "error", texto: err.message });
             });
     };
 
@@ -132,6 +129,24 @@ const DireccionesPanel = ({ token }) => {
     return (
         <div className="bg-white p-8 rounded shadow">
             <h2 className="text-xl font-bold text-leather-700">Mis Direcciones</h2>
+
+            {mensaje && (
+                <div
+                    className={`mt-4 p-3 rounded border-l-4 shadow ${
+                        mensaje.tipo === "error"
+                            ? "bg-red-100 border-red-500 text-red-700"
+                            : "bg-green-100 border-green-500 text-green-700"
+                    } flex justify-between items-center`}
+                >
+                    <span>{mensaje.texto}</span>
+                    <button
+                        className="text-xs text-gray-600 hover:underline ml-4"
+                        onClick={() => setMensaje(null)}
+                    >
+                        Cerrar
+                    </button>
+                </div>
+            )}
 
             {error && (
                 <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -170,24 +185,17 @@ const DireccionesPanel = ({ token }) => {
             <div className="mt-6">
                 <h3 className="text-md font-semibold mb-2">Agregar nueva dirección</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input
-                        placeholder="Calle *"
-                        value={nuevaDireccion.calle}
-                        onChange={(e) =>
-                            setNuevaDireccion({ ...nuevaDireccion, calle: e.target.value })
-                        }
-                        className="border p-2 rounded"
-                        required
-                    />
-                    <input
-                        placeholder="Número *"
-                        value={nuevaDireccion.numero}
-                        onChange={(e) =>
-                            setNuevaDireccion({ ...nuevaDireccion, numero: e.target.value })
-                        }
-                        className="border p-2 rounded"
-                        required
-                    />
+                    {["calle", "numero", "localidad", "provincia", "codigoPostal"].map((campo) => (
+                        <input
+                            key={campo}
+                            placeholder={`${campo.charAt(0).toUpperCase() + campo.slice(1)} *`}
+                            value={nuevaDireccion[campo]}
+                            onChange={(e) =>
+                                setNuevaDireccion({ ...nuevaDireccion, [campo]: e.target.value })
+                            }
+                            className={`border p-2 rounded ${submitIntentado && !nuevaDireccion[campo] ? 'border-red-500' : ''}`}
+                        />
+                    ))}
                     <input
                         placeholder="Piso (opcional)"
                         value={nuevaDireccion.piso}
@@ -203,33 +211,6 @@ const DireccionesPanel = ({ token }) => {
                             setNuevaDireccion({ ...nuevaDireccion, departamento: e.target.value })
                         }
                         className="border p-2 rounded"
-                    />
-                    <input
-                        placeholder="Localidad *"
-                        value={nuevaDireccion.localidad}
-                        onChange={(e) =>
-                            setNuevaDireccion({ ...nuevaDireccion, localidad: e.target.value })
-                        }
-                        className="border p-2 rounded"
-                        required
-                    />
-                    <input
-                        placeholder="Provincia *"
-                        value={nuevaDireccion.provincia}
-                        onChange={(e) =>
-                            setNuevaDireccion({ ...nuevaDireccion, provincia: e.target.value })
-                        }
-                        className="border p-2 rounded"
-                        required
-                    />
-                    <input
-                        placeholder="Código Postal *"
-                        value={nuevaDireccion.codigoPostal}
-                        onChange={(e) =>
-                            setNuevaDireccion({ ...nuevaDireccion, codigoPostal: e.target.value })
-                        }
-                        className="border p-2 rounded"
-                        required
                     />
                     <input
                         placeholder="Teléfono (opcional)"
