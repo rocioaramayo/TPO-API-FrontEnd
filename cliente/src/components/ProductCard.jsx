@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import AuthMessage from './AuthMessage';
 import FavoriteNotification from './FavoriteNotification'; 
-// Deducir tipo mime a partir del nombre del archivo (si existe)
+
 function guessMimeType(foto) {
   if (foto?.nombre) {
     const ext = foto.nombre.split('.').pop().toLowerCase();
@@ -11,9 +11,7 @@ function guessMimeType(foto) {
     if (ext === "gif") return "image/gif";
     if (ext === "webp") return "image/webp";
   }
-  // Si empieza con "/9j/" probablemente es JPEG
   if (foto?.file && foto.file.startsWith("/9j/")) return "image/jpeg";
-  // Default
   return "image/jpeg";
 }
 
@@ -32,52 +30,31 @@ const ProductCard = ({
   isFavorite,
   onFavoriteClick
 }) => {
-  
   const navigate = useNavigate();
   const [showAuthMessage, setShowAuthMessage] = useState(false);
-  
-   const [showNotification, setShowNotification] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
   const [notificationData, setNotificationData] = useState({
     isAdded: false,
     productName: ''
   });
 
-  // formatear precio
-  function formatPrice(price) {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS'
-    }).format(price);
-  }
+  const [fotoIndex, setFotoIndex] = useState(0); // nuevo estado
 
-  // funcion para ir al detalle
-  function handleClick() {
-    navigate(`/productos/${id}`);
-  }
+  const formatPrice = (price) =>
+    new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(price);
 
-  function handleFavoriteClick(e) {
+  const handleClick = () => navigate(`/productos/${id}`);
+
+  const handleFavoriteClick = (e) => {
     e.stopPropagation();
-    
-    if (!user) {
-      setShowAuthMessage(true);
-      return;
-    }
-
-
+    if (!user) return setShowAuthMessage(true);
     const willBeAdded = !isFavorite;
-    setNotificationData({
-      isAdded: willBeAdded,
-      productName: nombre
-    });
+    setNotificationData({ isAdded: willBeAdded, productName: nombre });
     onFavoriteClick(id);
-    // Mostrar notificación con un pequeño retraso
-    setTimeout(() => {
-      setShowNotification(true);
-    }, 100);
-  }
+    setTimeout(() => setShowNotification(true), 100);
+  };
 
-  // Obtener la imagen principal del producto con tipo dinámico
-  const foto = fotos && fotos.length > 0 ? fotos[0] : null;
+  const foto = fotos && fotos.length > 0 ? fotos[fotoIndex % fotos.length] : null;
   const mimeType = guessMimeType(foto);
   const fotoPrincipal =
     foto && (foto.file || foto.contenidoBase64)
@@ -86,9 +63,9 @@ const ProductCard = ({
 
   return (
     <>
-      <div 
+      <div
         className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer"
-        onClick={handleClick} 
+        onClick={handleClick}
       >
         {/* Imagen del producto */}
         <div className="aspect-square bg-cream-100 relative">
@@ -97,10 +74,7 @@ const ProductCard = ({
               src={fotoPrincipal}
               alt={nombre}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                console.error("Error cargando imagen:", e);
-                console.log("URL intentada:", e.target.src);
-              }}
+              onError={(e) => console.error("Error cargando imagen:", e.target.src)}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -109,89 +83,84 @@ const ProductCard = ({
               </svg>
             </div>
           )}
-          
+
+          {/* Flechas de navegación */}
+          {fotos?.length > 1 && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFotoIndex((prev) => (prev === 0 ? fotos.length - 1 : prev - 1));
+                }}
+                className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-1 shadow"
+              >
+                ‹
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFotoIndex((prev) => (prev + 1) % fotos.length);
+                }}
+                className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-1 shadow"
+              >
+                ›
+              </button>
+            </>
+          )}
+
           {/* Ícono de favorito */}
           <button
             onClick={handleFavoriteClick}
-            className="absolute top-3 right-3 p-2 rounded-full transition-all duration-200 bg-white hover:bg-gray-50 shadow-sm hover:shadow-md"
+            className="absolute top-3 right-3 p-2 rounded-full bg-white hover:bg-gray-50 shadow-sm"
             title={!user ? 'Regístrate para agregar a favoritos' : isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
           >
-            <svg 
-              className={`w-5 h-5 transition-colors duration-200 ${
-                isFavorite 
-                  ? 'text-red-500 fill-current' 
-                  : user 
-                    ? 'text-gray-400 hover:text-red-400' 
-                    : 'text-gray-300'
-              }`} 
-              fill={isFavorite ? "currentColor" : "none"} 
-              stroke="currentColor" 
+            <svg
+              className={`w-5 h-5 ${isFavorite ? 'text-red-500 fill-current' : user ? 'text-gray-400 hover:text-red-400' : 'text-gray-300'}`}
+              fill={isFavorite ? "currentColor" : "none"}
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={isFavorite ? 0 : 2} 
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={isFavorite ? 0 : 2}
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
               />
             </svg>
           </button>
 
-          {/* Badge de stock bajo */}
           {pocoStock && (
             <div className="absolute top-3 left-3">
-              <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
-                Poco stock
-              </span>
+              <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">Poco stock</span>
             </div>
           )}
         </div>
 
-        {/* Información del producto */}
+        {/* Info producto */}
         <div className="p-4">
           <span className="inline-block bg-leather-100 text-leather-700 text-xs font-medium px-2 py-1 rounded mb-2">
             {categoria}
           </span>
-          
           <h3 className="font-serif text-lg font-semibold text-leather-900 mb-2 line-clamp-2">
             {nombre}
           </h3>
-          
-          <p className="text-leather-600 text-sm mb-3 line-clamp-2">
-            {descripcion}
-          </p>
-          
+          <p className="text-leather-600 text-sm mb-3 line-clamp-2">{descripcion}</p>
           {tipoCuero && (
             <div className="flex flex-wrap gap-1 mb-3">
-              <span className="text-xs bg-cream-100 text-leather-600 px-2 py-1 rounded">
-                {tipoCuero}
-              </span>
+              <span className="text-xs bg-cream-100 text-leather-600 px-2 py-1 rounded">{tipoCuero}</span>
               {color && (
-                <span className="text-xs bg-cream-100 text-leather-600 px-2 py-1 rounded">
-                  {color}
-                </span>
+                <span className="text-xs bg-cream-100 text-leather-600 px-2 py-1 rounded">{color}</span>
               )}
             </div>
           )}
-          
           <div className="flex items-center justify-between">
-            <span className="text-xl font-bold text-leather-800">
-              {formatPrice(precio)}
-            </span>
+            <span className="text-xl font-bold text-leather-800">{formatPrice(precio)}</span>
           </div>
-          
-          <div className="mt-2 text-xs text-leather-500">
-            Stock: {stock} unidades
-          </div>
+          <div className="mt-2 text-xs text-leather-500">Stock: {stock} unidades</div>
         </div>
       </div>
 
-      {/* mensaje de autenticación */}
-      <AuthMessage 
-        isOpen={showAuthMessage}
-        onClose={() => setShowAuthMessage(false)}
-      />
-
+      <AuthMessage isOpen={showAuthMessage} onClose={() => setShowAuthMessage(false)} />
       <FavoriteNotification
         isVisible={showNotification}
         isAdded={notificationData.isAdded}

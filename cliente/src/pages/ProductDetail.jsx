@@ -190,37 +190,58 @@ const ProductDetail = ({ user, onAddToCart }) => {
                     {/* Galería */}
                     <div>
                         {/* Imagen principal */}
-                        <div className="aspect-square bg-cream-100 rounded-lg mb-4 relative overflow-hidden">
-                            {producto.fotos && producto.fotos.length > 0 ? (
-                                <>
-                                    {(() => {
-                                        const foto = producto.fotos[selectedPhoto];
-                                        const mimeType = guessMimeType(foto);
-                                        return (
-                                            <img
-                                                src={`data:${mimeType};base64,${foto.file}`}
-                                                alt={producto.nombre}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        );
-                                    })()}
-                                    {/* Badge de stock bajo */}
-                                    {producto.pocoStock && (
-                                        <div className="absolute top-4 left-4">
-                                            <span className="bg-red-100 text-red-800 text-sm font-medium px-3 py-1 rounded">
-                                                ¡Poco stock!
-                                            </span>
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                    <svg className="w-24 h-24 text-leather-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                </div>
-                            )}
-                        </div>
+                        {/* Imagen principal */}
+<div className="aspect-square bg-cream-100 rounded-lg mb-4 relative overflow-hidden">
+  {producto.fotos && producto.fotos.length > 0 ? (
+    <>
+      {(() => {
+        const foto = producto.fotos[selectedPhoto];
+        const mimeType = guessMimeType(foto);
+        return (
+          <img
+            src={`data:${mimeType};base64,${foto.file}`}
+            alt={producto.nombre}
+            className="w-full h-full object-cover"
+          />
+        );
+      })()}
+
+      {/* Flechas para cambiar imagen */}
+      {producto.fotos.length > 1 && (
+        <>
+          <button
+            onClick={() => setSelectedPhoto((prev) => (prev === 0 ? producto.fotos.length - 1 : prev - 1))}
+            className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-1 shadow"
+          >
+            ‹
+          </button>
+          <button
+            onClick={() => setSelectedPhoto((prev) => (prev + 1) % producto.fotos.length)}
+            className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-1 shadow"
+          >
+            ›
+          </button>
+        </>
+      )}
+
+      {/* Badge de stock bajo */}
+      {producto.pocoStock && (
+        <div className="absolute top-4 left-4">
+          <span className="bg-red-100 text-red-800 text-sm font-medium px-3 py-1 rounded">
+            ¡Poco stock!
+          </span>
+        </div>
+      )}
+    </>
+  ) : (
+    <div className="w-full h-full flex items-center justify-center">
+      <svg className="w-24 h-24 text-leather-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    </div>
+  )}
+</div>
+
 
                         {/* Miniaturas */}
                         {producto.fotos && producto.fotos.length > 1 && (
