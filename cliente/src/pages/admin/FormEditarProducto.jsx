@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
 import { data, Link, useNavigate, useParams } from 'react-router-dom';
 
-const FormEditarProducto = ({ user, setUser, loading, setLoading, error, setError }) => {
+const FormEditarProducto = ({ user , setMostrarEditarProducto, id, setUser, loading, setLoading, error, setError }) => {
   const [categorias,setCategorias] = useState([])
   const navigate = useNavigate();
   const [producto,setProducto] = useState() ;
-  const id = useParams();
   const [formErrors, setFormErrors] = useState({});
   const [imagenes, setImagenes] = useState([]);
   useEffect(()=>{
-    fetch(`http://localhost:8080/productos/detalle/${id["*"]}`)
+    fetch(`http://localhost:8080/productos/detalle/${id}`)
     .then(response => response.json())
     .then(data => setProducto(data))
   },[]);
@@ -86,20 +85,20 @@ const FormEditarProducto = ({ user, setUser, loading, setLoading, error, setErro
 
     const data = await response.json();
     alert('Producto creado con éxito:', data);
-    navigate('/admin/productos')
+    setMostrarEditarProducto(false)
   } catch (err) {
     console.error('Error al crear producto:', err.message);
   }
   };
 return (
-    <div className="min-h-screen bg-cream-50 flex items-center justify-center px-6 py-8">
-      <div className="w-full max-w-l">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         {/* Card minimalista */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <div className='flex'>
             <button 
                 type="button"
-                onClick={()=>navigate('/admin/productos')}
+                onClick={()=> setMostrarEditarProducto(false)}
                 className="w-sm bg-gray-100 text-gray-700 py-2.5 px-4 rounded font-medium hover:bg-gray-200 transition-colors">
                 Volver
             </button>
@@ -341,16 +340,16 @@ return (
             {/**Instrucciones */}
             <div>
                 <label 
-                  htmlFor="instrucciones" 
+                  htmlFor="instruccionesCuidado" 
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Instrucciones
+                  Instrucciones de cuidado
                 </label>
                 <input
                     type="text"
-                    id="instrucciones"
-                    name="instrucciones"
-                    value={producto?.instrucciones}
+                    id="instruccionesCuidado"
+                    name="instruccionesCuidado"
+                    value={producto?.instruccionesCuidado}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                     placeholder="Mantener en lugar..."
@@ -424,7 +423,7 @@ return (
               {loading ? (
                 <div className="flex items-center justify-center">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Creando producto...
+                  Editando producto...
                 </div>
               ) : (
                 'Editar Producto'

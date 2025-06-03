@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TablaProductos from "./TablaProductos";
+import FormCrearProducto from "./FormCrearProducto";
 
 const GestionProductos = () => {
   const [productos, setProductos] = useState(null);
+  const [mostrarCrearProducto, setMostrarCrearProducto] = useState(false);
   const navigate = useNavigate();
-
-  const handleOnClickVolver = () => navigate('/admin');
-  const handleOnClickCrear = () => navigate('/admin/productos/crear');
 
   return (
     <div className="px-6 py-4 font-sans">
@@ -19,19 +18,22 @@ const GestionProductos = () => {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={handleOnClickVolver}
+            onClick={() => navigate('/admin')}
             className="bg-gray-100 text-gray-700 py-2 px-4 rounded font-medium hover:bg-gray-200 transition-colors"
           >
             Volver al Dashboard
           </button>
           <button
-            onClick={handleOnClickCrear}
+            onClick={() => setMostrarCrearProducto(true)}
             className="bg-leather-600 text-white py-2 px-4 rounded hover:bg-leather-700 transition-colors"
           >
             + Nuevo Producto
           </button>
         </div>
       </div>
+      {mostrarCrearProducto && (
+        <FormCrearProducto setMostrarCrearProducto={setMostrarCrearProducto}/>
+      )}
 
       <TablaProductos />
     </div>

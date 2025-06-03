@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import FormEditarProducto from "./FormEditarProducto";
 
 export default function TablaProductos({}) {
   const location = useLocation();
@@ -9,7 +10,9 @@ export default function TablaProductos({}) {
   const [mostrarAlertaDesactivar, setMostrarAlertaDesactivar] = useState(false);
   const [mostrarAlertaActivar, setMostrarAlertaActivar] = useState(false);
   const [mostrarAgregarStock, setMostrarAgregarStock] = useState(false);
+  const [mostrarEditarProducto, setMostrarEditarProducto] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [id, setId] = useState(null);
   const [stock, setStock] = useState(0);
   useEffect(() => {
       fetch("http://localhost:8080/productos/admin")
@@ -104,7 +107,10 @@ export default function TablaProductos({}) {
             {currentProductos.map((prod) => (
                 <tr key={prod.id} className="hover:bg-leather-50 transition ">
                 <td className="px-4 py-3">
-                    <button className="px-1" value={prod.id} onClick={handleEdit}>✏️</button>
+                    <button className="px-1" value={prod.id} onClick={()=>{
+                        setMostrarEditarProducto(true)
+                        setId(prod.id)
+                        }}>✏️</button>
                     <button className="px-1 text-red-600 hover:text-red-800" value={prod.id} onClick={()=>{
                         setProductoSeleccionado(prod); // o ID del producto
                         setMostrarAlertaDesactivar(true);
@@ -213,6 +219,9 @@ export default function TablaProductos({}) {
                 </div>
                 </div>
             </div>
+        )}
+        {mostrarEditarProducto && (
+            <FormEditarProducto id={id} setMostrarEditarProducto={setMostrarEditarProducto}/>
         )}
         <div className="flex justify-center mt-4 gap-2">
             <button

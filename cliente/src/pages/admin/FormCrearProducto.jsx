@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const FormCrearProducto = ({ user }) => {
+const FormCrearProducto = ({ user , setMostrarCrearProducto }) => {
   const [categorias, setCategorias] = useState([]) 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -147,7 +147,7 @@ const handleChangeImagenes = (e) => {
       
       // Opcional: redirigir después de unos segundos
       setTimeout(() => {
-        navigate('/admin/productos');
+        setMostrarCrearProducto(false)
       }, 2000);
     })
     .catch(error => {
@@ -166,8 +166,8 @@ const handleChangeImagenes = (e) => {
   };
 
   return (
-    <div className="min-h-screen bg-cream-50 flex items-center justify-center px-6 py-8">
-      <div className="w-full max-w-4xl">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <div className='flex justify-between items-center mb-6'>
             <h1 className="text-3xl font-serif font-semibold text-leather-800">
@@ -175,7 +175,7 @@ const handleChangeImagenes = (e) => {
             </h1>
             <button 
               type="button"
-              onClick={()=>navigate('/admin/productos')}
+              onClick={()=>setMostrarCrearProducto(false)}
               className="bg-gray-100 text-gray-700 py-2 px-4 rounded font-medium hover:bg-gray-200 transition-colors">
               Volver
             </button>
