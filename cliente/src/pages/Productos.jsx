@@ -14,19 +14,24 @@ const Productos = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  // Estados de filtros
-  const [filtros, setFiltros] = useState({
-    nombre: '',
-    categoriaId: '',
-    tipoCuero: '',
-    color: '',
-    precioMin: '',
-    precioMax: '',
-    ordenarPor: 'nombre',
-    orden: 'asc'
-  });
-
   const location = useLocation();
+
+ 
+  const [filtros, setFiltros] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    const busqueda = params.get('busqueda') || '';
+    
+    return {
+      nombre: busqueda, // Inicializar con el valor de búsqueda de la URL
+      categoriaId: '',
+      tipoCuero: '',
+      color: '',
+      precioMin: '',
+      precioMax: '',
+      ordenarPor: 'nombre',
+      orden: 'asc'
+    };
+  });
 
   // En Productos.jsx, después de recibir user como prop
   useEffect(() => {
@@ -34,13 +39,21 @@ const Productos = ({ user }) => {
     console.log('¿Tiene token?', user?.token ? 'SÍ' : 'NO');
   }, [user]);
 
+  // Actualizar filtros cuando cambia la URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const busqueda = params.get('busqueda') || '';
-    setFiltros(prev => ({
-      ...prev,
-      nombre: busqueda
-    }));
+    
+    // Solo actualizar si realmente cambió para evitar loops infinitos
+    setFiltros(prev => {
+      if (prev.nombre !== busqueda) {
+        return {
+          ...prev,
+          nombre: busqueda
+        };
+      }
+      return prev;
+    });
   }, [location.search]);
 
   // Opciones para ordenamiento
@@ -92,9 +105,13 @@ const Productos = ({ user }) => {
 
     const URL = `http://localhost:8080/productos/filtrar?${params}`;
     
+    console.log('🔍 Buscando con filtros:', filtros); // ✅ Debug
+    console.log('🌐 URL de búsqueda:', URL); // ✅ Debug
+    
     fetch(URL)
       .then(response => response.json())
       .then(data => {
+        console.log('📦 Productos encontrados:', data.content?.length || 0); // ✅ Debug
         setProductos(data.content || []);
         setLoading(false);
       })
@@ -153,6 +170,12 @@ const Productos = ({ user }) => {
           <div className="flex items-center justify-between">
             <p className="text-leather-600">
               Encuentra el producto perfecto para ti
+              {/* ✅ Mostrar búsqueda activa */}
+              {filtros.nombre && (
+                <span className="ml-2 text-leather-800 font-medium">
+                  - Buscando: "{filtros.nombre}"
+                </span>
+              )}
             </p>
             
             {/* Contador de productos */}
