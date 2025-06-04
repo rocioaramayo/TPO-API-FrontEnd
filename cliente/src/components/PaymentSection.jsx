@@ -4,7 +4,21 @@ import { MdOutlineCreditCard } from "react-icons/md";
 import { BsCash } from "react-icons/bs";
 import { SiMercadopago } from "react-icons/si";
 
-const PaymentSection = ({ metodoPago, setMetodoPago, metodoSeleccionado }) => {
+const PaymentSection = ({
+  metodoPago,
+  setMetodoPago,
+  metodoSeleccionado,
+  numeroTarjeta,
+  setNumeroTarjeta,
+  nombreTitular,
+  setNombreTitular,
+  vencimiento,
+  setVencimiento,
+  ccv,
+  setCcv,
+  cuotas,
+  setCuotas
+}) => {
   
   return (
     <div className="pt-0">
@@ -76,7 +90,19 @@ const PaymentSection = ({ metodoPago, setMetodoPago, metodoSeleccionado }) => {
       
       {/* Inputs para tarjeta */}
       {(metodoPago === "TARJETA_CREDITO" || metodoPago === "TARJETA_DEBITO") && (
-        <TarjetaInputs metodoPago={metodoPago} />
+        <TarjetaInputs
+          metodoPago={metodoPago}
+          numeroTarjeta={numeroTarjeta}
+          setNumeroTarjeta={setNumeroTarjeta}
+          nombreTitular={nombreTitular}
+          setNombreTitular={setNombreTitular}
+          vencimiento={vencimiento}
+          setVencimiento={setVencimiento}
+          ccv={ccv}
+          setCcv={setCcv}
+          cuotas={cuotas}
+          setCuotas={setCuotas}
+        />
       )}
       
       {/* Instrucciones de pago según método */}
@@ -135,19 +161,26 @@ const PaymentSection = ({ metodoPago, setMetodoPago, metodoSeleccionado }) => {
 };
 
 // Componente para inputs de tarjeta
-const TarjetaInputs = ({ metodoPago }) => {
-  const [numero, setNumero] = React.useState("");
-  const [nombre, setNombre] = React.useState("");
-  const [vencimiento, setVencimiento] = React.useState("");
-  const [ccv, setCcv] = React.useState("");
-  const [cuotas, setCuotas] = React.useState("");
+const TarjetaInputs = ({
+  metodoPago,
+  numeroTarjeta,
+  setNumeroTarjeta,
+  nombreTitular,
+  setNombreTitular,
+  vencimiento,
+  setVencimiento,
+  ccv,
+  setCcv,
+  cuotas,
+  setCuotas
+}) => {
   const [erroresCampos, setErroresCampos] = React.useState({});
 
   // Número: solo dígitos, máximo 16
   function handleNumeroChange(e) {
     const val = e.target.value.replace(/\D/g, "");
     const formatted = val.slice(0, 16);
-    setNumero(formatted);
+    setNumeroTarjeta(formatted);
     
     if (formatted.length > 0 && formatted.length < 15) {
       setErroresCampos(prev => ({...prev, numero: "El número debe tener al menos 15 dígitos"}));
@@ -162,7 +195,7 @@ const TarjetaInputs = ({ metodoPago }) => {
   // Nombre: solo letras y espacios, mínimo 3 caracteres
   function handleNombreChange(e) {
     const val = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, "");
-    setNombre(val);
+    setNombreTitular(val);
     
     if (val.length > 0 && val.length < 3) {
       setErroresCampos(prev => ({...prev, nombre: "El nombre debe tener al menos 3 caracteres"}));
@@ -216,7 +249,7 @@ const TarjetaInputs = ({ metodoPago }) => {
     if (metodoPago !== "TARJETA_CREDITO") {
       setCuotas("");
     }
-  }, [metodoPago]);
+  }, [metodoPago, setCuotas]);
 
   return (
     <div className="mb-4 space-y-3">
@@ -225,11 +258,10 @@ const TarjetaInputs = ({ metodoPago }) => {
           type="text"
           placeholder="Número de tarjeta *"
           className={`border rounded px-3 py-2 w-full ${erroresCampos.numero ? 'border-red-500' : 'border-gray-300'}`}
-          value={numero}
+          value={numeroTarjeta}
           maxLength={16}
           inputMode="numeric"
           onChange={handleNumeroChange}
-          data-tarjeta="numero"
           required
         />
         {erroresCampos.numero && (
@@ -242,9 +274,8 @@ const TarjetaInputs = ({ metodoPago }) => {
           type="text"
           placeholder="Nombre del titular *"
           className={`border rounded px-3 py-2 w-full ${erroresCampos.nombre ? 'border-red-500' : 'border-gray-300'}`}
-          value={nombre}
+          value={nombreTitular}
           onChange={handleNombreChange}
-          data-tarjeta="nombre"
           required
         />
         {erroresCampos.nombre && (
@@ -262,7 +293,6 @@ const TarjetaInputs = ({ metodoPago }) => {
             maxLength={5}
             inputMode="numeric"
             onChange={handleVencimientoChange}
-            data-tarjeta="vencimiento"
             required
           />
           {erroresCampos.vencimiento && (
@@ -278,7 +308,6 @@ const TarjetaInputs = ({ metodoPago }) => {
             maxLength={4}
             inputMode="numeric"
             onChange={handleCcvChange}
-            data-tarjeta="ccv"
             required
           />
           {erroresCampos.ccv && (

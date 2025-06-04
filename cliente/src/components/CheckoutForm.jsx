@@ -25,6 +25,11 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
   const [metodosEntrega, setMetodosEntrega] = React.useState([]);
   const [metodoEntrega, setMetodoEntrega] = React.useState("");
   const [metodoPago, setMetodoPago] = React.useState("");
+  const [numeroTarjeta, setNumeroTarjeta] = React.useState("");
+  const [nombreTitular, setNombreTitular] = React.useState("");
+  const [vencimiento, setVencimiento] = React.useState("");
+  const [ccv, setCcv] = React.useState("");
+  const [cuotas, setCuotas] = React.useState("");
   
   // Estados para direcciones
   const [direcciones, setDirecciones] = React.useState([]);
@@ -291,33 +296,24 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
 
     // Validaciones específicas de tarjetas
     if (metodoPago === "TARJETA_CREDITO" || metodoPago === "TARJETA_DEBITO") {
-      const numeroTarjeta = document.querySelector('input[data-tarjeta="numero"]')?.value || "";
-      const nombreTitular = document.querySelector('input[data-tarjeta="nombre"]')?.value || "";
-      const vencimiento = document.querySelector('input[data-tarjeta="vencimiento"]')?.value || "";
-      const ccv = document.querySelector('input[data-tarjeta="ccv"]')?.value || "";
-      
       if (!numeroTarjeta.trim() || numeroTarjeta.length < 15) {
         setErrorCheckout("Por favor, ingresa un número de tarjeta válido (mínimo 15 dígitos).");
         return;
       }
-      
       if (!nombreTitular.trim() || nombreTitular.length < 3) {
         setErrorCheckout("Por favor, ingresa el nombre del titular de la tarjeta.");
         return;
       }
-      
       if (!vencimiento.trim() || vencimiento.length < 5) {
         setErrorCheckout("Por favor, ingresa la fecha de vencimiento (MM/AA).");
         return;
       }
-      
       if (!ccv.trim() || ccv.length < 3) {
         setErrorCheckout("Por favor, ingresa el código de seguridad de la tarjeta.");
         return;
       }
-
       if (metodoPago === "TARJETA_CREDITO") {
-        const cuotasSeleccionadas = document.querySelector('select[name="cuotas"]')?.value || "";
+        const cuotasSeleccionadas = cuotas;
         if (!cuotasSeleccionadas) {
           setErrorCheckout("Por favor, selecciona la cantidad de cuotas para el pago con tarjeta de crédito.");
           return;
@@ -357,9 +353,8 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
 
     let cuotasValue = 1;
     if (metodoPagoEnum === "TARJETA_CREDITO") {
-      const cuotasInput = document.querySelector('select[name="cuotas"]');
-      if (cuotasInput && cuotasInput.value && !isNaN(Number(cuotasInput.value))) {
-        cuotasValue = Number(cuotasInput.value);
+      if (cuotas && !isNaN(Number(cuotas))) {
+        cuotasValue = Number(cuotas);
       }
     }
 
@@ -485,6 +480,16 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
               metodoPago={metodoPago}
               setMetodoPago={setMetodoPago}
               metodoSeleccionado={metodoSeleccionado}
+              numeroTarjeta={numeroTarjeta}
+              setNumeroTarjeta={setNumeroTarjeta}
+              nombreTitular={nombreTitular}
+              setNombreTitular={setNombreTitular}
+              vencimiento={vencimiento}
+              setVencimiento={setVencimiento}
+              ccv={ccv}
+              setCcv={setCcv}
+              cuotas={cuotas}
+              setCuotas={setCuotas}
             />
 
             {/* Errores */}
