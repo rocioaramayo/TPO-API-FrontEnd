@@ -2,10 +2,9 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-
 const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showDescuentosPanel, setShowDescuentosPanel] = useState(false);
+  // Eliminamos showDescuentosPanel ya que no se usa realmente
   const [mostrarPanel, setMostrarPanel] = useState(false);
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -16,16 +15,17 @@ const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
 
   const totalCartItems = cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
 
-  useEffect(() => {
-    if (!showDescuentosPanel) return;
-    function handleClickOutside(event) {
-      if (!event.target.closest('.descuentos-panel')) {
-        setShowDescuentosPanel(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showDescuentosPanel]);
+  // ESTE ES EL useEffect QUE CAUSABA PROBLEMAS - LO ELIMINAMOS
+  // useEffect(() => {
+  //   if (!showDescuentosPanel) return;
+  //   function handleClickOutside(event) {
+  //     if (!event.target.closest('.descuentos-panel')) {
+  //       setShowDescuentosPanel(false);
+  //     }
+  //   }
+  //   document.addEventListener('mousedown', handleClickOutside);
+  //   return () => document.removeEventListener('mousedown', handleClickOutside);
+  // }, [showDescuentosPanel]);
 
 useEffect(() => {
   if (!user) {
@@ -52,7 +52,6 @@ useEffect(() => {
     .catch(() => setTieneFavoritos(false));
   // Solo depende de user, no hay más eventos globales
 }, [user]);
-
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -132,7 +131,7 @@ useEffect(() => {
                 <button type="submit" className="bg-leather-800 text-white px-2 py-1 rounded-r hover:bg-leather-900 flex items-center">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeLinecap="round" />
                   </svg>
                 </button>
               </form>
@@ -184,7 +183,6 @@ useEffect(() => {
                       stroke="currentColor" 
                       viewBox="0 0 24 24"
                     >
-
                       <path 
                         strokeLinecap="round" 
                         strokeLinejoin="round" 
@@ -193,7 +191,6 @@ useEffect(() => {
                       />
                     </svg>
                   </Link>
-
                   </>
                 )}
                 {/* Usuario autenticado */}
@@ -208,12 +205,7 @@ useEffect(() => {
           {user?.email?.charAt(0).toUpperCase() || "?"}
         </span>
                   </button>
-
-
                 </div>
-
-
-
 
                 <button
                     onClick={onLogout}
@@ -221,7 +213,6 @@ useEffect(() => {
                   >
                     Salir
                   </button>
-
               </>
             ) : (
               /* Usuario no autenticado */
@@ -318,15 +309,17 @@ useEffect(() => {
             </div>
           </div>
         )}
+        
+        {/* ELIMINAMOS ESTA PARTE TAMBIÉN ya que no se usa
         {showDescuentosPanel && (
           <div className="descuentos-panel">
             <DescuentosAdminPanel />
           </div>
         )}
+        */}
       </div>
     </nav>
   );
 };
-
 
 export default Navigation;
