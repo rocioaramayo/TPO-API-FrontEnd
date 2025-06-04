@@ -11,16 +11,6 @@ const AdminNavigation = ({ user, onLogout }) => {
   const panelRef = useRef();
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   if (!showDescuentosPanel) return;
-  //   function handleClickOutside(event) {
-  //     if (panelRef.current && !panelRef.current.contains(event.target)) {
-  //       setShowDescuentosPanel(false);
-  //     }
-  //   }
-  //   document.addEventListener('mousedown', handleClickOutside);
-  //   return () => document.removeEventListener('mousedown', handleClickOutside);
-  // }, [showDescuentosPanel]);
 
   return (
     <nav className="bg-white shadow-sm border-b border-leather-200 sticky top-0 z-50">

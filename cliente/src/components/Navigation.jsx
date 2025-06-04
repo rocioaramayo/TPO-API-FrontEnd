@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 
 const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // Eliminamos showDescuentosPanel ya que no se usa realmente
   const [mostrarPanel, setMostrarPanel] = useState(false);
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -15,17 +14,6 @@ const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
 
   const totalCartItems = cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
 
-  // ESTE ES EL useEffect QUE CAUSABA PROBLEMAS - LO ELIMINAMOS
-  // useEffect(() => {
-  //   if (!showDescuentosPanel) return;
-  //   function handleClickOutside(event) {
-  //     if (!event.target.closest('.descuentos-panel')) {
-  //       setShowDescuentosPanel(false);
-  //     }
-  //   }
-  //   document.addEventListener('mousedown', handleClickOutside);
-  //   return () => document.removeEventListener('mousedown', handleClickOutside);
-  // }, [showDescuentosPanel]);
 
 useEffect(() => {
   if (!user) {
