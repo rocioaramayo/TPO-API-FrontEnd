@@ -18,33 +18,29 @@ const carruselImages = [
 
 const CarruselHero = ({ user }) => {
   const [current, setCurrent] = useState(0);
+  const [isPaused, setIsPaused] = useState(false); // ✅ Estado React simple
   const navigate = useNavigate();
 
-  // Autoplay, pausa al hover
+  // Autoplay con React state - sin manipulación DOM
   useEffect(() => {
-    let paused = false;
-    const node = document.getElementById("hero-carrusel");
-    const handleEnter = () => (paused = true);
-    const handleLeave = () => (paused = false);
-
-    node?.addEventListener("mouseenter", handleEnter);
-    node?.addEventListener("mouseleave", handleLeave);
-
     const interval = setInterval(() => {
-      if (!paused) setCurrent((prev) => (prev + 1) % carruselImages.length);
+      if (!isPaused) {
+        setCurrent((prev) => (prev + 1) % carruselImages.length);
+      }
     }, 4500);
 
-    return () => {
-      clearInterval(interval);
-      node?.removeEventListener("mouseenter", handleEnter);
-      node?.removeEventListener("mouseleave", handleLeave);
-    };
-  }, []);
+    return () => clearInterval(interval);
+  }, [isPaused]); // ✅ Depende del estado React
+
+  // Handlers simples para pausar/reanudar
+  const handleMouseEnter = () => setIsPaused(true);
+  const handleMouseLeave = () => setIsPaused(false);
 
   return (
     <div
-      id="hero-carrusel"
       className="relative w-full h-[680px] md:h-[900px] rounded-b-3xl overflow-hidden shadow-lg mb-10 select-none group"
+      onMouseEnter={handleMouseEnter} //  Evento React nativo
+      onMouseLeave={handleMouseLeave} // Evento React nativo
     >
       {/* Imágenes + transición suave */}
       {carruselImages.map((img, idx) => (
