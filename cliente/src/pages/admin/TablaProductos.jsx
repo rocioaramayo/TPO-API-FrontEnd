@@ -215,7 +215,11 @@ export default function TablaProductos({user, mostrarCrearProducto}) {
                 
                 <div className="flex justify-between">
                     <button
-                    onClick={() => setMostrarAgregarStock(false)}
+                    onClick={() => {
+                        setMostrarAgregarStock(false)
+                        setErrorStock(false)
+                    }
+                    }
                     className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
                     >
                     Cancelar
