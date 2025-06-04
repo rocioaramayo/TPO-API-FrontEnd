@@ -171,20 +171,23 @@ const ProfilePage = ({ user }) => {
   };
 
   // Función helper para mostrar información de dirección/entrega de forma resumida
-  const mostrarInfoEntrega = (compra) => {
-    if (compra.direccionEntrega) {
-      // Nueva estructura: direccionEntrega es un objeto
-      if (typeof compra.direccionEntrega === 'object') {
-        return `${compra.direccionEntrega.calle} ${compra.direccionEntrega.numero}, ${compra.direccionEntrega.localidad}`;
-      }
-      // Estructura antigua: direccionEntrega es string
-      return compra.direccionEntrega;
+const mostrarInfoEntrega = (compra) => {
+  if (compra.direccionEntrega) {
+    if (typeof compra.direccionEntrega === 'object') {
+      return `${compra.direccionEntrega.calle} ${compra.direccionEntrega.numero}, ${compra.direccionEntrega.localidad}`;
     }
-    if (compra.puntoRetiro) {
-      return `Retiro en: ${compra.puntoRetiro}`;
+    return compra.direccionEntrega;
+  }
+  if (compra.puntoRetiro) {
+    if (typeof compra.puntoRetiro === 'object') {
+      // Mostrar los datos principales del punto de retiro
+      return `${compra.puntoRetiro.nombre} - ${compra.puntoRetiro.direccion}, ${compra.puntoRetiro.localidad}`;
     }
-    return compra.metodoEntrega || "Sin información de entrega";
-  };
+    return compra.puntoRetiro;
+  }
+  return compra.metodoEntrega || "Sin información de entrega";
+};
+
 
   // Función helper para formatear método de pago
   const formatearMetodoPago = (metodo) => {

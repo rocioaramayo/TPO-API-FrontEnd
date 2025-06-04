@@ -406,10 +406,10 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
         }
         return res.json();
       })
-      .then(() => {
-        alert("¡Compra realizada con éxito!");
+      .then((data) => {
+        // 🔥 CAMBIO PRINCIPAL: Redirigir a página de confirmación
         setCartItems([]);
-        navigate("/");
+        navigate(`/confirmacion-pedido/${data.id}`);
       })
       .catch(err => {
         setErrorCheckout(err.message || "Hubo un error al procesar la compra. Intenta nuevamente.");

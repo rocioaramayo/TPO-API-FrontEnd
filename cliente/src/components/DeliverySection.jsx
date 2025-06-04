@@ -186,7 +186,9 @@ const FormNuevaDireccion = ({
           type="text"
           placeholder="Número *"
           value={nuevaDireccion.numero}
-          onChange={e => setNuevaDireccion({...nuevaDireccion, numero: e.target.value})}
+          inputMode="numeric"
+          pattern="[0-9]*"
+          onChange={e => setNuevaDireccion({ ...nuevaDireccion, numero: e.target.value.replace(/\D/g, "") })}
           className="border rounded px-3 py-2 w-24"
           required
         />
@@ -196,7 +198,9 @@ const FormNuevaDireccion = ({
           type="text"
           placeholder="Piso (opcional)"
           value={nuevaDireccion.piso}
-          onChange={e => setNuevaDireccion({...nuevaDireccion, piso: e.target.value})}
+          inputMode="numeric"
+          pattern="[0-9]*"
+          onChange={e => setNuevaDireccion({ ...nuevaDireccion, piso: e.target.value.replace(/\D/g, "") })}
           className="border rounded px-3 py-2 flex-1"
         />
         <input
@@ -230,7 +234,9 @@ const FormNuevaDireccion = ({
           type="text"
           placeholder="Código Postal *"
           value={nuevaDireccion.codigoPostal}
-          onChange={e => setNuevaDireccion({...nuevaDireccion, codigoPostal: e.target.value})}
+          inputMode="numeric"
+          pattern="[0-9]*"
+          onChange={e => setNuevaDireccion({ ...nuevaDireccion, codigoPostal: e.target.value.replace(/\D/g, "") })}
           className="border rounded px-3 py-2 flex-1"
           required
         />
@@ -238,7 +244,9 @@ const FormNuevaDireccion = ({
           type="text"
           placeholder="Teléfono"
           value={nuevaDireccion.telefonoContacto}
-          onChange={e => setNuevaDireccion({...nuevaDireccion, telefonoContacto: e.target.value})}
+          inputMode="numeric"
+          pattern="[0-9]*"
+          onChange={e => setNuevaDireccion({ ...nuevaDireccion, telefonoContacto: e.target.value.replace(/\D/g, "") })}
           className="border rounded px-3 py-2 flex-1"
         />
       </div>

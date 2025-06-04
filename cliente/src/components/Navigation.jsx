@@ -11,6 +11,8 @@ const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
   const [search, setSearch] = useState("");
   const [mostrarPerfil, setMostrarPerfil] = useState(false);
   const togglePerfil = () => setMostrarPerfil(v => !v);
+  const [tieneFavoritos, setTieneFavoritos] = useState(false);
+  const [corazonAnimado, setCorazonAnimado] = useState(false);
 
   const totalCartItems = cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
 
@@ -24,6 +26,38 @@ const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showDescuentosPanel]);
+
+ useEffect(() => {
+  const actualizar = () => {
+    if (!user) {
+      setTieneFavoritos(false);
+      return;
+    }
+    fetch('http://localhost:8080/api/v1/favoritos', {
+      headers: {
+        'Authorization': `Bearer ${user.token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(res => res.json())
+     .then(data => {
+  const hayFavoritos = Array.isArray(data) && data.length > 0;
+  if (hayFavoritos !== tieneFavoritos) {
+    setCorazonAnimado(false);
+    setTimeout(() => setCorazonAnimado(true), 10); // Fuerza restart
+  }
+  setTieneFavoritos(hayFavoritos);
+  setTimeout(() => setCorazonAnimado(false), 400);
+})
+      .catch(() => setTieneFavoritos(false));
+  };
+
+  actualizar();
+
+  window.addEventListener("favoritosActualizados", actualizar);
+
+  return () => window.removeEventListener("favoritosActualizados", actualizar);
+}, [user]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -143,14 +177,28 @@ const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
                       </span>
                     </button>
                     {/* Favoritos */}
-                    <Link 
-                      to="/favoritos"
-                      className="p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200 rounded-lg"
+                   <Link 
+                    to="/favoritos"
+                    className="p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200 rounded-lg"
+                  >
+                   <svg 
+                      className={`w-6 h-6 transition-colors duration-200 ${
+                        tieneFavoritos ? 'text-red-500' : ''
+                      } ${corazonAnimado ? 'animate-corazon-late' : ''}`} 
+                      fill={tieneFavoritos ? "currentColor" : "none"} 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
                     >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    </Link>
+
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={tieneFavoritos ? 0 : 2} 
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                      />
+                    </svg>
+                  </Link>
+
                   </>
                 )}
                 {/* Usuario autenticado */}

@@ -185,29 +185,69 @@ const DireccionesPanel = ({ token }) => {
             <div className="mt-6">
                 <h3 className="text-md font-semibold mb-2">Agregar nueva dirección</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {["calle", "numero", "localidad", "provincia", "codigoPostal"].map((campo) => (
-                        <input
-                            key={campo}
-                            placeholder={`${campo.charAt(0).toUpperCase() + campo.slice(1)} *`}
-                            value={nuevaDireccion[campo]}
-                            onChange={(e) =>
-                                setNuevaDireccion({ ...nuevaDireccion, [campo]: e.target.value })
-                            }
-                            className={`border p-2 rounded ${submitIntentado && !nuevaDireccion[campo] ? 'border-red-500' : ''}`}
-                        />
-                    ))}
+                    <input
+                        key="calle"
+                        placeholder="Calle *"
+                        value={nuevaDireccion.calle}
+                        onChange={e =>
+                            setNuevaDireccion({ ...nuevaDireccion, calle: e.target.value })
+                        }
+                        className={`border p-2 rounded ${submitIntentado && !nuevaDireccion.calle ? 'border-red-500' : ''}`}
+                    />
+                    <input
+                        key="numero"
+                        placeholder="Número *"
+                        value={nuevaDireccion.numero}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        onChange={e =>
+                            setNuevaDireccion({ ...nuevaDireccion, numero: e.target.value.replace(/\D/g, "") })
+                        }
+                        className={`border p-2 rounded ${submitIntentado && !nuevaDireccion.numero ? 'border-red-500' : ''}`}
+                    />
+                    <input
+                        key="localidad"
+                        placeholder="Localidad *"
+                        value={nuevaDireccion.localidad}
+                        onChange={e =>
+                            setNuevaDireccion({ ...nuevaDireccion, localidad: e.target.value })
+                        }
+                        className={`border p-2 rounded ${submitIntentado && !nuevaDireccion.localidad ? 'border-red-500' : ''}`}
+                    />
+                    <input
+                        key="provincia"
+                        placeholder="Provincia *"
+                        value={nuevaDireccion.provincia}
+                        onChange={e =>
+                            setNuevaDireccion({ ...nuevaDireccion, provincia: e.target.value })
+                        }
+                        className={`border p-2 rounded ${submitIntentado && !nuevaDireccion.provincia ? 'border-red-500' : ''}`}
+                    />
+                    <input
+                        key="codigoPostal"
+                        placeholder="Código Postal *"
+                        value={nuevaDireccion.codigoPostal}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        onChange={e =>
+                            setNuevaDireccion({ ...nuevaDireccion, codigoPostal: e.target.value.replace(/\D/g, "") })
+                        }
+                        className={`border p-2 rounded ${submitIntentado && !nuevaDireccion.codigoPostal ? 'border-red-500' : ''}`}
+                    />
                     <input
                         placeholder="Piso (opcional)"
                         value={nuevaDireccion.piso}
-                        onChange={(e) =>
-                            setNuevaDireccion({ ...nuevaDireccion, piso: e.target.value })
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        onChange={e =>
+                            setNuevaDireccion({ ...nuevaDireccion, piso: e.target.value.replace(/\D/g, "") })
                         }
                         className="border p-2 rounded"
                     />
                     <input
                         placeholder="Departamento (opcional)"
                         value={nuevaDireccion.departamento}
-                        onChange={(e) =>
+                        onChange={e =>
                             setNuevaDireccion({ ...nuevaDireccion, departamento: e.target.value })
                         }
                         className="border p-2 rounded"
@@ -215,8 +255,10 @@ const DireccionesPanel = ({ token }) => {
                     <input
                         placeholder="Teléfono (opcional)"
                         value={nuevaDireccion.telefonoContacto}
-                        onChange={(e) =>
-                            setNuevaDireccion({ ...nuevaDireccion, telefonoContacto: e.target.value })
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        onChange={e =>
+                            setNuevaDireccion({ ...nuevaDireccion, telefonoContacto: e.target.value.replace(/\D/g, "") })
                         }
                         className="border p-2 rounded"
                     />
