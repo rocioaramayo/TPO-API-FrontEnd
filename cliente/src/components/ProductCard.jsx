@@ -52,6 +52,9 @@ const ProductCard = ({
     setNotificationData({ isAdded: willBeAdded, productName: nombre });
     onFavoriteClick(id);
     setTimeout(() => setShowNotification(true), 100);
+    setTimeout(() => {
+      window.dispatchEvent(new Event("favoritosActualizados"));
+    }, 200);
   };
 
   const foto = fotos && fotos.length > 0 ? fotos[fotoIndex % fotos.length] : null;
