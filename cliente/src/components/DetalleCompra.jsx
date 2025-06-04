@@ -1,3 +1,12 @@
+function guessMimeType(foto) {
+  if (!foto || !foto.file) return "image/jpeg";
+  const base64 = foto.file;
+  if (base64.startsWith("/9j/")) return "image/jpeg";
+  if (base64.startsWith("iVBOR")) return "image/png";
+  if (base64.startsWith("R0lGOD")) return "image/gif";
+  if (base64.startsWith("UklGR")) return "image/webp";
+  return "image/jpeg";
+}
 
 
 const DetalleCompra = ({ compra, onClose }) => {
@@ -62,12 +71,22 @@ const DetalleCompra = ({ compra, onClose }) => {
 
                 {/* Información de punto de retiro */}
                 {compra.puntoRetiro && (
-                    <div className="bg-gray-50 p-3 rounded border">
-                        <p className="font-semibold text-leather-700 mb-1">Punto de retiro:</p>
-                        <p>{compra.puntoRetiro}</p>
-                    </div>
+                <div className="bg-gray-50 p-3 rounded border">
+                    <p className="font-semibold text-leather-700 mb-1">Punto de retiro:</p>
+                    {typeof compra.puntoRetiro === "object" ? (
+                    <>
+                        <div><b>{compra.puntoRetiro.nombre}</b></div>
+                        <div>{compra.puntoRetiro.direccion}</div>
+                        <div>{compra.puntoRetiro.localidad}, {compra.puntoRetiro.provincia} (CP: {compra.puntoRetiro.codigoPostal})</div>
+                        <div>Horario: {compra.puntoRetiro.horarioAtencion}</div>
+                        <div>Teléfono: {compra.puntoRetiro.telefono}</div>
+                        <div>Email: {compra.puntoRetiro.email}</div>
+                    </>
+                    ) : (
+                    <p>{compra.puntoRetiro}</p>
+                    )}
+                </div>
                 )}
-
                 {/* Costo de envío */}
                 {compra.costoEnvio && compra.costoEnvio > 0 && (
                     <p>
@@ -99,9 +118,21 @@ const DetalleCompra = ({ compra, onClose }) => {
                         </tr>
                         </thead>
                         <tbody>
-                        {compra.items.map((item, index) => (
-                            <tr key={index} className="border-t">
-                                <td className="p-2 border">{item.nombreProducto || "Producto sin nombre"}</td>
+                            {compra.items.map((item, index) => (
+                                <tr key={index} className="border-t">
+                                {/* ⬇️ Cambia esta línea ⬇️ */}
+                                <td className="p-2 border align-middle">
+                                    {item.fotos && item.fotos.length > 0 && (
+                                    <img
+                                        src={`data:${guessMimeType(item.fotos[0])};base64,${item.fotos[0].file}`}
+                                        alt={`Foto de ${item.nombreProducto}`}
+                                        className="w-12 h-12 object-cover rounded shadow border inline-block mr-2 align-middle"
+                                        style={{ minWidth: 48 }}
+                                    />
+                                    )}
+                                    {item.nombreProducto || "Producto sin nombre"}
+                                </td>
+                                {/* Las otras columnas igual */}
                                 <td className="p-2 border">{item.cantidad || 0}</td>
                                 <td className="p-2 border">
                                     ${(item.precioUnitario || 0).toFixed(2)}
@@ -109,9 +140,10 @@ const DetalleCompra = ({ compra, onClose }) => {
                                 <td className="p-2 border">
                                     ${(item.subtotal || 0).toFixed(2)}
                                 </td>
-                            </tr>
-                        ))}
-                        </tbody>
+                                </tr>
+                            ))}
+                            </tbody>
+
                     </table>
                 </div>
             ) : (

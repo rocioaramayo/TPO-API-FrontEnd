@@ -19,7 +19,7 @@ import ProfilePage from "./components/ProfilePage.jsx";
 import CartSidebar from "./components/CartSidebar";
 import CheckoutPage from './pages/CheckoutPage.jsx';
 import AdminProfilePage from "./pages/admin/AdminProfilePage.jsx"; // ⬅️ arriba junto a los otros imports
-
+import ConfirmacionPedido from './pages/ConfirmacionPedido';
 const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -242,6 +242,7 @@ const App = () => {
             </>
           }
         />
+        <Route path="/confirmacion-pedido/:compraId" element={<ConfirmacionPedido user={user} />} />
       </Routes>
       <CartSidebar
         isOpen={cartOpen}
