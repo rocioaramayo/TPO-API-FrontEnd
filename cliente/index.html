@@ -68,6 +68,17 @@
               'fade-in': 'fadeIn 0.5s ease-in-out',
               'slide-up': 'slideUp 0.3s ease-out',
               'scale-in': 'scaleIn 0.2s ease-out',
+            }, 
+            keyframes: {
+            'corazon-late': {
+              '0%, 100%': { transform: 'scale(1)' },
+              '20%': { transform: 'scale(1.2)' },
+              '50%': { transform: 'scale(0.9)' },
+              '70%': { transform: 'scale(1.1)' },
+            }
+            },
+            animation: {
+              'corazon-late': 'corazon-late 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
             }
           }
         }
