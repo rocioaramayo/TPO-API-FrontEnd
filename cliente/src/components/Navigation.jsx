@@ -27,37 +27,32 @@ const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showDescuentosPanel]);
 
- useEffect(() => {
-  const actualizar = () => {
-    if (!user) {
-      setTieneFavoritos(false);
-      return;
-    }
-    fetch('http://localhost:8080/api/v1/favoritos', {
-      headers: {
-        'Authorization': `Bearer ${user.token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-      .then(res => res.json())
-     .then(data => {
-  const hayFavoritos = Array.isArray(data) && data.length > 0;
-  if (hayFavoritos !== tieneFavoritos) {
-    setCorazonAnimado(false);
-    setTimeout(() => setCorazonAnimado(true), 10); // Fuerza restart
+useEffect(() => {
+  if (!user) {
+    setTieneFavoritos(false);
+    return;
   }
-  setTieneFavoritos(hayFavoritos);
-  setTimeout(() => setCorazonAnimado(false), 400);
-})
-      .catch(() => setTieneFavoritos(false));
-  };
 
-  actualizar();
-
-  window.addEventListener("favoritosActualizados", actualizar);
-
-  return () => window.removeEventListener("favoritosActualizados", actualizar);
+  fetch('http://localhost:8080/api/v1/favoritos', {
+    headers: {
+      'Authorization': `Bearer ${user.token}`,
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(res => res.json())
+    .then(data => {
+      const hayFavoritos = Array.isArray(data) && data.length > 0;
+      if (hayFavoritos !== tieneFavoritos) {
+        setCorazonAnimado(false);
+        setTimeout(() => setCorazonAnimado(true), 10); // Fuerza restart
+      }
+      setTieneFavoritos(hayFavoritos);
+      setTimeout(() => setCorazonAnimado(false), 400);
+    })
+    .catch(() => setTieneFavoritos(false));
+  // Solo depende de user, no hay más eventos globales
 }, [user]);
+
 
   const handleSearch = (e) => {
     e.preventDefault();
