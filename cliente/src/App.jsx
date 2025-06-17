@@ -20,6 +20,9 @@ import CartSidebar from "./components/CartSidebar";
 import CheckoutPage from './pages/CheckoutPage.jsx';
 import AdminProfilePage from "./pages/admin/AdminProfilePage.jsx"; // ⬅️ arriba junto a los otros imports
 import ConfirmacionPedido from './pages/ConfirmacionPedido';
+import { Provider } from 'react-redux';
+import { store } from './store/store';
+
 const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -99,40 +102,40 @@ const App = () => {
 
 
   return (
-    <>
-         
-      <Routes>
-        <Route 
-          path="/login" 
-          element={
-            <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-              <Login 
-                setUser={setUser} 
-                loading={loading}
-                setLoading={setLoading}
-                error={error}
-                setError={setError}
-              />
-            </>
-          } 
-        />
+    <Provider store={store}>
+      <>
+        <Routes>
+          <Route 
+            path="/login" 
+            element={
+              <>
+                <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+                <Login 
+                  setUser={setUser} 
+                  loading={loading}
+                  setLoading={setLoading}
+                  error={error}
+                  setError={setError}
+                />
+              </>
+            } 
+          />
 
-          <Route
-  path="/perfil"
-  element={
-    <>
-      <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-      {user?.role === "ADMIN" ? (
-        <AdminProfilePage user={user} onLogout={handleLogout} />
-      ) : (
-        <ProfilePage user={user} onLogout={handleLogout} />
-      )}
-    </>
-  }
-/>
+            <Route
+    path="/perfil"
+    element={
+      <>
+        <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+        {user?.role === "ADMIN" ? (
+          <AdminProfilePage user={user} onLogout={handleLogout} />
+        ) : (
+          <ProfilePage user={user} onLogout={handleLogout} />
+        )}
+      </>
+    }
+  />
 
-          <Route
+            <Route
           path="/register" 
           element={
             <>
@@ -253,6 +256,7 @@ const App = () => {
         onSubQty={handleSubQty}
       />
     </>
+    </Provider>
   );
 };
 

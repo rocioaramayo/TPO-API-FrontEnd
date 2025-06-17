@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchProducts } from '../store/slices/productsSlice';
 import Footer from '../components/Footer';
 import ProductFilters from '../components/ProductFilters';
 import ProductGrid from '../components/ProductGrid';
@@ -6,138 +8,78 @@ import FilterTags from '../components/FilterTags';
 import { useLocation } from 'react-router-dom';
 
 const Productos = ({ user }) => {
-  // Estados principales
-  const [productos, setProductos] = useState([]);
+  const dispatch = useDispatch();
+  const productos = useSelector((state) => state.products.items);
+  const loading = useSelector((state) => state.products.loading);
+  // Estados principales locales solo para filtros y UI
   const [categorias, setCategorias] = useState([]);
   const [tiposCuero, setTiposCuero] = useState([]);
   const [colores, setColores] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(false);
-
   const location = useLocation();
-
- 
   const [filtros, setFiltros] = useState(() => {
     const params = new URLSearchParams(location.search);
     const busqueda = params.get('busqueda') || '';
-    
     return {
-      nombre: busqueda, // Inicializar con el valor de búsqueda de la URL
+      nombre: busqueda,
       categoriaId: '',
       tipoCuero: '',
       color: '',
       precioMin: '',
       precioMax: '',
       ordenarPor: 'nombre',
-      orden: 'asc'
+      orden: 'asc',
     };
   });
 
-  // En Productos.jsx, después de recibir user como prop
-  useEffect(() => {
-    console.log('Usuario en Productos:', user);
-    console.log('¿Tiene token?', user?.token ? 'SÍ' : 'NO');
-  }, [user]);
-
-  // Actualizar filtros cuando cambia la URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const busqueda = params.get('busqueda') || '';
-    
-    // Solo actualizar si realmente cambió para evitar loops infinitos
-    setFiltros(prev => {
+    setFiltros((prev) => {
       if (prev.nombre !== busqueda) {
-        return {
-          ...prev,
-          nombre: busqueda
-        };
+        return { ...prev, nombre: busqueda };
       }
       return prev;
     });
   }, [location.search]);
 
-  // Opciones para ordenamiento
-  const opcionesOrden = [
-    { value: 'nombre_asc', label: 'Nombre A-Z', ordenarPor: 'nombre', orden: 'asc' },
-    { value: 'nombre_desc', label: 'Nombre Z-A', ordenarPor: 'nombre', orden: 'desc' },
-    { value: 'precio_asc', label: 'Precio menor a mayor', ordenarPor: 'precio', orden: 'asc' },
-    { value: 'precio_desc', label: 'Precio mayor a menor', ordenarPor: 'precio', orden: 'desc' },
-    { value: 'stock_desc', label: 'Mayor stock', ordenarPor: 'stock', orden: 'desc' }
-  ];
-
   // Cargar categorías, tipos de cuero y colores al inicio
   useEffect(() => {
-    // Cargar categorías
     fetch('http://localhost:8080/categories')
-      .then(response => response.json())
-      .then(data => setCategorias(data))
-      .catch(error => console.error('Error al cargar categorías:', error));
-
-    // Cargar tipos de cuero
+      .then((response) => response.json())
+      .then((data) => setCategorias(data))
+      .catch((error) => console.error('Error al cargar categorías:', error));
     fetch('http://localhost:8080/productos/tipos-cuero')
-      .then(response => response.json())
-      .then(data => setTiposCuero(data))
-      .catch(error => console.error('Error al cargar tipos de cuero:', error));
-
-    // Cargar colores
+      .then((response) => response.json())
+      .then((data) => setTiposCuero(data))
+      .catch((error) => console.error('Error al cargar tipos de cuero:', error));
     fetch('http://localhost:8080/productos/colores')
-      .then(response => response.json())
-      .then(data => setColores(data))
-      .catch(error => console.error('Error al cargar colores:', error));
+      .then((response) => response.json())
+      .then((data) => setColores(data))
+      .catch((error) => console.error('Error al cargar colores:', error));
   }, []);
 
-  // Cargar productos (con filtros)
+  // Cargar productos (con filtros) usando Redux
   useEffect(() => {
-    setLoading(true);
-    
-    // Construir URL con parámetros 
-    const params = new URLSearchParams();
-    
-    if (filtros.nombre) params.append('nombre', filtros.nombre);
-    if (filtros.categoriaId) params.append('categoriaId', filtros.categoriaId);
-    if (filtros.tipoCuero) params.append('tipoCuero', filtros.tipoCuero);
-    if (filtros.color) params.append('color', filtros.color);
-    if (filtros.precioMin) params.append('precioMin', filtros.precioMin);
-    if (filtros.precioMax) params.append('precioMax', filtros.precioMax);
-    params.append('ordenarPor', filtros.ordenarPor);
-    params.append('orden', filtros.orden);
-    params.append('size', '50');
-
-    const URL = `http://localhost:8080/productos/filtrar?${params}`;
-    
-
-    
-    fetch(URL)
-      .then(response => response.json())
-      .then(data => {
-        setProductos(data.content || []);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error al obtener productos:', error);
-        setLoading(false);
-      });
-  }, [filtros]);
+    // Construir objeto de filtros para el thunk
+    dispatch(fetchProducts(filtros));
+  }, [dispatch, filtros]);
 
   // Manejar cambios en filtros
   const handleFiltroChange = (campo, valor) => {
-    setFiltros(prev => ({
-      ...prev,
-      [campo]: valor
-    }));
+    setFiltros((prev) => ({ ...prev, [campo]: valor }));
   };
-
-  // Manejar cambio de ordenamiento
   const handleOrdenChange = (valor) => {
-    const opcion = opcionesOrden.find(op => op.value === valor);
-    setFiltros(prev => ({
-      ...prev,
-      ordenarPor: opcion.ordenarPor,
-      orden: opcion.orden
-    }));
+    const opcionesOrden = [
+      { value: 'nombre_asc', ordenarPor: 'nombre', orden: 'asc' },
+      { value: 'nombre_desc', ordenarPor: 'nombre', orden: 'desc' },
+      { value: 'precio_asc', ordenarPor: 'precio', orden: 'asc' },
+      { value: 'precio_desc', ordenarPor: 'precio', orden: 'desc' },
+      { value: 'stock_desc', ordenarPor: 'stock', orden: 'desc' },
+    ];
+    const opcion = opcionesOrden.find((op) => op.value === valor);
+    setFiltros((prev) => ({ ...prev, ordenarPor: opcion.ordenarPor, orden: opcion.orden }));
   };
-
-  // Limpiar filtros
   const limpiarFiltros = () => {
     setFiltros({
       nombre: '',
@@ -147,47 +89,33 @@ const Productos = ({ user }) => {
       precioMin: '',
       precioMax: '',
       ordenarPor: 'nombre',
-      orden: 'asc'
+      orden: 'asc',
     });
   };
-
-  // Contar filtros activos
-  const filtrosActivos = Object.values(filtros).filter(valor => 
-    valor !== '' && valor !== 'nombre' && valor !== 'asc'
+  const filtrosActivos = Object.values(filtros).filter(
+    (valor) => valor !== '' && valor !== 'nombre' && valor !== 'asc'
   ).length;
 
   return (
     <div className="min-h-screen bg-cream-50">
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
         <div className="mb-8">
-          <h1 className="text-3xl font-serif font-bold text-leather-900 mb-2">
-            Productos
-          </h1>
+          <h1 className="text-3xl font-serif font-bold text-leather-900 mb-2">Productos</h1>
           <div className="flex items-center justify-between">
             <p className="text-leather-600">
               Encuentra el producto perfecto para ti
-              {/* ✅ Mostrar búsqueda activa */}
               {filtros.nombre && (
-                <span className="ml-2 text-leather-800 font-medium">
-                  - Buscando: "{filtros.nombre}"
-                </span>
+                <span className="ml-2 text-leather-800 font-medium">- Buscando: "{filtros.nombre}"</span>
               )}
             </p>
-            
-            {/* Contador de productos */}
             <div className="flex items-center space-x-4">
               <span className="text-leather-600 text-sm">
                 {loading
                   ? 'Cargando...'
                   : productos.length === 0
-                    ? 'No se encontraron productos'
-                    : `${productos.length} producto${productos.length > 1 ? 's' : ''} encontrado${productos.length > 1 ? 's' : ''}`
-                }
+                  ? 'No se encontraron productos'
+                  : `${productos.length} producto${productos.length > 1 ? 's' : ''} encontrado${productos.length > 1 ? 's' : ''}`}
               </span>
-              
-              {/* Toggle filtros en móvil */}
               <button
                 onClick={() => setFiltersOpen(!filtersOpen)}
                 className="lg:hidden bg-leather-800 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
@@ -201,8 +129,6 @@ const Productos = ({ user }) => {
           </div>
         </div>
         <div className="flex flex-col lg:flex-row gap-8">
-          
-          {/* Sidebar de Filtros */}
           <div className={`lg:w-80 ${filtersOpen ? 'block' : 'hidden'} lg:block`}>
             <ProductFilters
               filtros={filtros}
@@ -215,26 +141,21 @@ const Productos = ({ user }) => {
               filtrosActivos={filtrosActivos}
             />
           </div>
-
           <div className="flex-1">
-            
             <FilterTags
               filtros={filtros}
               categorias={categorias}
               onFiltroChange={handleFiltroChange}
             />
-
-           <ProductGrid
-            productos={productos}
-            loading={loading}
-            onLimpiarFiltros={limpiarFiltros}
-            user={user}
+            <ProductGrid
+              productos={productos}
+              loading={loading}
+              onLimpiarFiltros={limpiarFiltros}
+              user={user}
             />
-
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );

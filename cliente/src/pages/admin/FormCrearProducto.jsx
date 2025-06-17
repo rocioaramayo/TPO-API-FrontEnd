@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { fetchAdminProducts } from '../../store/slices/productsSlice';
 
 const FormCrearProducto = ({ user , setMostrarCrearProducto }) => {
   const [categorias, setCategorias] = useState([]) 
@@ -24,6 +26,8 @@ const FormCrearProducto = ({ user , setMostrarCrearProducto }) => {
     instrucciones:"",
     imagenes:[]
   })
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     console.log('Usuario en Productos:', user);
@@ -149,6 +153,8 @@ const handleChangeImagenes = (e) => {
       setTimeout(() => {
         setMostrarCrearProducto(false)
       }, 2000);
+
+      dispatch(fetchAdminProducts());
     })
     .catch(error => {
       console.error('Error al crear producto:', error);

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchAdminProducts } from "../../store/slices/productsSlice";
 import FormEditarProducto from "./FormEditarProducto";
 
-export default function TablaProductos({user, mostrarCrearProducto}) {
-  const navigate = useNavigate()
-  const [productos,setProductos] = useState([]);
+export default function TablaProductos({ user, mostrarCrearProducto }) {
+  const dispatch = useDispatch();
+  const productos = useSelector((state) => state.products.items) || [];
+  const loading = useSelector((state) => state.products.loading);
   const [mostrarAlertaDesactivar, setMostrarAlertaDesactivar] = useState(false);
   const [mostrarAlertaActivar, setMostrarAlertaActivar] = useState(false);
   const [mostrarAgregarStock, setMostrarAgregarStock] = useState(false);
@@ -14,76 +16,72 @@ export default function TablaProductos({user, mostrarCrearProducto}) {
   const [id, setId] = useState(null);
   const [stock, setStock] = useState(0);
   useEffect(() => {
-      fetch("http://localhost:8080/productos/admin")
-          .then((res) => res.json())
-          .then((data) => {
-          setProductos(data.productos);
-          });
-  }, [mostrarAlertaDesactivar,mostrarAgregarStock,mostrarAlertaActivar, mostrarCrearProducto, mostrarEditarProducto]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6; // Cambiá este número si querés mostrar más/menos por página
+    dispatch(fetchAdminProducts());
+  }, [dispatch, mostrarCrearProducto]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProductos = Array.isArray(productos) ? productos.slice(startIndex, endIndex) : [];
+  const totalPages = Math.ceil((productos?.length || 0) / itemsPerPage);
 
-    // Calcular los productos visibles
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentProductos = productos?.slice(startIndex, endIndex);
-    // Calcular el total de páginas
-    const totalPages = Math.ceil(productos.length / itemsPerPage);
-    
-    const handleDesactivar = (e) => {
-        e.preventDefault();
-        const id = productoSeleccionado.id;
-        fetch(`http://localhost:8080/productos/${id}`,{
-            method:'DELETE',
-            headers: {
-                'Authorization': `Bearer ${user.token}`,
-            },
-        })
-        .then(()=>{
-            setMostrarAlertaDesactivar(false)
-            setProductoSeleccionado({})
-        })  
+  // Log para depuración
+  console.log('Productos en tabla admin:', productos);
+
+  const handleDesactivar = (e) => {
+    e.preventDefault();
+    const id = productoSeleccionado.id;
+    fetch(`http://localhost:8080/productos/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    }).then(() => {
+      setMostrarAlertaDesactivar(false);
+      setProductoSeleccionado({});
+      dispatch(fetchAdminProducts());
+    });
+  };
+  const handleChangeStock = (e) => {
+    setStock(e.target.value);
+  };
+  const handleAgregarStock = (e) => {
+    e.preventDefault();
+    if (productoSeleccionado.stock + parseInt(stock) < 0) {
+      setErrorStock(true);
+    } else {
+      const id = productoSeleccionado.id;
+      fetch(`http://127.0.0.1:8080/productos/stock/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ stock: parseInt(stock) }),
+      }).then(() => {
+        setMostrarAgregarStock(false);
+        setErrorStock(false);
+        setProductoSeleccionado({});
+        setStock(0);
+        dispatch(fetchAdminProducts());
+      });
     }
-    const handleChangeStock = (e) => {
-        setStock(e.target.value);
-    }
-    const handleAgregarStock = (e) =>{
-        e.preventDefault();
-        if ((productoSeleccionado.stock + parseInt(stock)) < 0) {
-            setErrorStock(true);
-        }else{
-            const id = productoSeleccionado.id;
-            fetch( `http://127.0.0.1:8080/productos/stock/${id}`,{
-                method: "PUT",
-                headers:{
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user.token}`,
-                },
-                body: JSON.stringify({ stock: parseInt(stock) }) 
-            })
-            .then(()=>{
-                setMostrarAgregarStock(false)
-                setErrorStock(false)
-                setProductoSeleccionado({})
-                setStock(0)
-            })            
-        }
-    }
-    const handleActivarProducto = (e) =>{
-        e.preventDefault();
-        const id = productoSeleccionado.id;
-        fetch(`http://localhost:8080/productos/activar/${id}`,{
-            method:'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user.token}`,
-            },
-        })
-        .then(()=>{
-            setMostrarAlertaActivar(false);
-            setProductoSeleccionado({});
-        })  
-    }
+  };
+  const handleActivarProducto = (e) => {
+    e.preventDefault();
+    const id = productoSeleccionado.id;
+    fetch(`http://localhost:8080/productos/activar/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+    }).then(() => {
+      setMostrarAlertaActivar(false);
+      setProductoSeleccionado({});
+      dispatch(fetchAdminProducts());
+    });
+  };
   return (
     <>
         <div className="overflow-x-auto shadow-cognac rounded-lg border border-leather-200">
