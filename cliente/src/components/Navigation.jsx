@@ -1,48 +1,38 @@
 // src/components/Navigation.jsx
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { Link, useNavigate, NavLink } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { logoutUser } from '../store/slices/usersSlice';
+import { clearFavoritos, fetchFavoritos } from '../store/slices/favoritosSlice';
 
-const Navigation = ({ onLogout, onCartClick, cartItems = [] }) => {
-  const user = useSelector((state) => state.users.user);
-  const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
-  
+const Navigation = ({ onCartClick, cartItems = [] }) => {
+  const dispatch = useDispatch();
+  const { user, isAuthenticated } = useSelector((state) => state.users);
+  const favoritos = useSelector((state) => state.favoritos.ids);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mostrarPanel, setMostrarPanel] = useState(false);
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [mostrarPerfil, setMostrarPerfil] = useState(false);
   const togglePerfil = () => setMostrarPerfil(v => !v);
-  const [tieneFavoritos, setTieneFavoritos] = useState(false);
   const [corazonAnimado, setCorazonAnimado] = useState(false);
 
   const totalCartItems = cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
 
-  useEffect(() => {
-    if (!isAuthenticated || !user) {
-      setTieneFavoritos(false);
-      return;
-    }
+  const tieneFavoritos = favoritos && favoritos.length > 0;
 
-    fetch('http://localhost:8080/api/v1/favoritos', {
-      headers: {
-        'Authorization': `Bearer ${user.token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
-        const hayFavoritos = Array.isArray(data) && data.length > 0;
-        if (hayFavoritos !== tieneFavoritos) {
-          setCorazonAnimado(false);
-          setTimeout(() => setCorazonAnimado(true), 10); // Fuerza restart
-        }
-        setTieneFavoritos(hayFavoritos);
-        setTimeout(() => setCorazonAnimado(false), 400);
-      })
-      .catch(() => setTieneFavoritos(false));
-    // Solo depende de user, no hay más eventos globales
-  }, [user, isAuthenticated, tieneFavoritos]);
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchFavoritos());
+    }
+  }, [isAuthenticated, dispatch]);
+
+  const handleLogout = () => {
+    dispatch(logoutUser());
+    dispatch(clearFavoritos());
+    setMostrarPerfil(false);
+    navigate('/');
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -162,48 +152,45 @@ const Navigation = ({ onLogout, onCartClick, cartItems = [] }) => {
                       </span>
                     </button>
                     {/* Favoritos */}
-                   <Link 
-                    to="/favoritos"
-                    className="p-2 text-leather-600 hover:text-leather-700 transition-colors duration-200 rounded-lg"
-                  >
-                   <svg 
-                      className={`w-6 h-6 transition-colors duration-200 ${
-                        tieneFavoritos ? 'text-red-500' : ''
-                      } ${corazonAnimado ? 'animate-corazon-late' : ''}`} 
-                      fill={tieneFavoritos ? "currentColor" : "none"} 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
+                    <NavLink
+                      to="/favoritos"
+                      className={({ isActive }) => `relative text-gray-600 hover:text-leather-700 p-2 rounded-full transition-colors duration-200 ${isActive ? 'bg-leather-100' : ''}`}
                     >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={tieneFavoritos ? 0 : 2} 
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
-                      />
-                    </svg>
-                  </Link>
+                      <svg className={`w-6 h-6 ${tieneFavoritos ? 'text-red-500' : ''}`} fill={tieneFavoritos ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={tieneFavoritos ? 0 : 2} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
+                      </svg>
+                    </NavLink>
                   </>
                 )}
                 {/* Usuario autenticado */}
                 <div className="relative">
                   <button
-                      onClick={() => navigate('/perfil')} // Redirige a la página perfil
-                      onMouseEnter={() => setMostrarPerfil(true)} // Mostrar menú al pasar mouse
-                      onMouseLeave={() => setMostrarPerfil(false)} // Ocultar menú al sacar mouse
+                      onClick={() => setMostrarPerfil(!mostrarPerfil)}
                       className="flex items-center justify-center w-8 h-8 bg-leather-800 rounded-full shadow-sm cursor-pointer"
                   >
         <span className="text-white text-sm font-medium">
           {user?.email?.charAt(0).toUpperCase() || "?"}
         </span>
                   </button>
+                  {mostrarPerfil && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-xl z-20 py-1 ring-1 ring-black ring-opacity-5">
+                      <div className="px-4 py-3 border-b border-gray-200">
+                        <p className="text-sm font-medium text-gray-900 truncate">Hola, {user.nombre}</p>
+                        <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                      </div>
+                      <div className="py-1">
+                        <Link to="/perfil" className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setMostrarPerfil(false)}>
+                          Mi Perfil
+                        </Link>
+                      </div>
+                      <div className="py-1 border-t border-gray-200">
+                        <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm text-red-700 hover:bg-red-50 hover:text-red-800">
+                          Cerrar Sesión
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                <button
-                    onClick={onLogout}
-                    className="bg-leather-800 text-white hover:bg-leather-900 text-sm px-3 py-2 rounded-lg transition-colors duration-200"
-                  >
-                    Salir
-                  </button>
               </>
             ) : (
               /* Usuario no autenticado */

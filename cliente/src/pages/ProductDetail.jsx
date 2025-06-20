@@ -16,6 +16,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProductById } from '../store/slices/productsSlice';
+import { addFavorito, removeFavorito, fetchFavoritos } from '../store/slices/favoritosSlice';
 import Footer from '../components/Footer';
 import AuthMessage from '../components/AuthMessage';
 import ReviewList from '../components/ReviewList';
@@ -30,6 +31,7 @@ const ProductDetail = ({ onAddToCart }) => {
     // Leer desde el estado de Redux
     const { user, isAuthenticated } = useSelector((state) => state.users);
     const { selectedProduct: producto, loading, error } = useSelector((state) => state.products);
+    const { ids: favoritos } = useSelector((state) => state.favoritos);
     
     const [selectedPhoto, setSelectedPhoto] = useState(0);
     const [isFavorite, setIsFavorite] = useState(false);
@@ -46,89 +48,42 @@ const ProductDetail = ({ onAddToCart }) => {
     useEffect(() => {  
         if (id) {
             dispatch(fetchProductById(id));
-        }
-    }, [id, dispatch]);
-
-    // Verificar si es favorito cuando se carga el producto
-    useEffect(() => {
-        if (isAuthenticated && user?.token && id) {
-            checkFavorite();
-        }
-    }, [user, id, isAuthenticated]);
-
-    function checkFavorite() {
-        if (!isAuthenticated || !user?.token) return;
-        
-        fetch(`http://localhost:8080/api/v1/favoritos/check/${id}`, {
-            headers: {
-                'Authorization': `Bearer ${user.token}`,
-                'Content-Type': 'application/json'
+            if (isAuthenticated) {
+                dispatch(fetchFavoritos());
             }
-        })
-            .then(response => response.json())
-            .then(data => {
-                setIsFavorite(data);
-            })
-            .catch(error => {
-                console.error("Error al verificar favorito:", error);
-            });
-    }
+        }
+    }, [id, dispatch, isAuthenticated]);
+
+    useEffect(() => {
+        if (producto) {
+            setSelectedPhoto(0); // Reset photo on product change
+            setIsFavorite(favoritos.includes(producto.id));
+        }
+    }, [producto, favoritos]);
 
     // Manejar toggle de favoritos
-    function handleFavoriteToggle() {
-        if (!isAuthenticated || !user?.token) {
+    const handleFavoriteToggle = () => {
+        if (!isAuthenticated) {
             setShowAuthMessage(true);
             return;
         }
+        if (!producto) return;
 
-        setLoadingFavorite(true);
-        
-        const method = isFavorite ? 'DELETE' : 'POST';
-        const url = isFavorite
-            ? `http://localhost:8080/api/v1/favoritos/${id}`
-            : `http://localhost:8080/api/v1/favoritos`;
+        const currentlyFavorite = favoritos.includes(producto.id);
 
-        const options = {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user.token}`
-            },
-            ...(method === 'POST' && {
-                body: JSON.stringify({ productoId: parseInt(id) })
-            })
-        };
-
-        fetch(url, options)
-            .then(response => {
-                if (response.ok) {
-                    const wasAdded = !isFavorite;
-                    setIsFavorite(!isFavorite);
-                    
-                    
-                    setNotificationData({
-                    isAdded: wasAdded,
-                    productName: producto?.nombre || 'Producto'
-                    });
-                    
-                    setTimeout(() => {
-                    setShowNotification(true);
-                    }, 100);
-                } else {
-                    console.error('Error al modificar favorito');
-                }
-                setLoadingFavorite(false);
-            })
-            .catch(error => {
-                console.error('Error al modificar favorito:', error);
-                setLoadingFavorite(false);
-            });
-    }
+        if (currentlyFavorite) {
+            dispatch(removeFavorito(producto.id));
+            setNotificationData({ isAdded: false, productName: producto.nombre });
+        } else {
+            dispatch(addFavorito(producto.id));
+            setNotificationData({ isAdded: true, productName: producto.nombre });
+        }
+        setShowNotification(true);
+    };
 
     // Callback para cuando se envía una nueva review
     const handleReviewSubmitted = () => {
-        // Incrementar la key para forzar que ReviewList se recargue
-        setReviewsKey(prev => prev + 1);
+        dispatch(fetchProductById(id));
     };
 
     // función para formatear precio
@@ -294,37 +249,13 @@ const ProductDetail = ({ onAddToCart }) => {
                             {/* Botón de favorito GRANDE */}
                             <button
                                 onClick={handleFavoriteToggle}
-                                disabled={loadingFavorite}
-                                className={`p-3 rounded-full transition-all duration-200 ${
-                                    loadingFavorite 
-                                        ? 'bg-gray-100 cursor-not-allowed' 
-                                        : 'bg-white hover:bg-gray-50 shadow-md hover:shadow-lg border border-leather-200'
-                                }`}
+                                disabled={!isAuthenticated}
+                                className={`p-2 rounded-full transition-colors duration-300 ${isFavorite ? 'text-red-500 bg-red-100' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'}`}
                                 title={!isAuthenticated ? 'Regístrate para agregar a favoritos' : isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
                             >
-                                {loadingFavorite ? (
-                                    <div className="w-6 h-6 border-2 border-leather-300 border-t-leather-600 rounded-full animate-spin"></div>
-                                ) : (
-                                    <svg 
-                                        className={`w-6 h-6 transition-colors duration-200 ${
-                                            isFavorite 
-                                                ? 'text-red-500 fill-current' 
-                                                : isAuthenticated 
-                                                    ? 'text-gray-400 hover:text-red-400' 
-                                                    : 'text-gray-300'
-                                        }`} 
-                                        fill={isFavorite ? "currentColor" : "none"} 
-                                        stroke="currentColor" 
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path 
-                                            strokeLinecap="round" 
-                                            strokeLinejoin="round" 
-                                            strokeWidth={isFavorite ? 0 : 2} 
-                                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
-                                        />
-                                    </svg>
-                                )}
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={isFavorite ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
+                                </svg>
                             </button>
                         </div>
 

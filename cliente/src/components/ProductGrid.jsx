@@ -1,10 +1,12 @@
 import ProductCard from './ProductCard';
 import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchFavoritos, addFavorito, removeFavorito } from '../store/slices/favoritosSlice';
 
 const ProductGrid = ({ productos, loading, onLimpiarFiltros }) => {
+  const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.users);
-  const [favoritos, setFavoritos] = useState([]);
+  const { ids: favoritos } = useSelector((state) => state.favoritos);
   
   // Estados para paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -16,34 +18,10 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros }) => {
   }, [productos]);
 
   useEffect(() => {
-    if (isAuthenticated && user?.token) {
-      console.log('Cargando favoritos para:', user.email);
-      
-      fetch('http://localhost:8080/api/v1/favoritos', {
-        headers: {
-          'Authorization': `Bearer ${user.token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-        .then(response => {
-          console.log('Response favoritos:', response.status);
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('Favoritos cargados:', data);
-          const ids = data.map(f => f.producto.id);
-          setFavoritos(ids);
-        })
-        .catch(error => {
-          console.error('Error al cargar favoritos:', error);
-        });
-    } else {
-      setFavoritos([]);
+    if (isAuthenticated) {
+      dispatch(fetchFavoritos());
     }
-  }, [user, isAuthenticated]);
+  }, [isAuthenticated, dispatch]);
 
   const handleFavoriteClick = (productoId) => {
     if (!isAuthenticated) {
@@ -52,50 +30,12 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros }) => {
     }
 
     const esFavorito = favoritos.includes(productoId);
-    const method = esFavorito ? 'DELETE' : 'POST';
-    const url = esFavorito
-      ? `http://localhost:8080/api/v1/favoritos/${productoId}`
-      : `http://localhost:8080/api/v1/favoritos`;
-
-    const options = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}`
-      },
-      ...(method === 'POST' && {
-        body: JSON.stringify({ productoId })
-      })
-    };
-
-    console.log('Haciendo request favorito:', method, productoId);
-
-    fetch(url, options)
-      .then(response => {
-        console.log('Response favorito:', response.status);
-        if (response.ok) {
-          if (method === 'DELETE') {
-            return { success: true };
-          } else {
-            return response.json();
-          }
-        } else {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      })
-      .then(() => {
-        console.log('Favorito actualizado exitosamente');
-        if (esFavorito) {
-          setFavoritos(prev => prev.filter(id => id !== productoId));
-        } else {
-          setFavoritos(prev => [...prev, productoId]);
-        }
-      })
-      .catch(error => {
-        console.error('Error al actualizar favorito:', error);
-        alert('Error: ' + error.message);
-      });
-  }
+    if (esFavorito) {
+      dispatch(removeFavorito(productoId));
+    } else {
+      dispatch(addFavorito(productoId));
+    }
+  };
 
   // Calcular productos para la página actual
   const startIndex = (currentPage - 1) * itemsPerPage;

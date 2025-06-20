@@ -1,102 +1,148 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
 
-const API_URL = 'http://localhost:8080';
+const getToken = (getState) => {
+    const { user } = getState().users;
+    return user?.token;
+}
 
-// Async thunks
+// Thunk para obtener la lista de favoritos
 export const fetchFavoritos = createAsyncThunk(
-  'favoritos/fetchFavoritos',
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await axios.get(`${API_URL}/api/v1/favoritos`);
-      return res.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data || err.message);
+    'favoritos/fetchFavoritos',
+    async (_, { getState, rejectWithValue }) => {
+        const token = getToken(getState);
+        if (!token) return rejectWithValue('No hay token');
+        try {
+            const response = await fetch('http://localhost:8080/api/v1/favoritos', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Error al cargar favoritos');
+            const data = await response.json();
+            // Devolvemos solo los IDs para un estado más ligero
+            return data.map(fav => fav.producto.id); 
+        } catch (error) {
+            return rejectWithValue(error.toString());
+        }
     }
-  }
 );
 
+// Thunk para agregar un favorito
 export const addFavorito = createAsyncThunk(
-  'favoritos/addFavorito',
-  async (productoId, { rejectWithValue }) => {
-    try {
-      const res = await axios.post(`${API_URL}/api/v1/favoritos/${productoId}`);
-      return res.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data || err.message);
+    'favoritos/addFavorito',
+    async (productoId, { getState, rejectWithValue }) => {
+        const token = getToken(getState);
+        if (!token) return rejectWithValue('No hay token');
+        try {
+            const response = await fetch('http://localhost:8080/api/v1/favoritos', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ productoId })
+            });
+            if (!response.ok) throw new Error('Error al agregar favorito');
+            const data = await response.json();
+            return data.producto.id; // Devolvemos el ID del producto agregado
+        } catch (error) {
+            return rejectWithValue(error.toString());
+        }
     }
-  }
 );
 
+// Thunk para eliminar un favorito
 export const removeFavorito = createAsyncThunk(
-  'favoritos/removeFavorito',
-  async (productoId, { rejectWithValue }) => {
-    try {
-      await axios.delete(`${API_URL}/api/v1/favoritos/${productoId}`);
-      return productoId;
-    } catch (err) {
-      return rejectWithValue(err.response?.data || err.message);
+    'favoritos/removeFavorito',
+    async (productoId, { getState, rejectWithValue }) => {
+        const token = getToken(getState);
+        if (!token) return rejectWithValue('No hay token');
+        try {
+            const response = await fetch(`http://localhost:8080/api/v1/favoritos/${productoId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Error al eliminar favorito');
+            return productoId; // Devolvemos el ID del producto eliminado
+        } catch (error) {
+            return rejectWithValue(error.toString());
+        }
     }
-  }
 );
 
-const initialState = {
-  items: [],
-  loading: false,
-  error: null,
-};
+// Thunk para obtener la lista de favoritos COMPLETA (para la página de Favoritos)
+export const fetchFavoritosCompletos = createAsyncThunk(
+    'favoritos/fetchFavoritosCompletos',
+    async (_, { getState, rejectWithValue }) => {
+        const token = getToken(getState);
+        if (!token) return rejectWithValue('No hay token');
+        try {
+            const response = await fetch('http://localhost:8080/api/v1/favoritos', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Error al cargar favoritos');
+            const data = await response.json();
+            return data; // Devuelve la lista completa de objetos favoritos
+        } catch (error) {
+            return rejectWithValue(error.toString());
+        }
+    }
+);
 
 const favoritosSlice = createSlice({
-  name: 'favoritos',
-  initialState,
-  reducers: {
-    clearFavoritos: (state) => {
-      state.items = [];
-      state.error = null;
+    name: 'favoritos',
+    initialState: {
+        ids: [],
+        items: [], // Para la lista completa en la página de favoritos
+        loading: false,
+        error: null,
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      // Fetch favoritos
-      .addCase(fetchFavoritos.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchFavoritos.fulfilled, (state, action) => {
-        state.loading = false;
-        state.items = action.payload;
-      })
-      .addCase(fetchFavoritos.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      // Add favorito
-      .addCase(addFavorito.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(addFavorito.fulfilled, (state, action) => {
-        state.loading = false;
-        state.items.push(action.payload);
-      })
-      .addCase(addFavorito.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      // Remove favorito
-      .addCase(removeFavorito.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(removeFavorito.fulfilled, (state, action) => {
-        state.loading = false;
-        state.items = state.items.filter(item => item.id !== action.payload);
-      })
-      .addCase(removeFavorito.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
-  },
+    reducers: {
+        clearFavoritos: (state) => {
+            state.ids = [];
+            state.items = [];
+            state.loading = false;
+            state.error = null;
+        }
+    },
+    extraReducers: (builder) => {
+        builder
+            // Fetch Favoritos
+            .addCase(fetchFavoritos.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchFavoritos.fulfilled, (state, action) => {
+                state.loading = false;
+                state.ids = action.payload;
+            })
+            .addCase(fetchFavoritos.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            // Add Favorito
+            .addCase(addFavorito.fulfilled, (state, action) => {
+                if (!state.ids.includes(action.payload)) {
+                    state.ids.push(action.payload);
+                }
+            })
+            // Remove Favorito - ACTUALIZADO para que también quite de 'items'
+            .addCase(removeFavorito.fulfilled, (state, action) => {
+                state.ids = state.ids.filter(id => id !== action.payload);
+                state.items = state.items.filter(item => item.producto.id !== action.payload);
+            })
+            // Fetch Favoritos Completos
+            .addCase(fetchFavoritosCompletos.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchFavoritosCompletos.fulfilled, (state, action) => {
+                state.loading = false;
+                state.items = action.payload;
+                // También actualizamos los IDs para mantener la consistencia
+                state.ids = action.payload.map(fav => fav.producto.id);
+            })
+            .addCase(fetchFavoritosCompletos.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            });
+    }
 });
 
 export const { clearFavoritos } = favoritosSlice.actions;

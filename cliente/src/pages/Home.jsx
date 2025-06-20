@@ -1,19 +1,20 @@
 import CarruselHero from '../components/CarruselHero';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchFavoritos, addFavorito, removeFavorito } from '../store/slices/favoritosSlice';
 import Footer from '../components/Footer';
 import artesano from "../assets/artesano-trabajando.jpg";
 import ProductCard from '../components/ProductCard';
 
 const Home = ({ logout }) => {
   const navigate = useNavigate();
-  const user = useSelector((state) => state.users.user);
-  const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
+  const dispatch = useDispatch();
+  const { user, isAuthenticated } = useSelector((state) => state.users);
+  const { ids: favoritos } = useSelector((state) => state.favoritos);
   
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [favoritos, setFavoritos] = useState([]);
 
   // Obtener productos REALES del backend
   useEffect(() => {
@@ -32,30 +33,12 @@ const Home = ({ logout }) => {
       });
   }, []);
 
-  // Cargar favoritos del usuario
+  // Cargar favoritos del usuario desde Redux
   useEffect(() => {
-    if (isAuthenticated && user?.token) {
-      fetch('http://localhost:8080/api/v1/favoritos', {
-        headers: {
-          'Authorization': `Bearer ${user.token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-        .then(response => {
-          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-          return response.json();
-        })
-        .then(data => {
-          const ids = data.map(f => f.producto.id);
-          setFavoritos(ids);
-        })
-        .catch(error => {
-          console.error('Error al cargar favoritos:', error);
-        });
-    } else {
-      setFavoritos([]);
+    if (isAuthenticated) {
+      dispatch(fetchFavoritos());
     }
-  }, [user, isAuthenticated]);
+  }, [isAuthenticated, dispatch]);
 
   // Manejar click en favoritos
   const handleFavoriteClick = (productoId) => {
@@ -65,45 +48,11 @@ const Home = ({ logout }) => {
     }
 
     const esFavorito = favoritos.includes(productoId);
-    const method = esFavorito ? 'DELETE' : 'POST';
-    const url = esFavorito
-      ? `http://localhost:8080/api/v1/favoritos/${productoId}`
-      : `http://localhost:8080/api/v1/favoritos`;
-
-    const options = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}`
-      },
-      ...(method === 'POST' && {
-        body: JSON.stringify({ productoId })
-      })
-    };
-
-    fetch(url, options)
-      .then(response => {
-        if (response.ok) {
-          if (method === 'DELETE') {
-            return { success: true };
-          } else {
-            return response.json();
-          }
-        } else {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-      })
-      .then(() => {
-        if (esFavorito) {
-          setFavoritos(prev => prev.filter(id => id !== productoId));
-        } else {
-          setFavoritos(prev => [...prev, productoId]);
-        }
-      })
-      .catch(error => {
-        console.error('Error al actualizar favorito:', error);
-        alert('Error: ' + error.message);
-      });
+    if (esFavorito) {
+      dispatch(removeFavorito(productoId));
+    } else {
+      dispatch(addFavorito(productoId));
+    }
   };
 
   // Función para formatear precio
