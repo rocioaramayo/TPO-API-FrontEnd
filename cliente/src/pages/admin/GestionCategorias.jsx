@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchCategories, getCategoryById, clearSelectedCategory } from '../../store/slices/categoriesSlice';
 
 const GestionCategorias = ({ user }) => {
-  const [categorias, setCategorias] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const categorias = useSelector((state) => state.categories.items);
+  const selectedCategory = useSelector((state) => state.categories.selectedCategory);
+  const loading = useSelector((state) => state.categories.loading);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [selectedCategoria, setSelectedCategoria] = useState(null);
   
   // Estados para el formulario
   const [formData, setFormData] = useState({
@@ -17,25 +20,14 @@ const GestionCategorias = ({ user }) => {
 
   const navigate = useNavigate();
 
-  // Cargar categorías
+  // Cargar categorías usando Redux
   const cargarCategorias = () => {
-    setLoading(true);
-    fetch('http://localhost:8080/categories')
-      .then(response => response.json())
-      .then(data => {
-        setCategorias(data);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error al cargar categorías:', error);
-        setError('Error al cargar las categorías');
-        setLoading(false);
-      });
+    dispatch(fetchCategories());
   };
 
   useEffect(() => {
     cargarCategorias();
-  }, []);
+  }, [dispatch]);
 
   // Manejar cambios en el formulario
   const handleChange = (e) => {
@@ -106,18 +98,10 @@ const GestionCategorias = ({ user }) => {
 
   // Ver detalles de una categoría
   const verDetalleCategoria = (id) => {
-    fetch(`http://localhost:8080/categories/${id}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Categoría no encontrada');
-        }
-        return response.json();
-      })
-      .then(data => {
-        setSelectedCategoria(data);
-      })
+    dispatch(getCategoryById(id))
+      .unwrap()
       .catch(error => {
-        setError(error.message);
+        setError(error.message || 'Error al cargar la categoría');
       });
   };
 
@@ -290,7 +274,7 @@ const GestionCategorias = ({ user }) => {
       </div>
 
       {/* Modal para detalles de categoría */}
-      {selectedCategoria && (
+      {selectedCategory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
@@ -298,7 +282,7 @@ const GestionCategorias = ({ user }) => {
                 Detalles de la Categoría
               </h3>
               <button
-                onClick={() => setSelectedCategoria(null)}
+                onClick={() => dispatch(clearSelectedCategory())}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,21 +294,21 @@ const GestionCategorias = ({ user }) => {
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">ID</label>
-                <p className="text-gray-900">{selectedCategoria.id}</p>
+                <p className="text-gray-900">{selectedCategory.id}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Nombre</label>
-                <p className="text-gray-900">{selectedCategoria.nombre}</p>
+                <p className="text-gray-900">{selectedCategory.nombre}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Descripción</label>
-                <p className="text-gray-900">{selectedCategoria.descripcion || 'Sin descripción'}</p>
+                <p className="text-gray-900">{selectedCategory.descripcion || 'Sin descripción'}</p>
               </div>
             </div>
             
             <div className="mt-6 flex justify-end">
               <button
-                onClick={() => setSelectedCategoria(null)}
+                onClick={() => dispatch(clearSelectedCategory())}
                 className="bg-leather-800 text-white py-2 px-4 rounded font-medium hover:bg-leather-900 transition-colors"
               >
                 Cerrar

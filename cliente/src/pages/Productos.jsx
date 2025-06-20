@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProducts } from '../store/slices/productsSlice';
+import { fetchCategories } from '../store/slices/categoriesSlice';
 import Footer from '../components/Footer';
 import ProductFilters from '../components/ProductFilters';
 import ProductGrid from '../components/ProductGrid';
@@ -11,8 +12,9 @@ const Productos = ({ user }) => {
   const dispatch = useDispatch();
   const productos = useSelector((state) => state.products.items);
   const loading = useSelector((state) => state.products.loading);
+  const categorias = useSelector((state) => state.categories.items);
+  const categoriasLoading = useSelector((state) => state.categories.loading);
   // Estados principales locales solo para filtros y UI
-  const [categorias, setCategorias] = useState([]);
   const [tiposCuero, setTiposCuero] = useState([]);
   const [colores, setColores] = useState([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -43,12 +45,13 @@ const Productos = ({ user }) => {
     });
   }, [location.search]);
 
-  // Cargar categorías, tipos de cuero y colores al inicio
+  // Cargar categorías usando Redux
   useEffect(() => {
-    fetch('http://localhost:8080/categories')
-      .then((response) => response.json())
-      .then((data) => setCategorias(data))
-      .catch((error) => console.error('Error al cargar categorías:', error));
+    dispatch(fetchCategories());
+  }, [dispatch]);
+
+  // Cargar tipos de cuero y colores al inicio
+  useEffect(() => {
     fetch('http://localhost:8080/productos/tipos-cuero')
       .then((response) => response.json())
       .then((data) => setTiposCuero(data))

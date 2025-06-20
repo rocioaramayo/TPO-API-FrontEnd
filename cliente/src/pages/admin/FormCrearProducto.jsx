@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { fetchAdminProducts } from '../../store/slices/productsSlice';
+import { fetchCategories } from '../../store/slices/categoriesSlice';
 
 const FormCrearProducto = ({ user , setMostrarCrearProducto }) => {
-  const [categorias, setCategorias] = useState([]) 
+  const dispatch = useDispatch();
+  const categorias = useSelector((state) => state.categories.items);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -27,20 +29,14 @@ const FormCrearProducto = ({ user , setMostrarCrearProducto }) => {
     imagenes:[]
   })
 
-  const dispatch = useDispatch();
-
   useEffect(() => {
     console.log('Usuario en Productos:', user);
     console.log('¿Tiene token?', user?.token ? 'SÍ' : 'NO');
   }, [user]);
   
   useEffect(() => {
-    fetch('http://localhost:8080/categories')
-      .then(response => response.json())
-      .then(data => setCategorias(data))
-      .then(data => console.log(data))
-      .catch(error => console.error('Error al cargar categorías:', error));
-  }, []);
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

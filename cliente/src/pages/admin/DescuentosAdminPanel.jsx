@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCategories, getCategoryById } from '../../store/slices/categoriesSlice';
 
 const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
+  const dispatch = useDispatch();
+  const categorias = useSelector((state) => state.categories.items);
   const [descuentos, setDescuentos] = useState([]);
-  const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [editId, setEditId] = useState(null);
@@ -28,11 +31,12 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
   const [creating, setCreating] = useState(false);
   const [categoriaPorId, setCategoriaPorId] = useState({});
   const navigate = useNavigate();
+  
   useEffect(() => {
     descuentos.forEach(d => {
       if (d.categoriaId && !categoriaPorId[d.categoriaId]) {
-        fetch(`http://127.0.0.1:8080/categories/${d.categoriaId}`)
-          .then(res => res.json())
+        dispatch(getCategoryById(d.categoriaId))
+          .unwrap()
           .then(cat => setCategoriaPorId(prev => ({
             ...prev,
             [d.categoriaId]: cat.nombre
@@ -44,7 +48,7 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
       }
     });
     // eslint-disable-next-line
-  }, [descuentos]);
+  }, [descuentos, dispatch]);
 
   useEffect(() => {
     if (visible && user?.token) {
@@ -53,24 +57,17 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
         fetch('http://localhost:8080/descuentos', {
           headers: { 'Authorization': `Bearer ${user.token}` }
         }).then(res => res.ok ? res.json() : Promise.reject('Error al cargar descuentos')),
-        fetch('http://127.0.0.1:8080/categories', {
-          headers: { 'Authorization': `Bearer ${user.token}` }
-        }).then(res => {
-          if (!res.ok) return [];
-          return res.json().then(data => Array.isArray(data) ? data : []).catch(() => []);
-        })
+        dispatch(fetchCategories()).unwrap()
       ])
         .then(([descuentosData, categoriasData]) => {
           setDescuentos(Array.isArray(descuentosData) ? descuentosData : []);
-          setCategorias(Array.isArray(categoriasData) ? categoriasData : []);
         })
         .catch((e) => {
           setError('Error al cargar datos');
-          setCategorias([]); // fallback: always setCategorias to array
         })
         .finally(() => setLoading(false));
     }
-  }, [visible, user]);
+  }, [visible, user, dispatch]);
 
   const handleActivar = (id) => {
     fetch(`http://localhost:8080/descuentos/${id}/activar`, {

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { data, Link, useNavigate, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCategories } from '../../store/slices/categoriesSlice';
 
 // Deducir tipo mime a partir del nombre del archivo (si existe)
 function guessMimeType(foto) {
@@ -17,7 +19,8 @@ function guessMimeType(foto) {
 }
 
 const FormEditarProducto = ({ user , setMostrarEditarProducto, id }) => {
-  const [categorias,setCategorias] = useState([])
+  const dispatch = useDispatch();
+  const categorias = useSelector((state) => state.categories.items);
   const navigate = useNavigate();
   const [producto,setProducto] = useState() ;
   const [loading, setLoading] = useState(false);
@@ -54,11 +57,8 @@ const FormEditarProducto = ({ user , setMostrarEditarProducto, id }) => {
   },[]);
 
   useEffect(() => {
-      fetch('http://localhost:8080/categories')
-        .then(response => response.json())
-        .then(data => setCategorias(data))
-        .catch(error => console.error('Error al cargar categorías:', error));
-    }, []); 
+      dispatch(fetchCategories());
+    }, [dispatch]); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
