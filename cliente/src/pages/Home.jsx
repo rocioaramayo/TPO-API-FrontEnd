@@ -1,194 +1,309 @@
-import CarruselHero from '../components/CarruselHero';
-import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchFavoritos, addFavorito, removeFavorito } from '../store/slices/favoritosSlice';
-import Footer from '../components/Footer';
-import artesano from "../assets/artesano-trabajando.jpg";
+import { useState, useEffect, useRef } from 'react';
 import ProductCard from '../components/ProductCard';
+import carrusel1 from '../assets/CARRUSEL_OFICIAL_1.jpg';
+import artesano from '../assets/artesano-trabajando.jpg';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchProducts } from '../store/slices/productsSlice';
+import FeaturedProducts from '../components/FeaturedProducts';
+import { useNavigate } from 'react-router-dom';
+import cueroFondo from '../assets/cuero-fondo.jpg';
+import Footer from '../components/Footer';
+import cercaTextura from '../assets/cerca-en-la-textura-delicada.jpg';
+import CategoryGrid from '../components/CategoryGrid';
 
-const Home = ({ logout }) => {
-  const navigate = useNavigate();
+const heroImage = cueroFondo;
+
+const Home = () => {
   const dispatch = useDispatch();
-  const { user, isAuthenticated } = useSelector((state) => state.users);
-  const { ids: favoritos } = useSelector((state) => state.favoritos);
-  
-  const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { items: productos, loading } = useSelector((state) => state.products);
+  const [isVisible, setIsVisible] = useState({});
+  const [favorites, setFavorites] = useState(new Set());
+  const { isAuthenticated } = useSelector((state) => state.users);
+  const navigate = useNavigate();
+  const heroRef = useRef(null);
+  const [heroVisible, setHeroVisible] = useState(false);
 
-  // Obtener productos REALES del backend
   useEffect(() => {
-    const URL = "http://localhost:8080/productos";
-    fetch(URL)
-      .then((response) => response.json())
-      .then((data) => {
-        // Tomar solo los primeros 3 productos para destacados
-        const destacados = data.productos ? data.productos.slice(0, 3) : [];
-        setFeaturedProducts(destacados);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error al obtener productos:", error);
-        setLoading(false);
-      });
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
+  useEffect(() => {
+    setTimeout(() => setHeroVisible(true), 300);
   }, []);
 
-  // Cargar favoritos del usuario desde Redux
+  // Intersection Observer for animations
   useEffect(() => {
-    if (isAuthenticated) {
-      dispatch(fetchFavoritos());
-    }
-  }, [isAuthenticated, dispatch]);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(prev => ({ ...prev, [entry.target.id]: true }));
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
 
-  // Manejar click en favoritos
+    const sections = document.querySelectorAll('[data-animate]');
+    sections.forEach((section) => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, []);
+
   const handleFavoriteClick = (productoId) => {
     if (!isAuthenticated) {
       alert('Debes iniciar sesión para usar favoritos.');
       return;
     }
-
-    const esFavorito = favoritos.includes(productoId);
-    if (esFavorito) {
-      dispatch(removeFavorito(productoId));
-    } else {
-      dispatch(addFavorito(productoId));
-    }
+    setFavorites(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(productoId)) {
+        newFavorites.delete(productoId);
+      } else {
+        newFavorites.add(productoId);
+      }
+      return newFavorites;
+    });
   };
 
-  // Función para formatear precio
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS'
-    }).format(price);
+  const handleProductClick = (id) => {
+    alert(`Navegando al producto ${id}`);
   };
+
+  const handleNavigation = (path) => {
+    alert(`Navegando a: ${path}`);
+  };
+
+  // Selecciono los 3 productos más recientes (por id descendente)
+  const featuredProducts = [...productos].sort((a, b) => b.id - a.id).slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-cream-50">
-      <CarruselHero />
-
-      {/* Acerca de nosotros - IGUAL PARA TODOS */}
-      <section className="py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl font-serif font-bold text-leather-900 mb-6">
-                Artesanía que perdura
-              </h2>
-              <p className="text-leather-700 text-lg mb-6 leading-relaxed">
-                Durante más de 40 años, hemos perfeccionado el arte de trabajar el cuero, 
-                creando piezas únicas que combinan la tradición argentina con diseños contemporáneos.
+    <div className="bg-gradient-to-br from-orange-50 to-amber-50">
+      {/* Hero Section */}
+      <section className="relative h-screen overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${heroImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed',
+            zIndex: 1
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-yellow-50 to-amber-50 opacity-70"></div>
+        </div>
+        <div className="absolute inset-0 z-20 flex items-center justify-center text-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div
+              ref={heroRef}
+              className={`max-w-3xl mx-auto sticky top-0 transition-all duration-1000 ease-out ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+            >
+              <h1 className="text-7xl lg:text-8xl font-light text-orange-950 mb-8 leading-none tracking-tight">
+                Cuero
+                <span className="block font-serif italic text-amber-900 text-shadow-gold">Argentino</span>
+              </h1>
+              <div className="w-32 h-1 mx-auto mb-8 bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-600 rounded-full animate-pulse"></div>
+              <p className="text-xl lg:text-2xl text-orange-800 mb-6 leading-relaxed font-light max-w-2xl mx-auto">
+                Cada pieza cuenta una historia de 40 años de experiencia
               </p>
-              <p className="text-leather-600 mb-8">
-                Cada producto es cuidadosamente elaborado por artesanos expertos que 
-                ponen su corazón en cada puntada, garantizando durabilidad y belleza.
+              <p className="text-2xl font-serif italic text-amber-900 mb-12 animate-fadeIn delay-300">
+                Descubrí la pasión y el arte en cada pieza de cuero
               </p>
-              
-              <div className="flex space-x-4">
-                <button 
+              <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                <button
                   onClick={() => navigate('/productos')}
-                  className="bg-leather-800 text-white hover:bg-leather-900 px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+                  className="group relative px-8 py-4 bg-gradient-to-r from-orange-900 to-amber-900 text-white font-medium tracking-wide overflow-hidden transition-all duration-300 hover:from-orange-800 hover:to-amber-800 shadow-lg"
                 >
-                  Ver Productos
+                  <span className="relative z-10">Explorar Colección</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </button>
-                <button 
-                  onClick={() => navigate('/nosotros')}
-                  className="text-leather-700 hover:text-leather-800 px-6 py-3 rounded-lg font-medium transition-colors duration-200"
-                >
-                  Nuestra Historia
-                </button>
+                {!isAuthenticated && (
+                  <button
+                    onClick={() => navigate('/register')}
+                    className="px-8 py-4 border-2 border-orange-900 text-orange-900 font-medium tracking-wide hover:bg-orange-900 hover:text-white transition-all duration-300"
+                  >
+                    Crear Cuenta
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Brand Philosophy */}
+      <section 
+        id="philosophy" 
+        data-animate
+        className={`py-32 px-4 transition-all duration-1000 ${
+          isVisible.philosophy ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
+        }`}
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,247,237,0.7),rgba(255,247,237,0.85)), url(${artesano})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          borderRadius: '2rem',
+        }}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <div className="inline-block">
+                  <span className="text-xs font-medium text-orange-800 bg-orange-50 px-4 py-2 rounded-full tracking-widest uppercase">
+                    Desde 1985
+                  </span>
+                </div>
+                
+                <h2 className="text-5xl lg:text-6xl font-light text-orange-950 leading-tight">
+                  Tradición que
+                  <span className="block font-serif italic text-amber-900">trasciende</span>
+                </h2>
+              </div>
+              
+              <div className="w-32 h-px bg-gradient-to-r from-orange-600 to-amber-400"></div>
+              
+              <div className="space-y-6">
+                <p className="text-lg text-orange-800 leading-relaxed font-light">
+                  En cada puntada reside el alma de la artesanía argentina. 
+                  Cuatro décadas perfeccionando el arte del cuero, creando piezas 
+                  que trascienden tendencias y perduran en el tiempo.
+                </p>
+                
+                <p className="text-orange-700 leading-relaxed">
+                  Nuestros maestros artesanos transforman materiales nobles en 
+                  objetos de deseo, donde cada imperfección cuenta una historia 
+                  y cada detalle habla de excelencia.
+                </p>
+              </div>
+              
+              <div className="flex space-x-8 pt-8">
+                <div>
+                  <div className="text-3xl font-light text-orange-950 mb-2">40+</div>
+                  <div className="text-sm text-orange-700 uppercase tracking-wide">Años de experiencia</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-light text-orange-950 mb-2">100%</div>
+                  <div className="text-sm text-orange-700 uppercase tracking-wide">Artesanal</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-light text-orange-950 mb-2">∞</div>
+                  <div className="text-sm text-orange-700 uppercase tracking-wide">Durabilidad</div>
+                </div>
               </div>
             </div>
             
-            <div className="bg-cream-100 rounded-lg p-8">
-              <img
-                src={artesano}
-                alt="Artesano trabajando cuero"
-                className="w-full h-auto rounded-lg shadow-sm"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Productos destacados - TODOS pueden verlos */}
-      <section className="py-16 px-4 bg-cream-100">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-serif font-bold text-leather-900 mb-4">
-              Productos Destacados
-            </h2>
-            <p className="text-leather-600 text-lg max-w-2xl mx-auto">
-              Descubre nuestra colección de productos artesanales de cuero premium
-            </p>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="w-8 h-8 border-4 border-leather-800 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-leather-600">Cargando productos...</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-               {featuredProducts.map((producto) => (
-                <ProductCard 
-                  key={producto.id}
-                  {...producto}
-                  isFavorite={favoritos.includes(producto.id)}
-                  onFavoriteClick={handleFavoriteClick}
-                />
-              ))}
-            </div>
-          )}
-
-          <div className="text-center mt-8">
-            <button 
-              onClick={() => navigate('/productos')}
-              className="bg-leather-800 text-white hover:bg-leather-900 px-8 py-3 rounded-lg font-medium transition-colors duration-200"
-            >
-              Ver todos los productos
-            </button>
-            {!isAuthenticated && (
-              <p className="text-leather-600 mt-4 text-sm">
-                💡 Regístrate para agregar productos a favoritos y realizar compras
-              </p>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Final - SOLO para usuarios NO logueados */}
-      {!isAuthenticated && (
-        <section className="py-16 px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="bg-leather-800 rounded-2xl p-12 text-white">
-              <h2 className="text-3xl font-serif font-bold mb-4">
-                ¿Listo para descubrir la calidad argentina?
-              </h2>
-              <p className="text-cream-100 text-lg mb-8 max-w-2xl mx-auto">
-                Únete a miles de clientes satisfechos y descubre la diferencia 
-                de los productos de cuero artesanales argentinos.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button 
-                  onClick={() => navigate('/register')}
-                  className="bg-white text-leather-700 hover:bg-gray-200 px-8 py-3 rounded-lg font-medium transition-all duration-200"
-                >
-                  Registrarse Gratis
-                </button>
-                <button 
-                  onClick={() => navigate('/login')}
-                  className="border-2 border-white text-white hover:bg-white hover:text-leather-700 px-8 py-3 rounded-lg font-medium transition-all duration-200"
-                >
-                  Ya tengo cuenta
-                </button>
+            <div className="relative">
+              <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-50">
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="text-center p-12">
+                    <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-orange-200 to-amber-200 rounded-full flex items-center justify-center shadow-lg">
+                      <svg className="w-12 h-12 text-orange-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17v4a2 2 0 002 2h4M11 7.343V10a1 1 0 001 1h2.657" />
+                      </svg>
+                    </div>
+                    <div className="text-orange-900 font-medium text-xl mb-2">Maestros Artesanos</div>
+                    <div className="text-orange-700 text-sm">Creando belleza desde 1985</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Floating element */}
+              <div className="absolute -bottom-8 -left-8 bg-white p-8 rounded-2xl shadow-2xl max-w-xs">
+                <div className="space-y-3">
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-orange-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h4 className="font-medium text-orange-950">Certificación Artesanal</h4>
+                  <p className="text-sm text-orange-700">Cada pieza lleva el sello de autenticidad de nuestros maestros.</p>
+                </div>
               </div>
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
-      <Footer/>
+      {/* Featured Products */}
+      <FeaturedProducts />
+
+      {/* Testimonials */}
+      <section 
+        id="testimonials" 
+        data-animate
+        className={`py-16 px-4 bg-gradient-to-br from-orange-50 to-amber-50 transition-all duration-1000 ${
+          isVisible.testimonials ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl font-light text-orange-950 mb-8">
+              Voces de
+              <span className="block font-serif italic text-amber-900">excelencia</span>
+            </h2>
+            <div className="w-32 h-px bg-gradient-to-r from-orange-600 to-amber-400 mx-auto"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {[
+              {
+                text: "La calidad del cuero es excepcional. Después de dos años de uso diario, mi cartera se ve aún mejor que el primer día.",
+                author: "María Elena Rodríguez",
+                role: "Arquitecta"
+              },
+              {
+                text: "Cada detalle refleja el amor por el oficio. Es reconfortante saber que existen artesanos que mantienen viva la tradición.",
+                author: "Carlos Mendoza",
+                role: "Coleccionista"
+              },
+              {
+                text: "Más que un accesorio, es una obra de arte funcional. La inversión vale cada peso gastado.",
+                author: "Ana Sofía Torres",
+                role: "Empresaria"
+              }
+            ].map((testimonial, index) => (
+              <div key={index} className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300">
+                <div className="mb-6">
+                  <svg className="w-8 h-8 text-orange-700" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z"/>
+                  </svg>
+                </div>
+                <p className="text-orange-800 leading-relaxed mb-6 font-light">
+                  "{testimonial.text}"
+                </p>
+                <div className="border-t border-orange-200 pt-6">
+                  <div className="font-medium text-orange-950">{testimonial.author}</div>
+                  <div className="text-sm text-orange-700">{testimonial.role}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Categorías Destacadas debajo de reviews */}
+      {(() => {
+        const { items: categorias } = useSelector((state) => state.categories);
+        // Si hay menos de 6, completar con placeholders visuales
+        const placeholders = Array.from({ length: Math.max(0, 6 - categorias.length) }, (_, i) => ({
+          nombre: '',
+          img: '',
+          key: `ph-${i}`
+        }));
+        // Usar el nombre real de la categoría
+        const categoriasGrid = [
+          ...categorias.map((cat, idx) => ({
+            nombre: cat.nombre || cat.name,
+            img: '', // Las imágenes se asignan en el componente
+            key: cat.id || cat.nombre || cat.name || idx
+          })),
+          ...placeholders
+        ].slice(0, 6);
+        return <CategoryGrid categories={categoriasGrid} />;
+      })()}
+
+      <Footer />
     </div>
   );
 };
