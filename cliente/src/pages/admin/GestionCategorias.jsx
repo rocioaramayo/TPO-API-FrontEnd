@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchCategories, getCategoryById, clearSelectedCategory } from '../../store/slices/categoriesSlice';
+import { fetchCategories, getCategoryById, clearSelectedCategory, createCategory } from '../../store/slices/categoriesSlice';
 
 const GestionCategorias = () => {
   const dispatch = useDispatch();
@@ -40,63 +40,25 @@ const GestionCategorias = () => {
   };
 
   // Crear nueva categoría
-  const handleCrearCategoria = (e) => {
+  const handleCrearCategoria = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     setSuccess(null);
-    
-    fetch('http://localhost:8080/categories/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}`
-      },
-      body: JSON.stringify({
+  
+    try {
+      await dispatch(createCategory({
         nombre: formData.nombre,
         descripcion: formData.descripcion
-      })
-    })
-    .then(response => {
-      return response.text().then(text => {
-        let data = {};
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          data = { message: text };
-        }
-        
-        if (!response.ok) {
-          let errorMessage = 'La categoría ya está registrada';
-          
-          if (text.includes('CategoriaDuplicadaException')) {
-            errorMessage = 'La categoría ya está registrada';
-          } else if (response.status === 400) {
-            errorMessage = data.message || 'Datos inválidos';
-          } else if (response.status === 403) {
-            errorMessage = 'No tienes permisos para crear categorías';
-          }
-          
-          throw new Error(errorMessage);
-        }
-        
-        return data;
-      });
-    })
-    .then(data => {
+      })).unwrap();
+  
       setSuccess('Categoría creada exitosamente');
       setFormData({ nombre: '', descripcion: '' });
       setShowCreateForm(false);
-      cargarCategorias(); // Recargar la lista
-    })
-    .catch(error => {
-      setError(error.message);
-    })
-    .finally(() => {
-      setLoading(false);
-    });
+      dispatch(fetchCategories()); // Recargar la lista
+    } catch (err) {
+      setError(typeof err === 'string' ? err : err?.message || 'Error al crear la categoría');
+    }
   };
-
   // Ver detalles de una categoría
   const verDetalleCategoria = (id) => {
     dispatch(getCategoryById(id))

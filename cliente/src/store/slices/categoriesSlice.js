@@ -21,6 +21,20 @@ export const getCategoryById = createAsyncThunk('categories/getCategoryById', as
   }
 });
 
+export const createCategory = createAsyncThunk('categories/createCategory', async (categoryData, { rejectWithValue, getState }) => {
+  try {
+    const { user } = getState().users;
+    const res = await axios.post(`${API_URL}/categories/create`, categoryData, {
+      headers: {
+        'Authorization': `Bearer ${user?.token}`
+      }
+    });
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data || err.message);
+  }
+});
+
 const initialState = {
   items: [],
   selectedCategory: null,
@@ -59,6 +73,18 @@ const categoriesSlice = createSlice({
         state.selectedCategory = action.payload;
       })
       .addCase(getCategoryById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(createCategory.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createCategory.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items.push(action.payload);
+      })
+      .addCase(createCategory.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
