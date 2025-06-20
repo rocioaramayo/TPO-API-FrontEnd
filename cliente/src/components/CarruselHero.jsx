@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import artesano from '../assets/artesano-trabajando.jpg';
 import carrusel1 from '../assets/CARRUSEL_OFICIAL_1.jpg';
 import carrusel2 from '../assets/CARRUSEL_OFICIAL_FOTO2.jpg';
@@ -16,10 +17,11 @@ const carruselImages = [
   { src: artesano,  alt: "Artesano trabajando" }
 ];
 
-const CarruselHero = ({ user }) => {
+const CarruselHero = () => {
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false); // ✅ Estado React simple
   const navigate = useNavigate();
+  const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
 
   // Autoplay con React state - sin manipulación DOM
   useEffect(() => {
@@ -72,7 +74,7 @@ const CarruselHero = ({ user }) => {
           >
             Ver Productos
           </button>
-          {user ? (
+          {isAuthenticated ? (
             <button
               onClick={() => navigate('/nosotros')}
               className="border-2 border-white text-white hover:bg-leather-800 hover:text-white hover:scale-105 text-lg px-8 py-4 rounded-lg font-medium transition-all duration-200 shadow-lg"
@@ -89,7 +91,7 @@ const CarruselHero = ({ user }) => {
           )}
         </div>
         {/* Link de login para usuarios no logueados */}
-        {!user && (
+        {!isAuthenticated && (
           <div className="mt-4">
             <p className="text-leather-50 text-base drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
               ¿Ya tienes cuenta?{" "}

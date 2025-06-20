@@ -2,11 +2,24 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TablaProductos from "./TablaProductos";
 import FormCrearProducto from "./FormCrearProducto";
+import { useSelector } from "react-redux";
+import FormEditarProducto from "./FormEditarProducto";
 
-const GestionProductos = ({user}) => {
+const GestionProductos = () => {
   const [productos, setProductos] = useState(null);
   const [mostrarCrearProducto, setMostrarCrearProducto] = useState(false);
+  const [mostrarEditarProducto, setMostrarEditarProducto] = useState(false);
+  const [productoSeleccionadoId, setProductoSeleccionadoId] = useState(null);
   const navigate = useNavigate();
+
+  const handleEditar = (producto) => {
+    if (!producto.activo) {
+      alert("No se puede editar un producto que está inactivo. Por favor, actívalo primero.");
+      return;
+    }
+    setProductoSeleccionadoId(producto.id);
+    setMostrarEditarProducto(true);
+  };
 
   return (
     <div className="px-6 py-4 font-sans">
@@ -32,10 +45,17 @@ const GestionProductos = ({user}) => {
         </div>
       </div>
       {mostrarCrearProducto && (
-        <FormCrearProducto user={user}  setMostrarCrearProducto={setMostrarCrearProducto}/>
+        <FormCrearProducto setMostrarCrearProducto={setMostrarCrearProducto}/>
       )}
 
-      <TablaProductos mostrarCrearProducto={mostrarCrearProducto} user={user}/>
+      {mostrarEditarProducto && (
+        <FormEditarProducto 
+          id={productoSeleccionadoId} 
+          setMostrarEditarProducto={setMostrarEditarProducto}
+        />
+      )}
+
+      <TablaProductos mostrarCrearProducto={mostrarCrearProducto} onEditar={handleEditar}/>
     </div>
   );
 };

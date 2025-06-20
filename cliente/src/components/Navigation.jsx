@@ -1,8 +1,12 @@
 // src/components/Navigation.jsx
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 
-const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
+const Navigation = ({ onLogout, onCartClick, cartItems = [] }) => {
+  const user = useSelector((state) => state.users.user);
+  const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
+  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mostrarPanel, setMostrarPanel] = useState(false);
   const navigate = useNavigate();
@@ -14,32 +18,31 @@ const Navigation = ({ user, onLogout, onCartClick, cartItems = [] }) => {
 
   const totalCartItems = cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
 
-
-useEffect(() => {
-  if (!user) {
-    setTieneFavoritos(false);
-    return;
-  }
-
-  fetch('http://localhost:8080/api/v1/favoritos', {
-    headers: {
-      'Authorization': `Bearer ${user.token}`,
-      'Content-Type': 'application/json'
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setTieneFavoritos(false);
+      return;
     }
-  })
-    .then(res => res.json())
-    .then(data => {
-      const hayFavoritos = Array.isArray(data) && data.length > 0;
-      if (hayFavoritos !== tieneFavoritos) {
-        setCorazonAnimado(false);
-        setTimeout(() => setCorazonAnimado(true), 10); // Fuerza restart
+
+    fetch('http://localhost:8080/api/v1/favoritos', {
+      headers: {
+        'Authorization': `Bearer ${user.token}`,
+        'Content-Type': 'application/json'
       }
-      setTieneFavoritos(hayFavoritos);
-      setTimeout(() => setCorazonAnimado(false), 400);
     })
-    .catch(() => setTieneFavoritos(false));
-  // Solo depende de user, no hay más eventos globales
-}, [user]);
+      .then(res => res.json())
+      .then(data => {
+        const hayFavoritos = Array.isArray(data) && data.length > 0;
+        if (hayFavoritos !== tieneFavoritos) {
+          setCorazonAnimado(false);
+          setTimeout(() => setCorazonAnimado(true), 10); // Fuerza restart
+        }
+        setTieneFavoritos(hayFavoritos);
+        setTimeout(() => setCorazonAnimado(false), 400);
+      })
+      .catch(() => setTieneFavoritos(false));
+    // Solo depende de user, no hay más eventos globales
+  }, [user, isAuthenticated, tieneFavoritos]);
 
   const handleSearch = (e) => {
     e.preventDefault();

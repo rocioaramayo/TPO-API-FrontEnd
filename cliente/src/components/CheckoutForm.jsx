@@ -1,12 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from 'react-redux';
 import PaymentSection from "./PaymentSection";
 import DeliverySection from "./DeliverySection";
 import CheckoutSummary from "./CheckoutSummary";
 
-const CheckoutForm = ({ cartItems, setCartItems, user }) => {
+const CheckoutForm = ({ cartItems, setCartItems }) => {
   const navigate = useNavigate();
-  const isBlocked = !user || !user.token;
+  const { user, isAuthenticated } = useSelector((state) => state.users);
+  const isBlocked = !isAuthenticated;
   const API_BASE = "http://localhost:8080";
 
   // Estados principales
@@ -65,7 +67,7 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
 
   // useEffect para cargar datos iniciales
   React.useEffect(() => {
-    if (user?.token) {
+    if (isAuthenticated && user?.token) {
       // Cargar info del usuario
       fetch(`${API_BASE}/api/v1/users/me`, {
         headers: { 'Authorization': `Bearer ${user.token}` }
@@ -96,7 +98,7 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(setMetodosEntrega)
       .catch(() => setErrorCheckout("Error al cargar métodos de entrega"));
-  }, [user]);
+  }, [user, isAuthenticated]);
 
   // useEffect para cotización de envío
   React.useEffect(() => {
@@ -144,7 +146,7 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
       setCuponMsg("Por favor, ingresa un código de descuento");
       return;
     }
-    if (!user?.token) {
+    if (!isAuthenticated) {
       setCuponMsg("Debes estar autenticado para usar cupones");
       return;
     }
@@ -225,7 +227,7 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
   };
 
   const handleCrearNuevaDireccion = () => {
-    if (!user?.token) {
+    if (!isAuthenticated) {
       setErrorDirecciones("Debes estar autenticado para crear una dirección");
       return;
     }
@@ -279,7 +281,7 @@ const CheckoutForm = ({ cartItems, setCartItems, user }) => {
       return;
     }
 
-    if (!user?.token) {
+    if (!isAuthenticated) {
       setErrorCheckout("Debes estar autenticado para realizar una compra.");
       return;
     }

@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCategories, getCategoryById } from '../../store/slices/categoriesSlice';
 
-const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
+const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
   const dispatch = useDispatch();
+  const { user, isAuthenticated } = useSelector((state) => state.users);
   const categorias = useSelector((state) => state.categories.items);
   const [descuentos, setDescuentos] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -51,7 +52,7 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
   }, [descuentos, dispatch]);
 
   useEffect(() => {
-    if (visible && user?.token) {
+    if (visible && isAuthenticated && user?.token) {
       setLoading(true);
       Promise.all([
         fetch('http://localhost:8080/descuentos', {
@@ -67,7 +68,7 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
         })
         .finally(() => setLoading(false));
     }
-  }, [visible, user, dispatch]);
+  }, [visible, user, isAuthenticated, dispatch]);
 
   const handleActivar = (id) => {
     fetch(`http://localhost:8080/descuentos/${id}/activar`, {
@@ -276,7 +277,7 @@ const DescuentosAdminPanel = ({ user, visible, onClose, fullPage }) => {
   };
 
   if (!visible && !fullPage) return null;
-  if (!user || user.role?.toLowerCase() !== 'admin') return null;
+  if (!isAuthenticated || !user || user.role?.toLowerCase() !== 'admin') return null;
 
   if (fullPage) {
     return (

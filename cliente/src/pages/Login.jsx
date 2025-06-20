@@ -1,15 +1,34 @@
 // src/pages/Login.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, clearAuthError } from '../store/slices/usersSlice';
 
-const Login = ({ setUser, loading, setLoading, error, setError }) => {
+const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  const { authLoading, authError, isAuthenticated } = useSelector((state) => state.users);
+  
   const [credentials, setCredentials] = useState({
     email: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
-  
-  const navigate = useNavigate();
+
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Limpiar errores al desmontar
+  useEffect(() => {
+    return () => {
+      dispatch(clearAuthError());
+    };
+  }, [dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,101 +38,9 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
     }));
   };
 
-  const login = (credentials) => {
-    setLoading(true);
-    setError(null);
-    
-    return fetch('http://localhost:8080/api/v1/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-    })
-      .then(response => {
-        // Primero intentamos obtener el JSON
-        return response.text().then(text => {
-          let data = {};
-          try {
-            data = JSON.parse(text);
-          } catch (e) {
-            // Si no es JSON válido, usar texto plano
-            data = { message: text };
-          }
-          
-          if (!response.ok) {
-            let errorMessage = 'Error al iniciar sesión';
-            
-            // Mapear errores específicos según el código HTTP
-            switch (response.status) {
-              case 403:
-                if (data.message && data.message.toLowerCase().includes('inactivo')) {
-                  errorMessage = 'El usuario está inactivo';
-                } else if (data.message && data.message.toLowerCase().includes('access denied')) {
-                  errorMessage = 'Contraseña incorrecta';
-                } else {
-                  errorMessage = 'No tiene permisos para acceder';
-                }
-                break;
-
-
-              case 404:
-                errorMessage = 'Usuario no encontrado';
-                break;
-              case 401:
-                errorMessage = 'Contraseña incorrecta'; 
-                break;
-              case 400:
-                // Usar mensaje específico del backend si existe
-                if (data.mensaje) {
-                  errorMessage = data.mensaje;
-                } else if (data.message) {
-                  errorMessage = data.message;
-                } else {
-                  errorMessage = 'Datos inválidos';
-                }
-                break;
-              default:
-                // Intentar usar el mensaje del backend
-                if (data.mensaje) {
-                  errorMessage = data.mensaje;
-                } else if (data.message) {
-                  errorMessage = data.message;
-                } else if (response.statusText && response.statusText !== 'OK') {
-                  errorMessage = response.statusText;
-                }
-            }
-            
-            throw new Error(errorMessage);
-          }
-          
-          // Login exitoso
-          return { 
-            email: credentials.email, 
-            token: data.token, 
-            role: data.role 
-          };
-        });
-      })
-      .catch(error => {
-        setError(error.message);
-        return null;
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    login(credentials)
-      .then(userData => {
-        if (userData) {
-          setUser(userData);
-          navigate('/');
-        }
-      });
+    dispatch(loginUser(credentials));
   };
 
   const handleGoToRegister = () => {
@@ -134,13 +61,13 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
           </div>
         
           {/* Error message específico del backend */}
-          {error && (
+          {authError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 text-sm">
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {error}
+                {typeof authError === 'object' ? authError.message : authError}
               </div>
             </div>
           )}
@@ -207,10 +134,10 @@ const Login = ({ setUser, loading, setLoading, error, setError }) => {
           
             <button
               type="submit"
-              disabled={loading}
+              disabled={authLoading}
               className="w-full bg-leather-800 text-white py-2.5 px-4 rounded font-medium hover:bg-leather-900 focus:outline-none focus:ring-2 focus:ring-leather-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? (
+              {authLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                   Iniciando sesión...

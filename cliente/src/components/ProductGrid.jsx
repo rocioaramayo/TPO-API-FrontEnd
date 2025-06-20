@@ -1,7 +1,9 @@
 import ProductCard from './ProductCard';
 import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 
-const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
+const ProductGrid = ({ productos, loading, onLimpiarFiltros }) => {
+  const { user, isAuthenticated } = useSelector((state) => state.users);
   const [favoritos, setFavoritos] = useState([]);
   
   // Estados para paginación
@@ -14,7 +16,7 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
   }, [productos]);
 
   useEffect(() => {
-    if (user && user.token) {
+    if (isAuthenticated && user?.token) {
       console.log('Cargando favoritos para:', user.email);
       
       fetch('http://localhost:8080/api/v1/favoritos', {
@@ -41,10 +43,10 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
     } else {
       setFavoritos([]);
     }
-  }, [user]);
+  }, [user, isAuthenticated]);
 
   const handleFavoriteClick = (productoId) => {
-    if (!user) {
+    if (!isAuthenticated) {
       alert('Debes iniciar sesión para usar favoritos.');
       return;
     }
@@ -157,7 +159,6 @@ const ProductGrid = ({ productos, loading, onLimpiarFiltros, user }) => {
           <ProductCard 
             key={producto.id}
             {...producto}
-            user={user}
             isFavorite={favoritos.includes(producto.id)}
             onFavoriteClick={handleFavoriteClick}
           />

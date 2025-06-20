@@ -4,9 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchAdminProducts } from '../../store/slices/productsSlice';
 import { fetchCategories } from '../../store/slices/categoriesSlice';
 
-const FormCrearProducto = ({ user , setMostrarCrearProducto }) => {
+const FormCrearProducto = ({ setMostrarCrearProducto }) => {
   const dispatch = useDispatch();
   const categorias = useSelector((state) => state.categories.items);
+  const { user } = useSelector((state) => state.users);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -29,11 +30,6 @@ const FormCrearProducto = ({ user , setMostrarCrearProducto }) => {
     imagenes:[]
   })
 
-  useEffect(() => {
-    console.log('Usuario en Productos:', user);
-    console.log('¿Tiene token?', user?.token ? 'SÍ' : 'NO');
-  }, [user]);
-  
   useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);

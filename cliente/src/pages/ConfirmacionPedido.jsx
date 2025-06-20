@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import Footer from "../components/Footer";
 
 // Función para deducir tipo mime
@@ -36,9 +37,12 @@ const formatearMetodoPago = (metodo) => {
   return metodos[metodo] || metodo;
 };
 
-const ConfirmacionPedido = ({ user }) => {
+const ConfirmacionPedido = () => {
   const { compraId } = useParams();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.users.user);
+  const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
+  
   const [compra, setCompra] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -46,7 +50,7 @@ const ConfirmacionPedido = ({ user }) => {
   const API_BASE = "http://localhost:8080";
 
   useEffect(() => {
-    if (!user?.token) {
+    if (!isAuthenticated || !user?.token) {
       navigate('/login');
       return;
     }
@@ -77,7 +81,7 @@ const ConfirmacionPedido = ({ user }) => {
         setError(err.message);
         setLoading(false);
       });
-  }, [compraId, user, navigate]);
+  }, [compraId, user, isAuthenticated, navigate]);
 
   // Función para mostrar información de entrega
   const mostrarInfoEntrega = (compra) => {

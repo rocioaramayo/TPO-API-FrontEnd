@@ -1,6 +1,8 @@
 // src/App.jsx
 import {useEffect, useState} from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from './store/slices/usersSlice';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Home from './pages/Home.jsx';
@@ -23,27 +25,26 @@ import ConfirmacionPedido from './pages/ConfirmacionPedido';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
 
-const App = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+const AppContent = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.users.user);
+  const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
   
   const location = useLocation();
 
   const [cartOpen, setCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
 
-  // Eliminado useEffect que escuchaba 'updateCart'
-
   // Función para manejar el logout
   const handleLogout = () => {
-    setUser(null);
+    dispatch(logout());
     setCartItems([]);
+    navigate('/');
   };
 
   const handleAddToCart = (product) => {
-    console.log('Producto al agregar al carrito:', product);
-    if (!user) {
+    if (!isAuthenticated) {
       alert("Debés iniciar sesión para agregar productos al carrito");
       return;
     }
@@ -56,7 +57,6 @@ const App = () => {
       stock: product.stock || product.stockDisponible || 99,
       quantity: 1,
     };
-    console.log('Item que va al carrito:', newItem);
 
     setCartItems((prevItems) => {
       const existing = prevItems.find(item => item.id === newItem.id);
@@ -102,102 +102,92 @@ const App = () => {
 
 
   return (
-    <Provider store={store}>
-      <>
-        <Routes>
-          <Route 
-            path="/login" 
-            element={
-              <>
-                <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-                <Login 
-                  setUser={setUser} 
-                  loading={loading}
-                  setLoading={setLoading}
-                  error={error}
-                  setError={setError}
-                />
-              </>
-            } 
-          />
+    <>
+      <Routes>
+        <Route 
+          path="/login" 
+          element={
+            <>
+              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <Login />
+            </>
+          } 
+        />
 
-            <Route
-    path="/perfil"
-    element={
-      <>
-        <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-        {user?.role === "ADMIN" ? (
-          <AdminProfilePage user={user} onLogout={handleLogout} />
-        ) : (
-          <ProfilePage user={user} onLogout={handleLogout} />
-        )}
-      </>
-    }
-  />
+        <Route
+          path="/perfil"
+          element={
+            <>
+              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              {user?.role === "ADMIN" ? (
+                <AdminProfilePage onLogout={handleLogout} />
+              ) : (
+                <ProfilePage onLogout={handleLogout} />
+              )}
+            </>
+          }
+        />
 
-            <Route
+        <Route
           path="/register" 
           element={
             <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-              <Register 
-                setUser={setUser} 
-                loading={loading}
-                setLoading={setLoading}
-                error={error}
-                setError={setError}
-              />
+              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <Register />
             </>
-            
           } 
         />
+        
         <Route 
           path="/" 
           element={
             <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-              <Home user={user} logout={handleLogout} />
+              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <Home logout={handleLogout} />
             </>
-
-
           }
         />
+        
         {/* RUTAS DE PRODUCTOS */}
         <Route 
           path="/productos/:id" 
           element={
-          <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-              <ProductDetail user={user} onAddToCart={handleAddToCart} />
-          </>}  
+            <>
+              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <ProductDetail onAddToCart={handleAddToCart} />
+            </>
+          }  
         />
+        
         <Route 
           path="/productos" 
           element={
-          <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-              <Productos user={user} />
-          </>} 
+            <>
+              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <Productos />
+            </>
+          } 
         />
+        
         <Route 
           path="/nosotros" 
           element={
-          <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <>
+              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
               <Nosotros />
-          </>} 
+            </>
+          } 
         />
 
         <Route 
           path="/favoritos" 
           element={
-          <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-              <Favoritos user={user} />
-          </>} 
+            <>
+              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <Favoritos />
+            </>
+          } 
         />
-
-      
 
         <Route 
           path="/admin/*" 
@@ -210,25 +200,25 @@ const App = () => {
         {/* Páginas legales y de ayuda */}
         <Route path="/contacto" element={
           <>
-            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
             <Contacto />
           </>
         } />
         <Route path="/preguntas-frecuentes" element={
           <>
-            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
             <PreguntasFrecuentes />
           </>
         } />
         <Route path="/terminos-condiciones" element={
           <>
-            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
             <TerminosCondiciones />
           </>
         } />
         <Route path="/politica-privacidad" element={
           <>
-            <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
             <PoliticaPrivacidad />
           </>
         } />
@@ -236,7 +226,7 @@ const App = () => {
           path="/checkout" 
           element={
             <>
-              <Navigation user={user} onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
               <CheckoutPage
                 cartItems={cartItems}
                 setCartItems={setCartItems}
@@ -256,22 +246,22 @@ const App = () => {
         onSubQty={handleSubQty}
       />
     </>
-    </Provider>
   );
 };
 
-export default App;
-// Deducir tipo mime a partir del nombre del archivo (si existe)
-function guessMimeType(foto) {
-  if (foto?.nombre) {
-    const ext = foto.nombre.split('.').pop().toLowerCase();
-    if (ext === "png") return "image/png";
-    if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
-    if (ext === "gif") return "image/gif";
-    if (ext === "webp") return "image/webp";
-  }
-  // Si empieza con "/9j/" probablemente es JPEG
-  if (foto?.file && foto.file.startsWith("/9j/")) return "image/jpeg";
-  // Default
-  return "image/jpeg";
+function App() {
+  return (
+    <Provider store={store}>
+      <AppContent />
+    </Provider>
+  );
 }
+
+function guessMimeType(foto) {
+  if (foto.startsWith('/9j/')) return 'image/jpeg';
+  if (foto.startsWith('iVBORw0KGgo=')) return 'image/png';
+  if (foto.startsWith('R0lGODlh')) return 'image/gif';
+  return 'image/jpeg';
+}
+
+export default App;

@@ -13,9 +13,5 @@ export const store = configureStore({
     orders: ordersReducer,
     favoritos: favoritosReducer,
   },
-  devTools: true,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: false,
-    }),
+  devTools: process.env.NODE_ENV !== 'production',
 }); 

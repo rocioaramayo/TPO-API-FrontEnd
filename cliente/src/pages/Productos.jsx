@@ -8,12 +8,11 @@ import ProductGrid from '../components/ProductGrid';
 import FilterTags from '../components/FilterTags';
 import { useLocation } from 'react-router-dom';
 
-const Productos = ({ user }) => {
+const Productos = () => {
   const dispatch = useDispatch();
-  const productos = useSelector((state) => state.products.items);
-  const loading = useSelector((state) => state.products.loading);
-  const categorias = useSelector((state) => state.categories.items);
-  const categoriasLoading = useSelector((state) => state.categories.loading);
+  const { items: productos, loading } = useSelector((state) => state.products);
+  const { items: categorias, loading: categoriasLoading } = useSelector((state) => state.categories);
+  const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
   // Estados principales locales solo para filtros y UI
   const [tiposCuero, setTiposCuero] = useState([]);
   const [colores, setColores] = useState([]);
@@ -154,7 +153,6 @@ const Productos = ({ user }) => {
               productos={productos}
               loading={loading}
               onLimpiarFiltros={limpiarFiltros}
-              user={user}
             />
           </div>
         </div>

@@ -1,12 +1,16 @@
 import CarruselHero from '../components/CarruselHero';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import Footer from '../components/Footer';
 import artesano from "../assets/artesano-trabajando.jpg";
 import ProductCard from '../components/ProductCard';
 
-const Home = ({ user, logout }) => {
+const Home = ({ logout }) => {
   const navigate = useNavigate();
+  const user = useSelector((state) => state.users.user);
+  const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
+  
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [favoritos, setFavoritos] = useState([]);
@@ -30,7 +34,7 @@ const Home = ({ user, logout }) => {
 
   // Cargar favoritos del usuario
   useEffect(() => {
-    if (user && user.token) {
+    if (isAuthenticated && user?.token) {
       fetch('http://localhost:8080/api/v1/favoritos', {
         headers: {
           'Authorization': `Bearer ${user.token}`,
@@ -51,11 +55,11 @@ const Home = ({ user, logout }) => {
     } else {
       setFavoritos([]);
     }
-  }, [user]);
+  }, [user, isAuthenticated]);
 
   // Manejar click en favoritos
   const handleFavoriteClick = (productoId) => {
-    if (!user) {
+    if (!isAuthenticated) {
       alert('Debes iniciar sesión para usar favoritos.');
       return;
     }
@@ -181,7 +185,6 @@ const Home = ({ user, logout }) => {
                 <ProductCard 
                   key={producto.id}
                   {...producto}
-                  user={user}
                   isFavorite={favoritos.includes(producto.id)}
                   onFavoriteClick={handleFavoriteClick}
                 />
@@ -196,7 +199,7 @@ const Home = ({ user, logout }) => {
             >
               Ver todos los productos
             </button>
-            {!user && (
+            {!isAuthenticated && (
               <p className="text-leather-600 mt-4 text-sm">
                 💡 Regístrate para agregar productos a favoritos y realizar compras
               </p>
@@ -206,7 +209,7 @@ const Home = ({ user, logout }) => {
       </section>
 
       {/* CTA Final - SOLO para usuarios NO logueados */}
-      {!user && (
+      {!isAuthenticated && (
         <section className="py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">
             <div className="bg-leather-800 rounded-2xl p-12 text-white">

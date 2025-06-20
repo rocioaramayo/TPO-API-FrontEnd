@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchCategories, getCategoryById, clearSelectedCategory } from '../../store/slices/categoriesSlice';
 
-const GestionCategorias = ({ user }) => {
+const GestionCategorias = () => {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.users);
   const categorias = useSelector((state) => state.categories.items);
   const selectedCategory = useSelector((state) => state.categories.selectedCategory);
   const loading = useSelector((state) => state.categories.loading);

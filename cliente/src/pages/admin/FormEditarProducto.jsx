@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { data, Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCategories } from '../../store/slices/categoriesSlice';
+import { fetchProductById } from '../../store/slices/productsSlice';
 
 // Deducir tipo mime a partir del nombre del archivo (si existe)
 function guessMimeType(foto) {
@@ -18,27 +19,48 @@ function guessMimeType(foto) {
   return "image/jpeg";
 }
 
-const FormEditarProducto = ({ user , setMostrarEditarProducto, id }) => {
+const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
   const dispatch = useDispatch();
-  const categorias = useSelector((state) => state.categories.items);
   const navigate = useNavigate();
-  const [producto,setProducto] = useState() ;
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  
+  const { user } = useSelector((state) => state.users);
+  const categorias = useSelector((state) => state.categories.items);
+  const { selectedProduct, loading, error } = useSelector((state) => state.products);
+
+  const [producto, setProducto] = useState(null);
   const [imagenes, setImagenes] = useState([]);
+  const [success, setSuccess] = useState(false);
+  const [internalError, setInternalError] = useState(null);
+
+  // Cargar datos del producto desde Redux
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchProductById(id));
+    }
+  }, [id, dispatch]);
+
+  // Poblar el estado local cuando los datos de Redux estén listos
+  useEffect(() => {
+    if (selectedProduct) {
+      setProducto(selectedProduct);
+    }
+  }, [selectedProduct]);
+
+  // Cargar categorías
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
   // Handler para eliminar una foto actual del producto
   const handleEliminarFoto = (fotoId) => {
     if (!window.confirm("¿Seguro que querés eliminar esta foto?")) return;
     fetch(`http://localhost:8080/productos/${id}/fotos/${fotoId}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${user.token}`
-      }
+      headers: { 'Authorization': `Bearer ${user.token}` }
     })
     .then(response => {
       if (response.ok) {
+        // Optimista: actualiza la UI localmente
         setProducto(prev => ({
           ...prev,
           fotos: prev.fotos.filter(f => f.id !== fotoId)
@@ -49,17 +71,7 @@ const FormEditarProducto = ({ user , setMostrarEditarProducto, id }) => {
     })
     .catch(() => alert("No se pudo eliminar la foto (error de red)"));
   };
-  useEffect(()=>{
-    fetch(`http://localhost:8080/productos/detalle/${id}`)
-    .then(response => response.json())
-    .then(data => setProducto(data))
-    .catch(error => console.error('Error al cargar productos:', error));
-  },[]);
-
-  useEffect(() => {
-      dispatch(fetchCategories());
-    }, [dispatch]); 
-
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProducto(prev => ({

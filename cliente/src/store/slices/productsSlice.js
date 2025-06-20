@@ -46,10 +46,28 @@ export const fetchAdminProducts = createAsyncThunk('products/fetchAdminProducts'
   }
 });
 
+// Thunk para obtener un producto por su ID
+export const fetchProductById = createAsyncThunk(
+  'products/fetchProductById',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`http://localhost:8080/productos/detalle/${id}`);
+      if (!response.ok) {
+        throw new Error('No se pudo obtener el producto.');
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.toString());
+    }
+  }
+);
+
 const initialState = {
   items: [],
   loading: false,
   error: null,
+  selectedProduct: null, // Nuevo estado para el producto seleccionado
 };
 
 const productsSlice = createSlice({
@@ -81,6 +99,20 @@ const productsSlice = createSlice({
           : [];
       })
       .addCase(fetchAdminProducts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Reducers para fetchProductById
+      .addCase(fetchProductById.pending, (state) => {
+        state.loading = true;
+        state.selectedProduct = null;
+        state.error = null;
+      })
+      .addCase(fetchProductById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedProduct = action.payload;
+      })
+      .addCase(fetchProductById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

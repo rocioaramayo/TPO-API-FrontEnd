@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from 'react-redux';
 
-const GestionComprasAdmin = ({ user }) => {
+const GestionComprasAdmin = () => {
+    const { user } = useSelector((state) => state.users);
     const [compras, setCompras] = useState([]);
     const [error, setError] = useState(null);
     const [compraDetalleId, setCompraDetalleId] = useState(null);
@@ -9,17 +11,19 @@ const GestionComprasAdmin = ({ user }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch("http://localhost:8080/compras/admin/compras", {
-            headers: {
-                Authorization: `Bearer ${user.token}`,
-            },
-        })
-            .then((res) => {
-                if (!res.ok) throw new Error("Error al obtener compras");
-                return res.json();
+        if (user?.token) {
+            fetch("http://localhost:8080/compras/admin/compras", {
+                headers: {
+                    Authorization: `Bearer ${user.token}`,
+                },
             })
-            .then(setCompras)
-            .catch((err) => setError(err.message));
+                .then((res) => {
+                    if (!res.ok) throw new Error("Error al obtener compras");
+                    return res.json();
+                })
+                .then(setCompras)
+                .catch((err) => setError(err.message));
+        }
     }, [user]);
 
     return (

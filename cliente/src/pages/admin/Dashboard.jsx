@@ -17,6 +17,7 @@ const Dashboard = ({user}) => {
   const [productosInactivos, setProductosInactivos] = useState(0);
 
   useEffect(() => {
+    if (!user || !user.token) return;
     // Cargar compras
     fetch("http://localhost:8080/compras", {
       method: 'GET',
@@ -32,7 +33,7 @@ const Dashboard = ({user}) => {
     .catch((error) => {
       console.error('Error al cargar compras:', error);
     });
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!stats || stats.length === 0) return;
@@ -92,6 +93,7 @@ const Dashboard = ({user}) => {
   }, [stats]);
 
   useEffect(() => {
+    if (!user || !user.token) return;
     // Cargar usuarios
     fetch('http://127.0.0.1:8080/api/v1/users', {
       method: "GET",
@@ -106,9 +108,10 @@ const Dashboard = ({user}) => {
     .catch((error) => {
       console.error('Error al cargar usuarios:', error);
     });
-  }, []);
+  }, [user]);
 
   useEffect(() => {
+    if (!user || !user.token) return;
     // Contar usuarios activos (no admin y con estado activo)
     let cantidad = 0;
     usuarios?.forEach((u) => {
@@ -117,11 +120,16 @@ const Dashboard = ({user}) => {
       }
     });
     setCantUsuarios(cantidad);
-  }, [usuarios]);
+  }, [user, usuarios]);
 
   useEffect(() => {
+    if (!user || !user.token) return;
     // Cargar productos
-    fetch("http://localhost:8080/productos/admin")
+    fetch("http://localhost:8080/productos/admin", {
+      headers: {
+        'Authorization': `Bearer ${user.token}`
+      }
+    })
       .then((res) => res.json())
       .then((data) => {
         setProductos(data.productos || []);
@@ -129,9 +137,10 @@ const Dashboard = ({user}) => {
       .catch((error) => {
         console.error('Error al cargar productos:', error);
       });
-  }, []);
+  }, [user]);
 
   useEffect(() => {
+    if (!user || !user.token) return;
     // Calcular estadísticas de productos
     let pocoStock = 0;
     let activos = 0;
@@ -149,7 +158,7 @@ const Dashboard = ({user}) => {
     setProductosPocoStock(pocoStock);
     setProductosActivos(activos);
     setProductosInactivos(inactivos);
-  }, [productos]);
+  }, [user, productos]);
 
   const navigate = useNavigate();
 

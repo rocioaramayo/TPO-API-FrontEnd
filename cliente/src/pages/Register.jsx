@@ -1,8 +1,15 @@
 // src/pages/Register.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { registerUser, clearAuthError } from '../store/slices/usersSlice';
 
-const Register = ({ setUser, loading, setLoading, error, setError }) => {
+const Register = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  const { authLoading, authError, isAuthenticated } = useSelector((state) => state.users);
+  
   const [userData, setUserData] = useState({
     username: '',
     email: '',
@@ -14,8 +21,20 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
   const [formErrors, setFormErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
-  const navigate = useNavigate();
+
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Limpiar errores al desmontar
+  useEffect(() => {
+    return () => {
+      dispatch(clearAuthError());
+    };
+  }, [dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,84 +49,6 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
         [name]: ''
       }));
     }
-  };
-
-  const register = (userData) => {
-    setLoading(true);
-    setError(null);
-    
-    const registrationData = {
-      ...userData,
-      role: 'COMPRADOR'
-    };
-    
-    return fetch('http://localhost:8080/api/v1/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(registrationData),
-    })
-      .then(response => {
-        // Primero intentamos obtener el texto de la respuesta
-        return response.text().then(text => {
-          let data = {};
-          try {
-            data = JSON.parse(text);
-          } catch (e) {
-            // Si no es JSON válido, usar texto plano
-            data = { message: text };
-          }
-          
-          if (!response.ok) {
-            let errorMessage = 'Error al registrarse';
-            
-            // Mapear errores específicos según el código HTTP y el backend
-            switch (response.status) {
-              case 400:
-                // Verificar mensajes específicos del backend
-                if (text.includes('usuario ya existe') || 
-                    response.statusText.includes('usuario ya existe')) {
-                  errorMessage = 'El nombre de usuario ya existe';
-                } else if (text.includes('menos 8 caracteres')) {
-                  errorMessage = 'La contraseña debe tener al menos 8 caracteres';
-                } else if (data.mensaje) {
-                  errorMessage = data.mensaje;
-                } else if (data.message) {
-                  errorMessage = data.message;
-                } else {
-                  errorMessage = 'Datos inválidos. Verifica la información ingresada.';
-                }
-                break;
-              case 403:
-                // Email inválido
-                errorMessage = 'Email no válido. Volver a intentar cumpliendo con los requisitos.';
-                break;
-              default:
-                // Intentar usar el mensaje del backend
-                if (data.mensaje) {
-                  errorMessage = data.mensaje;
-                } else if (data.message) {
-                  errorMessage = data.message;
-                } else if (response.statusText && response.statusText !== 'OK') {
-                  errorMessage = response.statusText;
-                }
-            }
-            
-            throw new Error(errorMessage);
-          }
-          
-          // Registro exitoso
-          return { email: userData.email, token: data.token };
-        });
-      })
-      .catch(error => {
-        setError(error.message);
-        return null;
-      })
-      .finally(() => {
-        setLoading(false);
-      });
   };
 
   const validateForm = () => {
@@ -154,13 +95,13 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
     
     const { confirmPassword, ...registerData } = userData;
     
-    register(registerData)
-      .then(user => {
-        if (user) {
-          setUser(user);
-          navigate('/');
-        }
-      });
+    // Agregar el rol por defecto
+    const registrationData = {
+      ...registerData,
+      role: 'COMPRADOR'
+    };
+    
+    dispatch(registerUser(registrationData));
   };
   
   const handleGoToLogin = () => {
@@ -181,13 +122,13 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
           </div>
         
           {/* Error message específico del backend */}
-          {error && (
+          {authError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 text-sm">
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {error}
+                {typeof authError === 'object' ? authError.message : authError}
               </div>
             </div>
           )}
@@ -350,10 +291,10 @@ const Register = ({ setUser, loading, setLoading, error, setError }) => {
           
             <button
               type="submit"
-              disabled={loading}
+              disabled={authLoading}
               className="w-full bg-leather-800 text-white py-2.5 px-4 rounded font-medium hover:bg-leather-900 focus:outline-none focus:ring-2 focus:ring-leather-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? (
+              {authLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                   Creando cuenta...

@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
-const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
+const ReviewForm = ({ productoId, onReviewSubmitted }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   
+  const { user, isAuthenticated } = useSelector(state => state.users);
+
   const [reviewData, setReviewData] = useState({
     rating: 0,
     titulo: '',
@@ -160,7 +163,7 @@ const ReviewForm = ({ user, productoId, onReviewSubmitted }) => {
     return stars;
   };
 
-  if (!user) {
+  if (!isAuthenticated) {
     return (
       <div className="py-8 border-t border-leather-200">
         <div className="text-center">

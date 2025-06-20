@@ -14,52 +14,50 @@ function guessMimeType(foto) {
 }
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchProductById } from '../store/slices/productsSlice';
 import Footer from '../components/Footer';
 import AuthMessage from '../components/AuthMessage';
 import ReviewList from '../components/ReviewList';
 import ReviewForm from '../components/ReviewForm';
 import FavoriteNotification from '../components/FavoriteNotification';
 
-
-
-const ProductDetail = ({ user, onAddToCart }) => {
+const ProductDetail = ({ onAddToCart }) => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [producto, setProducto] = useState(null);
+    const dispatch = useDispatch();
+    
+    // Leer desde el estado de Redux
+    const { user, isAuthenticated } = useSelector((state) => state.users);
+    const { selectedProduct: producto, loading, error } = useSelector((state) => state.products);
+    
     const [selectedPhoto, setSelectedPhoto] = useState(0);
     const [isFavorite, setIsFavorite] = useState(false);
     const [loadingFavorite, setLoadingFavorite] = useState(false);
     const [showAuthMessage, setShowAuthMessage] = useState(false);
-    const [reviewsKey, setReviewsKey] = useState(0); // Para forzar recarga de reviews
-    const URL = `http://localhost:8080/productos/detalle/${id}`;
+    const [reviewsKey, setReviewsKey] = useState(0);
     const [showNotification, setShowNotification] = useState(false);
     const [notificationData, setNotificationData] = useState({
-    isAdded: false,
-    productName: ''
+      isAdded: false,
+      productName: ''
     });
+    
+    // Usar Redux para cargar el producto
     useEffect(() => {  
-        console.log("Haciendo fetch a:", URL);
-        
-        fetch(URL)
-        .then((response) => response.json())
-        .then((data) => {
-            setProducto(data);
-            console.log("Producto cargado:", data);
-        })
-        .catch((error) => {
-            console.error("Error al cargar el producto:", error);
-        });
-    }, [id]);
+        if (id) {
+            dispatch(fetchProductById(id));
+        }
+    }, [id, dispatch]);
 
     // Verificar si es favorito cuando se carga el producto
     useEffect(() => {
-        if (user && user.token && id) {
+        if (isAuthenticated && user?.token && id) {
             checkFavorite();
         }
-    }, [user, id]);
+    }, [user, id, isAuthenticated]);
 
     function checkFavorite() {
-        if (!user || !user.token) return;
+        if (!isAuthenticated || !user?.token) return;
         
         fetch(`http://localhost:8080/api/v1/favoritos/check/${id}`, {
             headers: {
@@ -78,7 +76,7 @@ const ProductDetail = ({ user, onAddToCart }) => {
 
     // Manejar toggle de favoritos
     function handleFavoriteToggle() {
-        if (!user || !user.token) {
+        if (!isAuthenticated || !user?.token) {
             setShowAuthMessage(true);
             return;
         }
@@ -141,8 +139,8 @@ const ProductDetail = ({ user, onAddToCart }) => {
         }).format(price);
     }
 
-    // Si no hay producto, mostrar loading
-    if (!producto) {
+    // Si no hay producto, mostrar loading o error
+    if (loading) {
         return (
             <div className="min-h-screen bg-cream-50 flex items-center justify-center">
                 <div className="text-center">
@@ -151,6 +149,22 @@ const ProductDetail = ({ user, onAddToCart }) => {
                 </div>
             </div>
         );
+    }
+
+    if (error) {
+      return (
+            <div className="min-h-screen bg-cream-50 flex items-center justify-center">
+                <div className="text-center p-8 bg-white rounded-lg shadow-md">
+                    <h2 className="text-2xl font-serif text-red-700 mb-4">Error</h2>
+                    <p className="text-leather-600">No se pudo cargar el producto.</p>
+                    <p className="text-sm text-gray-500 mt-2">{error}</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!producto) {
+        return null; // O un mensaje de "Producto no encontrado"
     }
 
     return (
@@ -286,7 +300,7 @@ const ProductDetail = ({ user, onAddToCart }) => {
                                         ? 'bg-gray-100 cursor-not-allowed' 
                                         : 'bg-white hover:bg-gray-50 shadow-md hover:shadow-lg border border-leather-200'
                                 }`}
-                                title={!user ? 'Regístrate para agregar a favoritos' : isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                                title={!isAuthenticated ? 'Regístrate para agregar a favoritos' : isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
                             >
                                 {loadingFavorite ? (
                                     <div className="w-6 h-6 border-2 border-leather-300 border-t-leather-600 rounded-full animate-spin"></div>
@@ -295,7 +309,7 @@ const ProductDetail = ({ user, onAddToCart }) => {
                                         className={`w-6 h-6 transition-colors duration-200 ${
                                             isFavorite 
                                                 ? 'text-red-500 fill-current' 
-                                                : user 
+                                                : isAuthenticated 
                                                     ? 'text-gray-400 hover:text-red-400' 
                                                     : 'text-gray-300'
                                         }`} 
@@ -411,9 +425,8 @@ const ProductDetail = ({ user, onAddToCart }) => {
                     
                     {/* Formulario para escribir nueva review */}
                     <ReviewForm 
-                        user={user} 
                         productoId={id} 
-                        onReviewSubmitted={handleReviewSubmitted}
+                        onReviewSubmitted={handleReviewSubmitted} 
                     />
                 </div>
             </div>

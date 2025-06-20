@@ -1,12 +1,11 @@
 import React from "react";
 import CheckoutForm from "../components/CheckoutForm";
 
-const CheckoutPage = ({ cartItems, setCartItems, user }) => {
+const CheckoutPage = ({ cartItems, setCartItems }) => {
   return (
     <CheckoutForm 
       cartItems={cartItems}
       setCartItems={setCartItems}
-      user={user}
     />
   );
 };

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
-const AdminProfilePage = ({ user }) => {
-  const [userInfo, setUserInfo] = useState(null);
+const AdminProfilePage = () => {
+  const user = useSelector((state) => state.users.user);
   const [editMode, setEditMode] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -15,22 +16,12 @@ const AdminProfilePage = ({ user }) => {
   const API_BASE = "http://localhost:8080";
 
   useEffect(() => {
-    if (user?.token) {
-      fetch(`${API_BASE}/api/v1/users/me`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          setUserInfo(data);
-          setFormData({
-            firstName: data.firstName || "",
-            lastName: data.lastName || "",
-            email: data.email || "",
-          });
-        })
-        .catch(() => setUserInfo(null));
+    if (user) {
+      setFormData({
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        email: user.email || "",
+      });
     }
   }, [user]);
 
@@ -98,7 +89,7 @@ const AdminProfilePage = ({ user }) => {
       });
   };
 
-  if (!userInfo) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center text-leather-700 text-xl">
         <span className="animate-spin border-4 border-leather-300 border-t-leather-700 rounded-full w-12 h-12 mr-4"></span>
@@ -113,9 +104,9 @@ const AdminProfilePage = ({ user }) => {
         <div>
           <div className="flex flex-col items-center mb-8">
             <div className="w-16 h-16 rounded-full bg-leather-400 flex items-center justify-center text-white text-2xl font-bold shadow">
-              {userInfo.firstName?.charAt(0).toUpperCase() ?? "U"}
+              {user.firstName?.charAt(0).toUpperCase() ?? "U"}
             </div>
-            <p className="mt-2 text-leather-700 text-sm">{userInfo.email}</p>
+            <p className="mt-2 text-leather-700 text-sm">{user.email}</p>
           </div>
           <nav className="flex flex-col gap-4">
             <button
@@ -145,7 +136,7 @@ const AdminProfilePage = ({ user }) => {
                   className="border p-1 rounded ml-2"
                 />
               ) : (
-                userInfo.firstName
+                user.firstName
               )}
             </div>
             <div>
@@ -159,7 +150,7 @@ const AdminProfilePage = ({ user }) => {
                   className="border p-1 rounded ml-2"
                 />
               ) : (
-                userInfo.lastName
+                user.lastName
               )}
             </div>
             <div>
@@ -174,7 +165,7 @@ const AdminProfilePage = ({ user }) => {
             </div>
             <div>
               <span className="font-semibold text-leather-700">Rol:</span>{" "}
-              {userInfo.role}
+              {user.role}
             </div>
           </div>
           <div className="flex justify-end gap-2 mt-6">

@@ -3,18 +3,18 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchAdminProducts } from "../../store/slices/productsSlice";
 import FormEditarProducto from "./FormEditarProducto";
 
-export default function TablaProductos({ user, mostrarCrearProducto }) {
+export default function TablaProductos({ mostrarCrearProducto, onEditar }) {
   const dispatch = useDispatch();
   const productos = useSelector((state) => state.products.items) || [];
+  const { user } = useSelector((state) => state.users);
   const loading = useSelector((state) => state.products.loading);
   const [mostrarAlertaDesactivar, setMostrarAlertaDesactivar] = useState(false);
   const [mostrarAlertaActivar, setMostrarAlertaActivar] = useState(false);
   const [mostrarAgregarStock, setMostrarAgregarStock] = useState(false);
-  const [mostrarEditarProducto, setMostrarEditarProducto] = useState(false);
   const [errorStock, setErrorStock] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
-  const [id, setId] = useState(null);
   const [stock, setStock] = useState(0);
+
   useEffect(() => {
     dispatch(fetchAdminProducts());
   }, [dispatch, mostrarCrearProducto]);
@@ -106,10 +106,7 @@ export default function TablaProductos({ user, mostrarCrearProducto }) {
             {currentProductos.map((prod) => (
                 <tr key={prod.id} className="hover:bg-leather-50 transition ">
                 <td className="px-4 py-3">
-                    <button className="px-1" value={prod.id} onClick={()=>{
-                        setMostrarEditarProducto(true)
-                        setId(prod.id)
-                        }}>✏️</button>
+                    <button className="px-1" value={prod.id} onClick={() => onEditar(prod)}>✏️</button>
                     <button className="px-1 text-red-600 hover:text-red-800" value={prod.id} onClick={()=>{
                         setProductoSeleccionado(prod); // o ID del producto
                         setMostrarAlertaDesactivar(true);
@@ -198,61 +195,56 @@ export default function TablaProductos({ user, mostrarCrearProducto }) {
         {mostrarAgregarStock && (
             <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
                 <div className="bg-white p-6 rounded-lg shadow-lg w-[500px]">
-                    {errorStock && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 text-sm">
-                            <div className="flex items-center">
-                                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                El stock debe ser positivo o igual a 0.
-                            </div>
+                    <h2 className="text-lg font-bold mb-4">Agregar o quitar Stock</h2>
+                    <h3 className='text-sm mb-2'>Vas a cambiar el stock de {productoSeleccionado.nombre}</h3>
+                    <p className='text-sm mb-6'>Stock actual: {productoSeleccionado.stock}</p>
+                    <form className="space-y-4" onSubmit={handleAgregarStock}>
+                        <div className="flex flex-col">
+                        <label htmlFor="stock" className="mb-2 text-sm font-medium">Cantidad a agregar o quitar</label>
+                        <input
+                            id="stock"
+                            name="stock"
+                            type="number"
+                            value={stock}
+                            onChange={handleChangeStock}
+                            className="p-2 border border-gray-300 rounded"
+                        />
+                        {errorStock && <p className='text-red-500'>El stock no puede ser negativo</p>}
                         </div>
-                    )}
-                <h2 className="text-lg font-bold mb-4">¿Agregar stock?</h2>
-                <p className="text-sm mb-6">¿Cuantas unidades de {productoSeleccionado.nombre} quieres agregar?</p>
-                
-                <div className="flex justify-between">
-                    <button
-                    onClick={() => {
-                        setMostrarAgregarStock(false)
-                        setErrorStock(false)
-                    }
-                    }
-                    className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
-                    >
-                    Cancelar
-                    </button>
-                    <input className="" type="number" onChange={handleChangeStock} placeholder="Stock" />
-                    <button
-                    onClick={handleAgregarStock}
-                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                    >
-                    Agregar
-                    </button>
-                </div>
+                        <div className="flex justify-between">
+                        <button
+                            type="button"
+                            onClick={() => setMostrarAgregarStock(false)}
+                            className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                        >
+                            Aceptar
+                        </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         )}
-        {mostrarEditarProducto && (
-            <FormEditarProducto user={user} id={id} setMostrarEditarProducto={setMostrarEditarProducto}/>
-        )}
-        <div className="flex justify-center mt-4 gap-2">
+        <div className="flex justify-center mt-4">
             <button
-                className="btn-outline-leather"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                onClick={() => setCurrentPage(currentPage - 1)}
                 disabled={currentPage === 1}
+                className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50"
             >
-                ← Anterior
+                Anterior
             </button>
-            <span className="text-sm text-gray-600">
-                Página {currentPage} de {totalPages}
-            </span>
+            <span className='px-4 py-2 mx-1'>Página {currentPage} de {totalPages}</span>
             <button
-                className="btn-outline-leather"
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                onClick={() => setCurrentPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
+                className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50"
             >
-                Siguiente →
+                Siguiente
             </button>
         </div>
     </>

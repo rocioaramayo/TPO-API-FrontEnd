@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import FavoriteNotification from '../components/FavoriteNotification';
 
-const Favoritos = ({ user, onFavoritesUpdate }) => {
+const Favoritos = ({ onFavoritesUpdate }) => {
+  const user = useSelector((state) => state.users.user);
+  const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
+  
   const [favoritos, setFavoritos] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -15,12 +19,12 @@ const Favoritos = ({ user, onFavoritesUpdate }) => {
   });
 
   useEffect(() => {
-    if (!user) {
+    if (!isAuthenticated) {
       navigate('/login');
       return;
     }
     cargarFavoritos();
-  }, [user, navigate]);
+  }, [isAuthenticated, navigate]);
 
   function cargarFavoritos() {
     setLoading(true);
@@ -91,7 +95,7 @@ const Favoritos = ({ user, onFavoritesUpdate }) => {
       });
   }
 
-  if (!user) {
+  if (!isAuthenticated) {
     return null; 
   }
 

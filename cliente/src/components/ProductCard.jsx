@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import AuthMessage from './AuthMessage';
 import FavoriteNotification from './FavoriteNotification'; 
 
@@ -26,11 +27,11 @@ const ProductCard = ({
   tipoCuero, 
   color, 
   pocoStock,
-  user,
   isFavorite,
   onFavoriteClick
 }) => {
   const navigate = useNavigate();
+  const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
   const [showAuthMessage, setShowAuthMessage] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationData, setNotificationData] = useState({
@@ -47,7 +48,7 @@ const ProductCard = ({
 
   const handleFavoriteClick = (e) => {
     e.stopPropagation();
-    if (!user) return setShowAuthMessage(true);
+    if (!isAuthenticated) return setShowAuthMessage(true);
     const willBeAdded = !isFavorite;
     setNotificationData({ isAdded: willBeAdded, productName: nombre });
     onFavoriteClick(id);
@@ -112,10 +113,10 @@ const ProductCard = ({
           <button
             onClick={handleFavoriteClick}
             className="absolute top-3 right-3 p-2 rounded-full bg-white hover:bg-gray-50 shadow-sm"
-            title={!user ? 'Regístrate para agregar a favoritos' : isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+            title={!isAuthenticated ? 'Regístrate para agregar a favoritos' : isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
           >
             <svg
-              className={`w-5 h-5 ${isFavorite ? 'text-red-500 fill-current' : user ? 'text-gray-400 hover:text-red-400' : 'text-gray-300'}`}
+              className={`w-5 h-5 ${isFavorite ? 'text-red-500 fill-current' : isAuthenticated ? 'text-gray-400 hover:text-red-400' : 'text-gray-300'}`}
               fill={isFavorite ? "currentColor" : "none"}
               stroke="currentColor"
               viewBox="0 0 24 24"
