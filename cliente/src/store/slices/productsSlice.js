@@ -63,11 +63,41 @@ export const fetchProductById = createAsyncThunk(
   }
 );
 
+// Thunk para obtener los tipos de cuero
+export const fetchTiposCuero = createAsyncThunk(
+  'products/fetchTiposCuero',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`http://localhost:8080/productos/tipos-cuero`);
+      if (!response.ok) throw new Error('No se pudo obtener los tipos de cuero.');
+      return await response.json();
+    } catch (error) {
+      return rejectWithValue(error.toString());
+    }
+  }
+);
+
+// Thunk para obtener los colores
+export const fetchColores = createAsyncThunk(
+  'products/fetchColores',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`http://localhost:8080/productos/colores`);
+      if (!response.ok) throw new Error('No se pudo obtener los colores.');
+      return await response.json();
+    } catch (error) {
+      return rejectWithValue(error.toString());
+    }
+  }
+);
+
 const initialState = {
   items: [],
   loading: false,
   error: null,
   selectedProduct: null, // Nuevo estado para el producto seleccionado
+  tiposCuero: [], // Nuevo estado
+  colores: [],      // Nuevo estado
 };
 
 const productsSlice = createSlice({
@@ -115,6 +145,14 @@ const productsSlice = createSlice({
       .addCase(fetchProductById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      // Reducers para fetchTiposCuero
+      .addCase(fetchTiposCuero.fulfilled, (state, action) => {
+        state.tiposCuero = action.payload;
+      })
+      // Reducers para fetchColores
+      .addCase(fetchColores.fulfilled, (state, action) => {
+        state.colores = action.payload;
       });
   },
 });

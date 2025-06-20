@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchProducts } from '../store/slices/productsSlice';
+import { fetchProducts, fetchTiposCuero, fetchColores } from '../store/slices/productsSlice';
 import { fetchCategories } from '../store/slices/categoriesSlice';
 import Footer from '../components/Footer';
 import ProductFilters from '../components/ProductFilters';
@@ -10,12 +10,10 @@ import { useLocation } from 'react-router-dom';
 
 const Productos = () => {
   const dispatch = useDispatch();
-  const { items: productos, loading } = useSelector((state) => state.products);
+  const { items: productos, loading, tiposCuero, colores } = useSelector((state) => state.products);
   const { items: categorias, loading: categoriasLoading } = useSelector((state) => state.categories);
   const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
   // Estados principales locales solo para filtros y UI
-  const [tiposCuero, setTiposCuero] = useState([]);
-  const [colores, setColores] = useState([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const location = useLocation();
   const [filtros, setFiltros] = useState(() => {
@@ -44,26 +42,15 @@ const Productos = () => {
     });
   }, [location.search]);
 
-  // Cargar categorías usando Redux
+  // Cargar datos iniciales usando Redux
   useEffect(() => {
     dispatch(fetchCategories());
+    dispatch(fetchTiposCuero());
+    dispatch(fetchColores());
   }, [dispatch]);
-
-  // Cargar tipos de cuero y colores al inicio
-  useEffect(() => {
-    fetch('http://localhost:8080/productos/tipos-cuero')
-      .then((response) => response.json())
-      .then((data) => setTiposCuero(data))
-      .catch((error) => console.error('Error al cargar tipos de cuero:', error));
-    fetch('http://localhost:8080/productos/colores')
-      .then((response) => response.json())
-      .then((data) => setColores(data))
-      .catch((error) => console.error('Error al cargar colores:', error));
-  }, []);
 
   // Cargar productos (con filtros) usando Redux
   useEffect(() => {
-    // Construir objeto de filtros para el thunk
     dispatch(fetchProducts(filtros));
   }, [dispatch, filtros]);
 
