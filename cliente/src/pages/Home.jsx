@@ -23,6 +23,9 @@ const Home = () => {
   const heroRef = useRef(null);
   const [heroVisible, setHeroVisible] = useState(false);
 
+
+
+  // el effect ponerle ligca=
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
@@ -78,7 +81,7 @@ const Home = () => {
   const featuredProducts = [...productos].sort((a, b) => b.id - a.id).slice(0, 3);
 
   return (
-    <div className="bg-gradient-to-br from-orange-50 to-amber-50">
+    <div className="bg-gradient-to-br from-orange-100 to-amber-100">
       {/* Hero Section */}
       <section className="relative h-screen overflow-hidden">
         <div
@@ -91,7 +94,7 @@ const Home = () => {
             zIndex: 1
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-yellow-50 to-amber-50 opacity-70"></div>
+          <div className="absolute inset-0 bg-black/60"></div>
         </div>
         <div className="absolute inset-0 z-20 flex items-center justify-center text-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -99,15 +102,15 @@ const Home = () => {
               ref={heroRef}
               className={`max-w-3xl mx-auto sticky top-0 transition-all duration-1000 ease-out ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
             >
-              <h1 className="text-7xl lg:text-8xl font-light text-orange-950 mb-8 leading-none tracking-tight">
+              <h1 className="text-7xl lg:text-8xl font-light text-white mb-8 leading-none tracking-tight">
                 Cuero
-                <span className="block font-serif italic text-amber-900 text-shadow-gold">Argentino</span>
+                <span className="block font-serif italic text-amber-400 text-shadow-gold">Argentino</span>
               </h1>
               <div className="w-32 h-1 mx-auto mb-8 bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-600 rounded-full animate-pulse"></div>
-              <p className="text-xl lg:text-2xl text-orange-800 mb-6 leading-relaxed font-light max-w-2xl mx-auto">
+              <p className="text-xl lg:text-2xl text-orange-200 mb-6 leading-relaxed font-light max-w-2xl mx-auto">
                 Cada pieza cuenta una historia de 40 años de experiencia
               </p>
-              <p className="text-2xl font-serif italic text-amber-900 mb-12 animate-fadeIn delay-300">
+              <p className="text-2xl font-serif italic text-amber-400 mb-12 animate-fadeIn delay-300">
                 Descubrí la pasión y el arte en cada pieza de cuero
               </p>
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
@@ -121,7 +124,7 @@ const Home = () => {
                 {!isAuthenticated && (
                   <button
                     onClick={() => navigate('/register')}
-                    className="px-8 py-4 border-2 border-orange-900 text-orange-900 font-medium tracking-wide hover:bg-orange-900 hover:text-white transition-all duration-300"
+                    className="px-8 py-4 border-2 border-orange-300 text-orange-200 font-medium tracking-wide hover:bg-orange-300 hover:text-orange-950 transition-all duration-300"
                   >
                     Crear Cuenta
                   </button>
@@ -140,7 +143,7 @@ const Home = () => {
           isVisible.philosophy ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
         }`}
         style={{
-          backgroundImage: `linear-gradient(rgba(255,247,237,0.7),rgba(255,247,237,0.85)), url(${artesano})`,
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.8)), url(${artesano})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           borderRadius: '2rem',
@@ -151,27 +154,27 @@ const Home = () => {
             <div className="space-y-8">
               <div className="space-y-4">
                 <div className="inline-block">
-                  <span className="text-xs font-medium text-orange-800 bg-orange-50 px-4 py-2 rounded-full tracking-widest uppercase">
+                  <span className="text-xs font-medium text-orange-300 bg-orange-900/50 px-4 py-2 rounded-full tracking-widest uppercase">
                     Desde 1985
                   </span>
                 </div>
                 
-                <h2 className="text-5xl lg:text-6xl font-light text-orange-950 leading-tight">
+                <h2 className="text-5xl lg:text-6xl font-light text-white leading-tight">
                   Tradición que
-                  <span className="block font-serif italic text-amber-900">trasciende</span>
+                  <span className="block font-serif italic text-amber-400">trasciende</span>
                 </h2>
               </div>
               
-              <div className="w-32 h-px bg-gradient-to-r from-orange-600 to-amber-400"></div>
+              <div className="w-32 h-px bg-gradient-to-r from-orange-500 to-amber-300"></div>
               
               <div className="space-y-6">
-                <p className="text-lg text-orange-800 leading-relaxed font-light">
+                <p className="text-lg text-orange-200 leading-relaxed font-light">
                   En cada puntada reside el alma de la artesanía argentina. 
                   Cuatro décadas perfeccionando el arte del cuero, creando piezas 
                   que trascienden tendencias y perduran en el tiempo.
                 </p>
                 
-                <p className="text-orange-700 leading-relaxed">
+                <p className="text-orange-300 leading-relaxed">
                   Nuestros maestros artesanos transforman materiales nobles en 
                   objetos de deseo, donde cada imperfección cuenta una historia 
                   y cada detalle habla de excelencia.
@@ -180,45 +183,45 @@ const Home = () => {
               
               <div className="flex space-x-8 pt-8">
                 <div>
-                  <div className="text-3xl font-light text-orange-950 mb-2">40+</div>
-                  <div className="text-sm text-orange-700 uppercase tracking-wide">Años de experiencia</div>
+                  <div className="text-3xl font-light text-white mb-2">40+</div>
+                  <div className="text-sm text-orange-300 uppercase tracking-wide">Años de experiencia</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-light text-orange-950 mb-2">100%</div>
-                  <div className="text-sm text-orange-700 uppercase tracking-wide">Artesanal</div>
+                  <div className="text-3xl font-light text-white mb-2">100%</div>
+                  <div className="text-sm text-orange-300 uppercase tracking-wide">Artesanal</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-light text-orange-950 mb-2">∞</div>
-                  <div className="text-sm text-orange-700 uppercase tracking-wide">Durabilidad</div>
+                  <div className="text-3xl font-light text-white mb-2">∞</div>
+                  <div className="text-sm text-orange-300 uppercase tracking-wide">Durabilidad</div>
                 </div>
               </div>
             </div>
             
             <div className="relative">
-              <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-50">
+              <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-black/20 backdrop-blur-sm border border-white/10">
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center p-12">
-                    <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-orange-200 to-amber-200 rounded-full flex items-center justify-center shadow-lg">
-                      <svg className="w-12 h-12 text-orange-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-white/20 to-white/10 rounded-full flex items-center justify-center shadow-lg">
+                      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17v4a2 2 0 002 2h4M11 7.343V10a1 1 0 001 1h2.657" />
                       </svg>
                     </div>
-                    <div className="text-orange-900 font-medium text-xl mb-2">Maestros Artesanos</div>
-                    <div className="text-orange-700 text-sm">Creando belleza desde 1985</div>
+                    <div className="text-white font-medium text-xl mb-2">Maestros Artesanos</div>
+                    <div className="text-orange-200 text-sm">Creando belleza desde 1985</div>
                   </div>
                 </div>
               </div>
               
               {/* Floating element */}
-              <div className="absolute -bottom-8 -left-8 bg-white p-8 rounded-2xl shadow-2xl max-w-xs">
+              <div className="absolute -bottom-8 -left-8 bg-black/40 p-8 rounded-2xl shadow-2xl max-w-xs backdrop-blur-lg border border-white/10">
                 <div className="space-y-3">
-                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-orange-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h4 className="font-medium text-orange-950">Certificación Artesanal</h4>
-                  <p className="text-sm text-orange-700">Cada pieza lleva el sello de autenticidad de nuestros maestros.</p>
+                  <h4 className="font-medium text-white">Certificación Artesanal</h4>
+                  <p className="text-sm text-orange-200">Cada pieza lleva el sello de autenticidad de nuestros maestros.</p>
                 </div>
               </div>
             </div>
@@ -233,9 +236,15 @@ const Home = () => {
       <section 
         id="testimonials" 
         data-animate
-        className={`py-16 px-4 bg-gradient-to-br from-orange-50 to-amber-50 transition-all duration-1000 ${
-          isVisible.testimonials ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
+        className={`py-24 px-4 transition-all duration-1000 ${
+          isVisible.testimonials ? 'opacity-100' : 'opacity-0'
         }`}
+        style={{
+          backgroundImage: `linear-gradient(rgba(255, 247, 237, 0.9), rgba(255, 250, 245, 0.95)), url(${cercaTextura})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        }}
       >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
@@ -263,7 +272,7 @@ const Home = () => {
                 role: "Empresaria"
               }
             ].map((testimonial, index) => (
-              <div key={index} className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300">
+              <div key={index} className="bg-white/60 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm border border-white/20">
                 <div className="mb-6">
                   <svg className="w-8 h-8 text-orange-700" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z"/>

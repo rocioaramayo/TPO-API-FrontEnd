@@ -10,6 +10,7 @@ import carrusel1 from '../assets/CARRUSEL_OFICIAL_1.jpg';
 import fot3carrusen from '../assets/fot-3carruseñ.jpg';
 import carruselFoto52 from '../assets/CARRUSEL_OFICIAL_FOTO52.jpg';
 import artesano from '../assets/artesano-trabajando.jpg';
+import fondoCategorias from '../assets/cuero-fondo.jpg';
 
 // Categorías por defecto
 const defaultCategories = [
@@ -64,7 +65,7 @@ const CategoryGrid = ({ onCategoryClick }) => {
       id="categorias"
       className="py-32 px-4"
       style={{
-        backgroundImage: `linear-gradient(rgba(255,247,237,0.92), rgba(255,247,237,0.97)), url(${cercaTextura})`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url(${fondoCategorias})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
@@ -73,13 +74,13 @@ const CategoryGrid = ({ onCategoryClick }) => {
       <div className="max-w-7xl mx-auto">
         {/* Encabezado */}
         <div className="text-center mb-16">
-          <span className="text-xs font-medium text-orange-800 bg-orange-50 px-4 py-2 rounded-full tracking-widest uppercase">
+          <span className="text-xs font-medium text-orange-300 bg-orange-900/50 px-4 py-2 rounded-full tracking-widest uppercase">
             CATEGORÍAS
           </span>
-          <h2 className="text-4xl lg:text-5xl font-light text-orange-950 mt-4 mb-2">
+          <h2 className="text-4xl lg:text-5xl font-light text-orange-50 mt-4 mb-2">
             Explorá por categoría
           </h2>
-          <p className="text-orange-700 text-lg font-light">
+          <p className="text-orange-200 text-lg font-light">
             Elegí el tipo de producto que buscás
           </p>
         </div>
@@ -149,12 +150,12 @@ const Card = ({ data, className = '', onClick }) => (
       alt={data.nombre}
       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
     />
-    <div className="absolute inset-0 bg-gradient-to-t from-orange-900/70 via-transparent to-transparent" />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
     <div className="absolute bottom-0 left-0 p-6">
       <h3 className="text-2xl font-bold text-white drop-shadow">
         {data.nombre || 'Categoría'}
       </h3>
-      <button className="mt-2 px-4 py-1 bg-white/90 text-orange-900 rounded-full">
+      <button className="mt-2 px-4 py-1 bg-white/90 text-orange-900 rounded-full text-sm font-semibold hover:bg-white transition-colors">
         Ver más
       </button>
     </div>
