@@ -102,10 +102,13 @@ const Home = () => {
               ref={heroRef}
               className={`max-w-3xl mx-auto sticky top-0 transition-all duration-1000 ease-out ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
             >
-              <h1 className="text-7xl lg:text-8xl font-light text-white mb-8 leading-none tracking-tight">
-                Cuero
-                <span className="block font-serif italic text-amber-400 text-shadow-gold">Argentino</span>
-              </h1>
+              <h1 className="text-7xl lg:text-8xl font-light text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] mb-8 leading-none tracking-tight">
+  Cuero
+  <span className="block font-serif italic text-orange-100 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
+    Argentino
+  </span>
+</h1>
+
               <div className="w-32 h-1 mx-auto mb-8 bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-600 rounded-full animate-pulse"></div>
               <p className="text-xl lg:text-2xl text-orange-200 mb-6 leading-relaxed font-light max-w-2xl mx-auto">
                 Cada pieza cuenta una historia de 40 años de experiencia
@@ -123,11 +126,13 @@ const Home = () => {
                 </button>
                 {!isAuthenticated && (
                   <button
-                    onClick={() => navigate('/register')}
-                    className="px-8 py-4 border-2 border-orange-300 text-orange-200 font-medium tracking-wide hover:bg-orange-300 hover:text-orange-950 transition-all duration-300"
-                  >
-                    Crear Cuenta
-                  </button>
+  onClick={() => navigate('/register')}
+  className="px-8 py-4 border border-white text-white font-light tracking-wider bg-transparent hover:bg-white hover:text-black transition duration-300 rounded"
+
+>
+  Crear Cuenta
+</button>
+
                 )}
               </div>
             </div>
@@ -146,7 +151,7 @@ const Home = () => {
           backgroundImage: `linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.8)), url(${artesano})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          borderRadius: '2rem',
+          
         }}
       >
         <div className="max-w-7xl mx-auto">
