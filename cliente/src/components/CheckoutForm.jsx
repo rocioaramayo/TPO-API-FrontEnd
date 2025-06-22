@@ -1,12 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { clearCart } from '../store/slices/cartSlice';
 import PaymentSection from "./PaymentSection";
 import DeliverySection from "./DeliverySection";
 import CheckoutSummary from "./CheckoutSummary";
 
-const CheckoutForm = ({ cartItems, setCartItems }) => {
+const CheckoutForm = ({ cartItems }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.users);
   const isBlocked = !isAuthenticated;
   const API_BASE = "http://localhost:8080";
@@ -60,7 +62,7 @@ const CheckoutForm = ({ cartItems, setCartItems }) => {
   const [procesandoCompra, setProcesandoCompra] = React.useState(false);
 
   // Calcular subtotal
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const subtotal = cartItems.reduce((acc, item) => acc + item.precio * item.quantity, 0);
 
   // Obtener método seleccionado
   const metodoSeleccionado = metodosEntrega.find(m => String(m.id) === String(metodoEntrega));
@@ -209,21 +211,6 @@ const CheckoutForm = ({ cartItems, setCartItems }) => {
       setMontoDescuento(null);
       setTotalBD(null);
     });
-  };
-
-  const handleQuantityChange = (idx, newQty) => {
-    if (newQty < 1) return;
-    setCartItems(items =>
-      items.map((item, i) =>
-        i === idx
-          ? { ...item, quantity: Math.min(newQty, item.stock ?? 99) }
-          : item
-      )
-    );
-  };
-
-  const handleRemove = idx => {
-    setCartItems(items => items.filter((_, i) => i !== idx));
   };
 
   const handleCrearNuevaDireccion = () => {
@@ -404,8 +391,7 @@ const CheckoutForm = ({ cartItems, setCartItems }) => {
         return res.json();
       })
       .then((data) => {
-        // 🔥 CAMBIO PRINCIPAL: Redirigir a página de confirmación
-        setCartItems([]);
+        dispatch(clearCart());
         navigate(`/confirmacion-pedido/${data.id}`);
       })
       .catch(err => {
@@ -505,8 +491,6 @@ const CheckoutForm = ({ cartItems, setCartItems }) => {
           {/* Columna derecha: productos, cupón y resumen de pedido */}
           <CheckoutSummary
             cartItems={cartItems}
-            handleQuantityChange={handleQuantityChange}
-            handleRemove={handleRemove}
             cupon={cupon}
             setCupon={setCupon}
             aplicado={aplicado}

@@ -3,7 +3,7 @@ import ProductCard from './ProductCard';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 
-const FeaturedProducts = () => {
+const FeaturedProducts = ({ onCartClick, onAuthRequired }) => {
   const { items: productos, loading } = useSelector((state) => state.products);
   const navigate = useNavigate();
   // Selecciono los 3 productos más recientes
@@ -48,7 +48,11 @@ const FeaturedProducts = () => {
               className={`transition-all duration-[1800ms] ease-in-out ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
               style={{ transitionDelay: `${400 + i * 200}ms` }}
             >
-              <ProductCard {...producto} />
+              <ProductCard 
+                product={producto}
+                onCartClick={onCartClick}
+                onAuthRequired={onAuthRequired}
+              />
             </div>
           ))}
           {placeholders.map((_, i) => (

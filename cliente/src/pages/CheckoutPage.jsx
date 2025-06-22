@@ -1,11 +1,13 @@
 import React from "react";
+import { useSelector } from 'react-redux';
 import CheckoutForm from "../components/CheckoutForm";
 
-const CheckoutPage = ({ cartItems, setCartItems }) => {
+const CheckoutPage = () => {
+  const cartItems = useSelector(state => state.cart.items);
+
   return (
     <CheckoutForm 
       cartItems={cartItems}
-      setCartItems={setCartItems}
     />
   );
 };

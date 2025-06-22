@@ -18,6 +18,15 @@ const Favoritos = () => {
         dispatch(removeFavorito(productoId));
     };
 
+    // Placeholder handlers for cart functionality
+    const handleCartClick = () => {
+        console.log('Cart clicked from Favoritos');
+    };
+
+    const handleAuthRequired = () => {
+        console.log('Auth required from Favoritos');
+    };
+
     if (!isAuthenticated) {
         return (
             <div className="text-center py-20">
@@ -61,8 +70,10 @@ const Favoritos = () => {
                                 {favoritos.map((favorito) => (
                                     <ProductCard
                                         key={favorito.id}
-                                        {...favorito.producto}
+                                        product={favorito.producto}
                                         onFavoriteClick={() => handleRemoveFavorito(favorito.producto.id)}
+                                        onCartClick={handleCartClick}
+                                        onAuthRequired={handleAuthRequired}
                                         isFavorite={true}
                                     />
                                 ))}

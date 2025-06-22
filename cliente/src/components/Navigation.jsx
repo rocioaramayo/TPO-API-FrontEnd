@@ -6,9 +6,10 @@ import { logoutUser } from '../store/slices/usersSlice';
 import { clearFavoritos, fetchFavoritos } from '../store/slices/favoritosSlice';
 
 
-const Navigation = ({ onCartClick, cartItems = [] }) => {
+const Navigation = ({ onCartClick }) => {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.users);
+  const cartItems = useSelector((state) => state.cart.items);
   const favoritos = useSelector((state) => state.favoritos.ids);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mostrarPerfil, setMostrarPerfil] = useState(false);

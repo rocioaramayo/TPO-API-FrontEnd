@@ -15,8 +15,6 @@ function guessMimeType(foto) {
 
 const CheckoutSummary = ({
   cartItems,
-  handleQuantityChange,
-  handleRemove,
   cupon,
   setCupon,
   aplicado,
@@ -34,24 +32,15 @@ const CheckoutSummary = ({
   costoEnvio,
   handleProcederPago,
   procesandoCompra,
-  errorCategoria, // nuevo prop agregado
+  errorCategoria,
 }) => {
   
   return (
     <div className="bg-white border rounded-lg p-4 flex flex-col h-[650px] min-w-[370px] max-w-[500px]">
-      {/* Header de productos SIEMPRE arriba */}
       <ProductsHeader />
+      <ProductsList cartItems={cartItems} />
       
-      {/* Lista de productos SCROLLEABLE */}
-      <ProductsList
-        cartItems={cartItems}
-        handleQuantityChange={handleQuantityChange}
-        handleRemove={handleRemove}
-      />
-      
-      {/* Sección de cupón, resumen y finalizar pedido SIEMPRE abajo */}
       <div className="flex flex-col gap-4 mt-6">
-        {/* Código de descuento */}
         <CouponSection
           cupon={cupon}
           setCupon={setCupon}
@@ -63,10 +52,8 @@ const CheckoutSummary = ({
           descuento={descuento}
           montoDescuento={montoDescuento}
           totalBD={totalBD}
-          errorCategoria={errorCategoria} // prop pasado al componente
+          errorCategoria={errorCategoria}
         />
-        
-        {/* Resumen del pedido */}
         <OrderSummary
           aplicado={aplicado}
           subtotalBD={subtotalBD}
@@ -78,8 +65,6 @@ const CheckoutSummary = ({
           costoEnvio={costoEnvio}
           totalBD={totalBD}
         />
-        
-        {/* Botón de finalizar pedido */}
         <button
           className="w-full bg-leather-700 hover:bg-leather-800 text-white font-bold py-3 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleProcederPago}
@@ -111,8 +96,8 @@ const ProductsHeader = () => (
   </div>
 );
 
-// Componente de la lista de productos
-const ProductsList = ({ cartItems, handleQuantityChange, handleRemove }) => (
+// Componente de la lista de productos (simplificado)
+const ProductsList = ({ cartItems }) => (
   <div className="flex-1 overflow-y-auto">
     {cartItems.length === 0 ? (
       <div className="text-center text-leather-500 my-10">¡Tu carrito está vacío!</div>
@@ -121,17 +106,14 @@ const ProductsList = ({ cartItems, handleQuantityChange, handleRemove }) => (
         <ProductItem
           key={idx}
           item={item}
-          idx={idx}
-          handleQuantityChange={handleQuantityChange}
-          handleRemove={handleRemove}
         />
       ))
     )}
   </div>
 );
 
-// Componente de un producto individual
-const ProductItem = ({ item, idx, handleQuantityChange, handleRemove }) => {
+// Componente de un producto individual (simplificado)
+const ProductItem = ({ item }) => {
   const foto = item.fotos && item.fotos[0];
   const mimeType = guessMimeType(foto);
   
@@ -143,34 +125,15 @@ const ProductItem = ({ item, idx, handleQuantityChange, handleRemove }) => {
             ? `data:${mimeType};base64,${foto.file || foto.contenidoBase64}`
             : "https://via.placeholder.com/80?text=Sin+Imagen"
         }
-        alt={item.name}
+        alt={item.nombre}
         className="w-20 h-20 object-cover rounded mr-4 border"
       />
       <div className="flex-1 truncate">
-        <div className="font-medium text-leather-800 truncate">{item.name}</div>
+        <div className="font-medium text-leather-800 truncate">{item.nombre}</div>
+        <div className="text-sm text-gray-600">Cantidad: {item.quantity}</div>
       </div>
       <div className="w-32 text-center font-bold">
-        ${item.price.toLocaleString("es-AR")}
-      </div>
-      <div className="w-32 flex items-center justify-center gap-2">
-        <button
-          className="px-2 py-1 border rounded"
-          onClick={() => handleQuantityChange(idx, item.quantity - 1)}
-          disabled={item.quantity <= 1}
-        >-</button>
-        <span className="mx-2">{item.quantity}</span>
-        <button
-          className="px-2 py-1 border rounded"
-          onClick={() => handleQuantityChange(idx, item.quantity + 1)}
-          disabled={item.quantity >= (item.stock ?? 99)}
-        >+</button>
-      </div>
-      <div className="w-10 flex justify-center">
-        <button
-          onClick={() => handleRemove(idx)}
-          className="text-gray-400 hover:text-red-500 text-xl"
-          title="Eliminar producto"
-        >🗑️</button>
+        ${(item.precio * item.quantity).toLocaleString("es-AR")}
       </div>
     </div>
   );
@@ -188,7 +151,7 @@ const CouponSection = ({
   descuento,
   montoDescuento,
   totalBD,
-  errorCategoria // nuevo prop
+  errorCategoria
 }) => (
   <div>
     <div className="space-y-2">

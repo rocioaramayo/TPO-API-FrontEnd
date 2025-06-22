@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { addToCart } from '../store/slices/cartSlice';
 import AuthMessage from './AuthMessage';
 import FavoriteNotification from './FavoriteNotification';
 
@@ -17,20 +18,16 @@ const guessMimeType = (foto) => {
 };
 
 const ProductCard = ({ 
-  id, 
-  nombre, 
-  descripcion, 
-  precio, 
-  stock, 
-  categoria, 
-  fotos, 
+  product,
   isFavorite,
   onFavoriteClick,
-  onAddToCart
+  onCartClick,
+  onAuthRequired
 }) => {
+  const { id, nombre, descripcion, precio, stock, categoria, fotos } = product;
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
-  const [showAuthMessage, setShowAuthMessage] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationData, setNotificationData] = useState({ isAdded: false, productName: '' });
   const [fotoIndex, setFotoIndex] = useState(0);
@@ -42,12 +39,33 @@ const ProductCard = ({
     navigate(`/productos/${id}`);
   };
 
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      if (onAuthRequired) {
+        onAuthRequired();
+      }
+      return;
+    }
+    dispatch(addToCart(product));
+    if (onCartClick) {
+      onCartClick();
+    }
+  };
+
   const handleFavoriteClick = (e) => {
     e.stopPropagation();
-    if (!isAuthenticated) return setShowAuthMessage(true);
+    if (!isAuthenticated) {
+      if (onAuthRequired) {
+        onAuthRequired();
+      }
+      return;
+    }
     const willBeAdded = !isFavorite;
     setNotificationData({ isAdded: willBeAdded, productName: nombre });
-    onFavoriteClick(id);
+    if (onFavoriteClick) {
+      onFavoriteClick(id);
+    }
     setTimeout(() => setShowNotification(true), 100);
   };
 
@@ -141,7 +159,7 @@ const ProductCard = ({
           <div className="mt-auto">
             <span className="text-lg font-medium text-orange-950">{formatPrice(precio)}</span>
             <button 
-              onClick={(e) => { e.stopPropagation(); onAddToCart(); }}
+              onClick={handleAddToCart}
               className="mt-3 w-full bg-transparent border border-orange-900 text-orange-950 py-2 text-sm font-light tracking-wider
                          hover:bg-orange-950 hover:text-white transition-all duration-300"
             >
@@ -151,7 +169,6 @@ const ProductCard = ({
         </div>
       </div>
 
-      <AuthMessage isOpen={showAuthMessage} onClose={() => setShowAuthMessage(false)} />
       <FavoriteNotification
         isVisible={showNotification}
         isAdded={notificationData.isAdded}

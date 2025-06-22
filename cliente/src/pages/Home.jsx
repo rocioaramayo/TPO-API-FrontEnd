@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import ProductCard from '../components/ProductCard';
 import carrusel1 from '../assets/CARRUSEL_OFICIAL_1.jpg';
 import artesano from '../assets/artesano-trabajando.jpg';
 import heritageBannerImg from '../assets/fotos-bufalo_hombre-cartera.webp';
@@ -21,7 +20,7 @@ import muchasCarteras from '../assets/muchascartera-jutnas.webp';
 
 const heroImage = nubesConCarteras;
 
-const Home = () => {
+const Home = ({ logout, onCartClick, onAuthRequired }) => {
   const dispatch = useDispatch();
   const { items: productos, loading } = useSelector((state) => state.products);
   const [isVisible, setIsVisible] = useState({});
@@ -233,7 +232,10 @@ const Home = () => {
       </section>
 
       {/* Featured Products */}
-      <FeaturedProducts />
+      <FeaturedProducts 
+        onCartClick={onCartClick}
+        onAuthRequired={onAuthRequired}
+      />
 
       {/* Static Divider */}
       <section

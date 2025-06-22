@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchFavoritos, addFavorito, removeFavorito } from '../store/slices/favoritosSlice';
 
-const ProductGrid = ({ productos, categorias, loading, onLimpiarFiltros, onAddToCart }) => {
+const ProductGrid = ({ productos, categorias, loading, onLimpiarFiltros, onCartClick, onAuthRequired }) => {
   const dispatch = useDispatch();
   const { isAuthenticated } = useSelector((state) => state.users);
   const { ids: favoritos } = useSelector((state) => state.favoritos);
@@ -119,15 +119,15 @@ const ProductGrid = ({ productos, categorias, loading, onLimpiarFiltros, onAddTo
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
         {currentProductos.map((producto) => {
           const categoriaObj = categorias.find(c => c.nombre === producto.categoria);
-
+          
           return (
             <ProductCard 
               key={producto.id}
-              {...producto}
-              categoria={categoriaObj}
+              product={{...producto, categoria: categoriaObj}}
               isFavorite={favoritos.includes(producto.id)}
               onFavoriteClick={handleFavoriteClick}
-              onAddToCart={() => onAddToCart(producto)}
+              onCartClick={onCartClick}
+              onAuthRequired={onAuthRequired}
             />
           );
         })}

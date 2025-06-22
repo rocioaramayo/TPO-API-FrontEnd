@@ -9,7 +9,7 @@ import ProductGrid from '../components/ProductGrid';
 import FilterTags from '../components/FilterTags';
 import heroBanner from '../assets/alguien-conmapoa.webp';
 
-const Productos = ({ onAddToCart }) => {
+const Productos = ({ onCartClick, onAuthRequired }) => {
   const dispatch = useDispatch();
   const { items: productos, loading, tiposCuero, colores } = useSelector((state) => state.products);
   const { items: categorias } = useSelector((state) => state.categories);
@@ -119,7 +119,8 @@ const Productos = ({ onAddToCart }) => {
           categorias={categorias}
           loading={loading} 
           onLimpiarFiltros={limpiarFiltros} 
-          onAddToCart={onAddToCart}
+          onCartClick={onCartClick}
+          onAuthRequired={onAuthRequired}
         />
       </main>
 

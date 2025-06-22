@@ -17,6 +17,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProductById } from '../store/slices/productsSlice';
 import { addFavorito, removeFavorito, fetchFavoritos } from '../store/slices/favoritosSlice';
+import { addToCart } from '../store/slices/cartSlice';
 import Footer from '../components/Footer';
 import AuthMessage from '../components/AuthMessage';
 import ReviewList from '../components/ReviewList';
@@ -41,7 +42,7 @@ const AccordionItem = ({ title, children, isOpen, onClick }) => (
   </div>
 );
 
-const ProductDetail = ({ onAddToCart }) => {
+const ProductDetail = ({ onCartClick, onAuthRequired }) => {
     const { id } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -84,7 +85,9 @@ const ProductDetail = ({ onAddToCart }) => {
     // Manejar toggle de favoritos
     const handleFavoriteToggle = () => {
         if (!isAuthenticated) {
-            setShowAuthMessage(true);
+            if (onAuthRequired) {
+                onAuthRequired();
+            }
             return;
         }
         if (!producto) return;
@@ -99,6 +102,24 @@ const ProductDetail = ({ onAddToCart }) => {
             setNotificationData({ isAdded: true, productName: producto.nombre });
         }
         setShowNotification(true);
+    };
+
+    const handleAddToCart = () => {
+        if (!isAuthenticated) {
+            if (onAuthRequired) {
+                onAuthRequired();
+            }
+            return;
+        }
+        if (!producto) return;
+
+        // Añadimos el producto con la cantidad seleccionada
+        for (let i = 0; i < quantity; i++) {
+            dispatch(addToCart(producto));
+        }
+        if (onCartClick) {
+            onCartClick(); // Abrimos el sidebar del carrito
+        }
     };
 
     // Callback para cuando se envía una nueva review
@@ -198,7 +219,7 @@ const ProductDetail = ({ onAddToCart }) => {
                                 <button onClick={() => setQuantity(q => Math.min(producto.stock, q + 1))} className="px-4 py-3 text-lg hover:bg-gray-100 rounded-r-md transition-colors">+</button>
                             </div>
                             <button
-                                onClick={() => onAddToCart({ ...producto, quantity })}
+                                onClick={handleAddToCart}
                                 className="flex-1 bg-orange-950 text-white py-3 px-6 rounded-md font-light tracking-wider hover:bg-orange-900 transition-colors uppercase text-sm"
                             >
                                 Añadir al Carrito
@@ -241,7 +262,7 @@ const ProductDetail = ({ onAddToCart }) => {
                 </section>
             </div>
             
-            <AuthMessage isOpen={showAuthMessage} onClose={() => setShowAuthMessage(false)} />
+            <AuthMessage isOpen={false} />
             <FavoriteNotification isVisible={showNotification} isAdded={notificationData.isAdded} productName={notificationData.productName} onClose={() => setShowNotification(false)} />
             <Footer />
         </div>

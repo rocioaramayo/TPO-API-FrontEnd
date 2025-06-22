@@ -3,6 +3,7 @@ import {useEffect, useState} from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from './store/slices/usersSlice';
+import { clearCart } from './store/slices/cartSlice';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Home from './pages/Home.jsx';
@@ -22,7 +23,7 @@ import CuidadoDelCuero from './pages/CuidadoDelCuero.jsx';
 import ProfilePage from "./components/ProfilePage.jsx";
 import CartSidebar from "./components/CartSidebar";
 import CheckoutPage from './pages/CheckoutPage.jsx';
-import AdminProfilePage from "./pages/admin/AdminProfilePage.jsx"; // ⬅️ arriba junto a los otros imports
+import AdminProfilePage from "./pages/admin/AdminProfilePage.jsx";
 import ConfirmacionPedido from './pages/ConfirmacionPedido';
 import AuthMessage from './components/AuthMessage';
 import { Provider } from 'react-redux';
@@ -37,77 +38,25 @@ const AppContent = () => {
   const location = useLocation();
 
   const [cartOpen, setCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState([]);
   const [authModalInfo, setAuthModalInfo] = useState({ isOpen: false, title: '', description: '' });
 
   // Función para manejar el logout
   const handleLogout = () => {
     dispatch(logout());
-    setCartItems([]);
+    dispatch(clearCart());
     navigate('/');
   };
 
-  const handleAddToCart = (product) => {
-    if (!isAuthenticated) {
-      setAuthModalInfo({
-        isOpen: true,
-        title: 'Inicia sesión para comprar',
-        description: 'Debes tener una cuenta para añadir productos al carrito.'
-      });
-      return;
-    }
+  const handleOpenCart = () => setCartOpen(true);
+  const handleCloseCart = () => setCartOpen(false);
 
-    const newItem = {
-      id: product.id, // Agregado el id de producto
-      name: product.nombre || product.name || "Producto",
-      price: product.precio || product.price || 0,
-      fotos: product.fotos || [],
-      stock: product.stock || product.stockDisponible || 99,
-      quantity: 1,
-    };
-
-    setCartItems((prevItems) => {
-      const existing = prevItems.find(item => item.id === newItem.id);
-      if (existing) {
-        if (existing.quantity >= newItem.stock) return prevItems;
-        return prevItems.map(item =>
-          item.id === newItem.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prevItems, newItem];
+  const showAuthModal = () => {
+    setAuthModalInfo({
+      isOpen: true,
+      title: 'Inicia sesión para comprar',
+      description: 'Debes tener una cuenta para añadir productos al carrito.'
     });
-    setCartOpen(true);
   };
-
-  // Funciones para manejar el carrito
-  const handleRemoveFromCart = (idx) => {
-    setCartItems((items) => items.filter((_, i) => i !== idx));
-  };
-
-  const handleAddQty = (idx) => {
-    setCartItems((items) =>
-      items.map((item, i) =>
-        i === idx
-          ? { ...item, quantity: item.quantity < (item.stock ?? 99) ? item.quantity + 1 : item.quantity }
-          : item
-      )
-    );
-  };
-
-  const handleSubQty = (idx) => {
-    setCartItems((items) =>
-      items
-        .map((item, i) =>
-          i === idx
-            ? { ...item, quantity: item.quantity - 1 }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
-  };
-
 
   return (
     <>
@@ -116,7 +65,7 @@ const AppContent = () => {
           path="/login" 
           element={
             <>
-              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
               <Login />
             </>
           } 
@@ -126,7 +75,7 @@ const AppContent = () => {
           path="/perfil"
           element={
             <>
-              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
               {user?.role === "ADMIN" ? (
                 <AdminProfilePage onLogout={handleLogout} />
               ) : (
@@ -140,7 +89,7 @@ const AppContent = () => {
           path="/register" 
           element={
             <>
-              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
               <Register />
             </>
           } 
@@ -150,8 +99,12 @@ const AppContent = () => {
           path="/" 
           element={
             <>
-              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-              <Home logout={handleLogout} />
+              <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
+              <Home 
+                logout={handleLogout} 
+                onCartClick={handleOpenCart}
+                onAuthRequired={showAuthModal}
+              />
             </>
           }
         />
@@ -161,8 +114,8 @@ const AppContent = () => {
           path="/productos/:id" 
           element={
             <>
-              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-              <ProductDetail onAddToCart={handleAddToCart} />
+              <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
+              <ProductDetail onCartClick={handleOpenCart} onAuthRequired={showAuthModal} />
             </>
           }  
         />
@@ -171,8 +124,8 @@ const AppContent = () => {
           path="/productos" 
           element={
             <>
-              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-              <Productos onAddToCart={handleAddToCart} />
+              <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
+              <Productos onAddToCart={handleOpenCart} onAuthRequired={showAuthModal}/>
             </>
           } 
         />
@@ -181,7 +134,7 @@ const AppContent = () => {
           path="/nosotros" 
           element={
             <>
-              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
               <Nosotros />
             </>
           } 
@@ -191,7 +144,7 @@ const AppContent = () => {
           path="/favoritos" 
           element={
             <>
-              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+              <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
               <Favoritos />
             </>
           } 
@@ -208,37 +161,37 @@ const AppContent = () => {
         {/* Páginas legales y de ayuda */}
         <Route path="/contacto" element={
           <>
-            <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
             <Contacto />
           </>
         } />
         <Route path="/preguntas-frecuentes" element={
           <>
-            <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
             <PreguntasFrecuentes />
           </>
         } />
         <Route path="/terminos-condiciones" element={
           <>
-            <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
             <TerminosCondiciones />
           </>
         } />
         <Route path="/politica-privacidad" element={
           <>
-            <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
             <PoliticaPrivacidad />
           </>
         } />
         <Route path="/garantia" element={
           <>
-            <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
             <Garantia />
           </>
         } />
         <Route path="/cuidado-del-cuero" element={
           <>
-            <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
             <CuidadoDelCuero />
           </>
         } />
@@ -246,12 +199,8 @@ const AppContent = () => {
           path="/checkout" 
           element={
             <>
-              <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-              <CheckoutPage
-                cartItems={cartItems}
-                setCartItems={setCartItems}
-                user={user}
-              />
+              <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
+              <CheckoutPage user={user} />
             </>
           }
         />
@@ -259,11 +208,7 @@ const AppContent = () => {
       </Routes>
       <CartSidebar
         isOpen={cartOpen}
-        onClose={() => setCartOpen(false)}
-        cartItems={cartItems}
-        onRemove={handleRemoveFromCart}
-        onAddQty={handleAddQty}
-        onSubQty={handleSubQty}
+        onClose={handleCloseCart}
       />
       <AuthMessage 
         isOpen={authModalInfo.isOpen} 

@@ -4,6 +4,7 @@ import categoriesReducer from './slices/categoriesSlice';
 import usersReducer from './slices/usersSlice';
 import ordersReducer from './slices/ordersSlice';
 import favoritosReducer from './slices/favoritosSlice';
+import cartReducer from './slices/cartSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     users: usersReducer,
     orders: ordersReducer,
     favoritos: favoritosReducer,
+    cart: cartReducer,
   },
   devTools: process.env.NODE_ENV !== 'production',
 }); 
