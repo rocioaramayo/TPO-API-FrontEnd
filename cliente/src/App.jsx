@@ -17,6 +17,8 @@ import Contacto from './pages/Contacto.jsx';
 import PreguntasFrecuentes from './pages/PreguntasFrecuentes.jsx';
 import TerminosCondiciones from './pages/TerminosCondiciones.jsx';
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad.jsx';
+import Garantia from './pages/Garantia.jsx';
+import CuidadoDelCuero from './pages/CuidadoDelCuero.jsx';
 import ProfilePage from "./components/ProfilePage.jsx";
 import CartSidebar from "./components/CartSidebar";
 import CheckoutPage from './pages/CheckoutPage.jsx';
@@ -220,6 +222,18 @@ const AppContent = () => {
           <>
             <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
             <PoliticaPrivacidad />
+          </>
+        } />
+        <Route path="/garantia" element={
+          <>
+            <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <Garantia />
+          </>
+        } />
+        <Route path="/cuidado-del-cuero" element={
+          <>
+            <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
+            <CuidadoDelCuero />
           </>
         } />
         <Route 
