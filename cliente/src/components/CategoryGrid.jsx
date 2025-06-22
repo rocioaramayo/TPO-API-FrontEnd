@@ -21,7 +21,7 @@ const defaultCategories = [
 // Imágenes de respaldo
 const placeholderImgs = [carruselFoto2, carrusel1, artesano, carruselFoto52];
 
-const CategoryGrid = ({ onCategoryClick }) => {
+const CategoryGrid = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { items: fetchedCategories, loading } = useSelector((state) => state.categories);
@@ -31,6 +31,12 @@ const CategoryGrid = ({ onCategoryClick }) => {
       dispatch(fetchCategories());
     }
   }, [dispatch, fetchedCategories.length]);
+
+  const handleCategoryClick = (categoryId) => {
+    if (categoryId) {
+      navigate(`/productos?categoriaId=${categoryId}`);
+    }
+  };
 
   // Solo 4 categorías para el diseño minimalista
   const baseCategories = (fetchedCategories.length > 0 ? fetchedCategories : defaultCategories)
@@ -64,7 +70,7 @@ const CategoryGrid = ({ onCategoryClick }) => {
             <div
               key={cat.key}
               className="group cursor-pointer"
-              onClick={() => navigate(`/productos?categoria=${encodeURIComponent(cat.nombre)}`)}
+              onClick={() => handleCategoryClick(cat.id)}
             >
               {/* Imagen simple */}
               <div className="relative overflow-hidden aspect-[4/5] mb-6">

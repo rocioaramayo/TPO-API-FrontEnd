@@ -33,9 +33,13 @@ const Productos = ({ onCartClick, onAuthRequired }) => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const busqueda = params.get('busqueda') || '';
-    const categoriaId = params.get('categoria') ? categorias.find(c => c.nombre === params.get('categoria'))?.id || '' : '';
-    setFiltros(prev => ({ ...prev, nombre: busqueda, categoriaId }));
-  }, [location.search, categorias]);
+    const categoriaId = params.get('categoriaId') || '';
+    setFiltros(prev => ({ 
+        ...prev, 
+        nombre: busqueda, 
+        categoriaId: categoriaId 
+    }));
+  }, [location.search]);
 
   useEffect(() => {
     dispatch(fetchCategories());

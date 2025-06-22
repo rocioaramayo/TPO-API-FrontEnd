@@ -4,6 +4,7 @@ import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../store/slices/usersSlice';
 import { clearFavoritos, fetchFavoritos } from '../store/slices/favoritosSlice';
+import { fetchCategories } from '../store/slices/categoriesSlice';
 
 
 const Navigation = ({ onCartClick }) => {
@@ -11,6 +12,7 @@ const Navigation = ({ onCartClick }) => {
   const { user, isAuthenticated } = useSelector((state) => state.users);
   const cartItems = useSelector((state) => state.cart.items);
   const favoritos = useSelector((state) => state.favoritos.ids);
+  const { items: categories } = useSelector((state) => state.categories);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mostrarPerfil, setMostrarPerfil] = useState(false);
   const [search, setSearch] = useState("");
@@ -38,6 +40,7 @@ const Navigation = ({ onCartClick }) => {
     if (isAuthenticated) {
       dispatch(fetchFavoritos());
     }
+    dispatch(fetchCategories());
   }, [isAuthenticated, dispatch]);
 
 
@@ -85,6 +88,27 @@ const Navigation = ({ onCartClick }) => {
     );
   };
 
+
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [dropdownTimeout, setDropdownTimeout] = useState(null);
+
+  const handleCategoryMenuEnter = () => {
+    if (dropdownTimeout) {
+      clearTimeout(dropdownTimeout);
+    }
+    setIsCategoryDropdownOpen(true);
+  };
+
+  const handleCategoryMenuLeave = () => {
+    const timeout = setTimeout(() => {
+      setIsCategoryDropdownOpen(false);
+    }, 200); // 200ms delay
+    setDropdownTimeout(timeout);
+  };
+
+  const handleLinkClick = () => {
+    setIsCategoryDropdownOpen(false);
+  };
 
   return (
     <>
@@ -298,17 +322,50 @@ const Navigation = ({ onCartClick }) => {
 
 
             {/* Enlaces de navegación - Debajo del header principal */}
-            <div className="hidden lg:flex items-center justify-center space-x-8 py-4 border-t border-leather-200/30">
-              <NavLink
-                to="/productos"
-                className={({ isActive }) => `
-                  text-leather-700 hover:text-leather-900 text-sm font-medium transition-colors duration-200 pb-1
-                  ${isActive ? 'border-b-2 border-leather-800' : ''}
-                `}
+            <div className="hidden lg:flex items-center justify-center space-x-8 py-4 border-t border-leather-200/30 relative">
+              <div
+                onMouseEnter={handleCategoryMenuEnter}
+                onMouseLeave={handleCategoryMenuLeave}
               >
-                Productos
-              </NavLink>
-             
+                <NavLink
+                  to="/productos"
+                  className={({ isActive }) => `
+                    flex items-center text-leather-700 hover:text-leather-900 text-sm font-medium transition-colors duration-200 pb-1
+                    ${(isActive || isCategoryDropdownOpen) ? 'border-b-2 border-leather-800' : ''}
+                  `}
+                >
+                  Productos
+                  <svg className={`w-4 h-4 ml-1 transition-transform duration-200 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </NavLink>
+                {isCategoryDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-20">
+                    <div className="max-w-7xl mx-auto px-8 py-8">
+                      <div className="grid grid-cols-4 gap-x-8">
+                        <div className="space-y-4">
+                          <h3 className="text-xs font-semibold text-gray-500 tracking-wider uppercase">Comprar</h3>
+                          <ul className="space-y-2">
+                            <li><Link to="/productos" onClick={handleLinkClick} className="text-sm text-gray-600 hover:text-black">Ver Todo</Link></li>
+                          </ul>
+                        </div>
+                        {categories.map(category => (
+                          <div key={category.id}>
+                            <Link
+                              to={`/productos?categoriaId=${category.id}`}
+                              className="block text-sm text-gray-600 hover:text-black py-1"
+                              onClick={handleLinkClick}
+                            >
+                              {category.nombre}
+                            </Link>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               <NavLink
                 to="/nosotros"
                 className={({ isActive }) => `
@@ -318,7 +375,7 @@ const Navigation = ({ onCartClick }) => {
               >
                 Nosotros
               </NavLink>
-             
+              
               <NavLink
                 to="/contacto"
                 className={({ isActive }) => `
@@ -329,7 +386,6 @@ const Navigation = ({ onCartClick }) => {
                 Contacto
               </NavLink>
 
-
               <NavLink
                 to="/cuidado-del-cuero"
                 className={({ isActive }) => `
@@ -339,7 +395,6 @@ const Navigation = ({ onCartClick }) => {
               >
                 Cuidado del Cuero
               </NavLink>
-
 
               <NavLink
                 to="/garantia"
