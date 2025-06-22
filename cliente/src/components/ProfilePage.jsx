@@ -1,35 +1,33 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import DetalleCompra from "./DetalleCompra"; 
+import DetalleCompra from "./DetalleCompra";
 import DireccionesPanel from "./DireccionesPanel";
-
-import {
-  FaUser,
-  FaMapMarkedAlt,
-  FaShoppingCart,
-  FaCreditCard,
-  FaSignOutAlt,
-} from "react-icons/fa";
+import { FaUser, FaMapMarkedAlt, FaShoppingCart } from "react-icons/fa";
+import Footer from '../components/Footer';
 
 const ProfilePage = () => {
   const user = useSelector((state) => state.users.user);
+  const [activeTab, setActiveTab] = useState("perfil");
   const [editMode, setEditMode] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-  });
+  const [formData, setFormData] = useState({ firstName: "", lastName: "", email: "" });
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [misCompras, setMisCompras] = useState([]);
-  const [activeTab, setActiveTab] = useState("perfil");
   const [compraDetalle, setCompraDetalle] = useState(null);
   const [compraAbiertaId, setCompraAbiertaId] = useState(null);
   const [loadingDetalle, setLoadingDetalle] = useState(false);
 
-  // URL base consistente
-  const API_BASE = "http://localhost:8080";
+  useEffect(() => {
+    if (user?.token) {
+      fetch("http://localhost:8080/compras/mias", {
+        headers: { Authorization: `Bearer ${user.token}` },
+      })
+        .then((res) => res.json())
+        .then(setMisCompras)
+        .catch(console.error);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -41,415 +39,185 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (user?.token) {
-      fetch(`${API_BASE}/compras/mias`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      })
-          .then((res) => {
-            if (!res.ok) throw new Error("Error al obtener compras");
-            return res.json();
-          })
-          .then((data) => {
-            console.log("Compras cargadas:", data); // Debug
-            setMisCompras(data);
-          })
-          .catch((err) => {
-            console.error("Error al cargar mis compras:", err);
-          });
+  const verDetalleCompra = (id) => {
+    if (compraAbiertaId === id) {
+      setCompraAbiertaId(null);
+      setCompraDetalle(null);
+      return;
     }
-  }, [user]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setLoadingDetalle(true);
+    fetch(`http://localhost:8080/compras/${id}`, {
+      headers: { Authorization: `Bearer ${user.token}` },
+    })
+      .then((res) => res.json())
+      .then((detalle) => {
+        setCompraDetalle(detalle);
+        setCompraAbiertaId(id);
+        setLoadingDetalle(false);
+      })
+      .catch((err) => {
+        alert("Error al cargar detalle: " + err.message);
+        setLoadingDetalle(false);
+      });
   };
 
+  const mostrarInfoEntrega = (compra) => {
+    if (compra.direccionEntrega)
+      return `${compra.direccionEntrega?.calle ?? ""} ${compra.direccionEntrega?.numero ?? ""}, ${compra.direccionEntrega?.localidad ?? ""}`;
+    if (compra.puntoRetiro)
+      return `${compra.puntoRetiro?.nombre ?? ""} - ${compra.puntoRetiro?.direccion ?? ""}, ${compra.puntoRetiro?.localidad ?? ""}`;
+    return compra.metodoEntrega || "Sin información de entrega";
+  };
+
+  const formatearMetodoPago = (m) => ({
+    EFECTIVO: "Efectivo",
+    TARJETA_CREDITO: "Tarjeta de Crédito",
+    TARJETA_DEBITO: "Tarjeta de Débito",
+    MERCADO_PAGO: "Mercado Pago",
+    TRANSFERENCIA: "Transferencia Bancaria",
+  }[m] || m);
+
   const handleSave = () => {
-    fetch(`${API_BASE}/api/v1/users/me`, {
+    fetch(`http://localhost:8080/api/v1/users/me`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${user.token}`,
       },
-      body: JSON.stringify({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-      }),
+      body: JSON.stringify({ firstName: formData.firstName, lastName: formData.lastName }),
     })
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error("Error al actualizar el perfil");
-          }
-          return res.json();
-        })
-        .then((data) => {
-          setUserInfo(data);
-          setEditMode(false);
-          alert("Perfil actualizado correctamente.");
-        })
-        .catch(() => {
-          alert("Hubo un error al guardar los cambios.");
-        });
-  };
-
-  const verDetalleCompra = (id) => {
-    if (compraAbiertaId === id) {
-        setCompraAbiertaId(null);
-        setCompraDetalle(null);
-        return;
-    }
-
-    setLoadingDetalle(true);
-    console.log(`Cargando detalle de compra ${id}...`); // Debug
-
-    fetch(`${API_BASE}/compras/${id}`, {
-        headers: {
-            Authorization: `Bearer ${user.token}`,
-        },
-    })
-        .then((res) => {
-            console.log("Response status:", res.status); // Debug
-            if (!res.ok) {
-                throw new Error(`HTTP ${res.status}: Error al obtener el detalle de la compra`);
-            }
-            return res.json();
-        })
-        .then((detalle) => {
-            console.log("Detalle de compra recibido:", detalle); // Debug
-            setCompraDetalle(detalle);
-            setCompraAbiertaId(id);
-            setLoadingDetalle(false);
-        })
-        .catch((err) => {
-            console.error("Error completo:", err); // Debug
-            alert(`Error al cargar detalle: ${err.message}`);
-            setLoadingDetalle(false);
-        });
+      .then((res) => res.json())
+      .then(() => setEditMode(false))
+      .catch(() => alert("Error al guardar los cambios"));
   };
 
   const handleChangePassword = () => {
-    fetch(`${API_BASE}/api/v1/auth/change-password`, {
+    fetch(`http://localhost:8080/api/v1/auth/change-password`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${user.token}`,
       },
-      body: JSON.stringify({
-        oldPassword,
-        newPassword,
-      }),
+      body: JSON.stringify({ oldPassword, newPassword }),
     })
-        .then((res) => {
-          if (!res.ok) {
-            return res.json().then((errData) => {
-              throw new Error(errData.message || "Error al cambiar contraseña");
-            });
-          }
-          return res;
-        })
-        .then(() => {
-          alert("¡Contraseña cambiada!");
-          setShowPasswordModal(false);
-          setOldPassword("");
-          setNewPassword("");
-        })
-        .catch((e) => {
-          alert(e.message);
-        });
+      .then((res) => res.ok ? res : res.json().then(err => { throw new Error(err.message); }))
+      .then(() => {
+        alert("¡Contraseña cambiada!");
+        setShowPasswordModal(false);
+        setOldPassword("");
+        setNewPassword("");
+      })
+      .catch((e) => alert(e.message));
   };
 
-  // Función helper para mostrar información de dirección/entrega de forma resumida
-const mostrarInfoEntrega = (compra) => {
-  if (compra.direccionEntrega) {
-    if (typeof compra.direccionEntrega === 'object') {
-      return `${compra.direccionEntrega.calle} ${compra.direccionEntrega.numero}, ${compra.direccionEntrega.localidad}`;
-    }
-    return compra.direccionEntrega;
-  }
-  if (compra.puntoRetiro) {
-    if (typeof compra.puntoRetiro === 'object') {
-      // Mostrar los datos principales del punto de retiro
-      return `${compra.puntoRetiro.nombre} - ${compra.puntoRetiro.direccion}, ${compra.puntoRetiro.localidad}`;
-    }
-    return compra.puntoRetiro;
-  }
-  return compra.metodoEntrega || "Sin información de entrega";
-};
-
-
-  // Función helper para formatear método de pago
-  const formatearMetodoPago = (metodo) => {
-    const metodos = {
-      'EFECTIVO': 'Efectivo',
-      'TARJETA_CREDITO': 'Tarjeta de Crédito',
-      'TARJETA_DEBITO': 'Tarjeta de Débito',
-      'MERCADO_PAGO': 'Mercado Pago',
-      'TRANSFERENCIA': 'Transferencia Bancaria'
-    };
-    return metodos[metodo] || metodo;
-  };
-
-  if (!user) {
-    return (
-        <div className="min-h-screen flex items-center justify-center text-leather-700 text-xl">
-          <span className="animate-spin border-4 border-leather-300 border-t-leather-700 rounded-full w-12 h-12 mr-4"></span>
-          Cargando perfil...
-        </div>
-    );
-  }
+  if (!user)
+    return <div className="min-h-screen flex items-center justify-center text-orange-800 text-xl">Cargando perfil...</div>;
 
   return (
-      <div className="min-h-screen bg-leather-50 flex">
-        {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-xl p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex flex-col items-center mb-8">
-              <div className="w-16 h-16 rounded-full bg-leather-400 flex items-center justify-center text-white text-2xl font-bold shadow">
-                {user.firstName?.charAt(0).toUpperCase() ?? "U"}
-              </div>
-              <p className="mt-2 text-leather-700 text-sm">{user.email}</p>
-            </div>
-            <nav className="flex flex-col gap-4">
-              <button
-                  className={`flex items-center gap-2 text-leather-700 font-semibold ${activeTab === "perfil" ? "underline" : ""}`}
-                  onClick={() => setActiveTab("perfil")}
-              >
-                <FaUser /> Perfil
-              </button>
-              <button
-                  className={`flex items-center gap-2 text-leather-700 ${activeTab === "compras" ? "underline" : ""}`}
-                  onClick={() => setActiveTab("compras")}
-              >
-                <FaShoppingCart /> Mis Compras
-              </button>
-              <button
-                  className={`flex items-center gap-2 text-leather-700 ${activeTab === "envios" ? "underline" : ""}`}
-                  onClick={() => setActiveTab("envios")}
-              >
-                <FaMapMarkedAlt /> Direcciones
-              </button>
-            </nav>
-          </div>
-        </aside>
-
-        {/* Contenido principal */}
-        <main className="flex-1 p-12">
-          {activeTab === "perfil" && (
-              <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-                <h2 className="text-2xl font-bold text-leather-700 mb-4">Perfil de Usuario</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <span className="font-semibold text-leather-700">Nombre:</span>{" "}
-                    {editMode ? (
-                        <input
-                            type="text"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleChange}
-                            className="border p-1 rounded ml-2"
-                        />
-                    ) : (
-                        user.firstName
-                    )}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-leather-700">Apellido:</span>{" "}
-                    {editMode ? (
-                        <input
-                            type="text"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleChange}
-                            className="border p-1 rounded ml-2"
-                        />
-                    ) : (
-                        user.lastName
-                    )}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-leather-700">Email:</span>{" "}
-                    <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        className="border p-1 rounded ml-2 bg-gray-100"
-                        disabled
-                    />
-                  </div>
-                  <div>
-                    <span className="font-semibold text-leather-700">Rol:</span>{" "}
-                    {user.role}
-                  </div>
+    <div className="bg-gradient-to-br from-orange-50 to-amber-100 min-h-screen flex flex-col justify-between">
+      <div>
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row gap-12">
+            <aside className="w-full md:w-64 bg-white shadow-xl rounded-xl p-6 space-y-6">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-20 h-20 bg-orange-300 text-white text-3xl rounded-full flex items-center justify-center font-bold">
+                  {user.firstName?.charAt(0).toUpperCase() ?? "U"}
                 </div>
-                <div className="flex justify-end gap-2 mt-6">
-                  {!editMode ? (
+                <div className="mt-2 text-sm text-orange-950">{user.email}</div>
+              </div>
+              <nav className="space-y-2">
+                <button onClick={() => setActiveTab("perfil")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "perfil" ? "bg-orange-100 font-semibold" : "hover:bg-orange-50"}`}><FaUser className="inline mr-2" /> Perfil</button>
+                <button onClick={() => setActiveTab("compras")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "compras" ? "bg-orange-100 font-semibold" : "hover:bg-orange-50"}`}><FaShoppingCart className="inline mr-2" /> Mis Compras</button>
+                <button onClick={() => setActiveTab("envios")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "envios" ? "bg-orange-100 font-semibold" : "hover:bg-orange-50"}`}><FaMapMarkedAlt className="inline mr-2" /> Direcciones</button>
+              </nav>
+            </aside>
+
+            <main className="flex-1 space-y-8">
+              {activeTab === "perfil" && (
+                <div className="bg-white shadow rounded-xl p-8 animate-fade-in">
+                  <h2 className="text-2xl font-light text-orange-900 mb-6">Perfil de Usuario</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-orange-700">Nombre:</span>
+                      {editMode ? <input name="firstName" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="border p-1 rounded ml-2" /> : <strong> {user.firstName}</strong>}
+                    </div>
+                    <div>
+                      <span className="text-orange-700">Apellido:</span>
+                      {editMode ? <input name="lastName" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="border p-1 rounded ml-2" /> : <strong> {user.lastName}</strong>}
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-orange-700">Email:</span>
+                      <strong> {user.email}</strong>
+                    </div>
+                  </div>
+                  <div className="mt-6 flex gap-4">
+                    {!editMode ? (
                       <>
-                        <button
-                            onClick={() => setShowPasswordModal(true)}
-                            className="px-4 py-2 bg-leather-200 text-leather-800 rounded-lg hover:bg-leather-300 transition"
-                        >
-                          Cambiar contraseña
-                        </button>
-                        <button
-                            onClick={() => setEditMode(true)}
-                            className="px-4 py-2 bg-leather-600 text-white rounded-lg hover:bg-leather-700 transition"
-                        >
-                          Editar perfil
-                        </button>
+                        <button onClick={() => setShowPasswordModal(true)} className="px-4 py-2 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417]">Cambiar contraseña</button>
+                        <button onClick={() => setEditMode(true)} className="px-4 py-2 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417]">Editar perfil</button>
                       </>
+                    ) : (
+                      <button onClick={handleSave} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Guardar</button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "compras" && (
+                <div className="bg-white shadow rounded-xl p-8 animate-fade-in">
+                  <h3 className="text-xl font-light text-orange-900 mb-4">Historial de Compras</h3>
+                  {misCompras.length === 0 ? (
+                    <p className="text-orange-500">No tenés compras registradas.</p>
                   ) : (
-                      <button
-                          onClick={handleSave}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                      >
-                        Guardar
-                      </button>
+                    <div className="space-y-4">
+                      {misCompras.map((compra, i) => (
+                        <div key={i} className="border p-4 rounded-lg bg-orange-50 shadow-sm">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="font-semibold text-orange-800">Compra #{compra.id}</p>
+                              <p className="text-sm text-orange-600">{new Date(compra.fecha).toLocaleString()}</p>
+                            </div>
+                            <button onClick={() => verDetalleCompra(compra.id)} className="text-sm text-orange-700 underline">
+                              {compraAbiertaId === compra.id ? "Ocultar detalle" : "Ver detalle"}
+                            </button>
+                          </div>
+                          <p className="text-orange-700 text-sm mt-2">Entrega: {mostrarInfoEntrega(compra)}</p>
+                          <p className="text-orange-700 text-sm">Pago: {formatearMetodoPago(compra.metodoDePago)}</p>
+                          <p className="text-orange-700 text-sm">Total: ${compra.total?.toLocaleString()}</p>
+                          {compraAbiertaId === compra.id && compraDetalle && (
+                            <div className="mt-4">
+                              <DetalleCompra compra={compraDetalle} />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
-              </div>
-          )}
+              )}
 
-          {activeTab === "compras" && (
-              <div className="bg-white rounded-2xl shadow-md p-6">
-                  <h3 className="text-xl font-bold text-leather-700 mb-4">Mis Compras</h3>
-                  {misCompras.length === 0 ? (
-                      <p className="text-leather-500">No tenés compras registradas.</p>
-                  ) : (
-                      <ul className="space-y-3">
-                          {misCompras.map((compra, i) => (
-                              <li key={i} className="border rounded-lg p-4 bg-leather-50 shadow-sm">
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                      {/* Información básica de la compra */}
-                                      <div>
-                                          <p className="font-semibold text-leather-800 text-lg">Compra #{compra.id}</p>
-                                          <p className="text-sm text-leather-600">
-                                              <span className="font-semibold">Fecha:</span>{" "}
-                                              {new Date(compra.fecha).toLocaleDateString()} -{" "}
-                                              {new Date(compra.fecha).toLocaleTimeString()}
-                                          </p>
-                                          <p className="text-sm text-leather-600">
-                                              <span className="font-semibold">Total:</span> ${compra.total?.toLocaleString()}
-                                          </p>
-                                      </div>
-                                      
-                                      {/* Información de entrega y pago */}
-                                      <div>
-                                          <p className="text-sm text-leather-600">
-                                              <span className="font-semibold">Entrega:</span>{" "}
-                                              {mostrarInfoEntrega(compra)}
-                                          </p>
-                                          {compra.metodoDePago && (
-                                              <p className="text-sm text-leather-600">
-                                                  <span className="font-semibold">Pago:</span>{" "}
-                                                  {formatearMetodoPago(compra.metodoDePago)}
-                                                  {compra.cuotas && compra.cuotas > 1 && ` (${compra.cuotas} cuotas)`}
-                                              </p>
-                                          )}
-                                          <p className="text-sm text-leather-600">
-                                              <span className="font-semibold">Productos:</span>{" "}
-                                              {compra.items?.length || 0} item{compra.items?.length !== 1 ? 's' : ''}
-                                          </p>
-                                      </div>
-                                  </div>
+              {activeTab === "envios" && <DireccionesPanel token={user.token} />}
+            </main>
+          </div>
+        </div>
 
-                                  {/* Mostrar primer producto como preview */}
-                                  {compra.items && compra.items.length > 0 && (
-                                      <div className="mt-2 text-sm text-leather-500">
-                                          {compra.items[0].nombreProducto}
-                                          {compra.items.length > 1 && ` y ${compra.items.length - 1} más`}
-                                      </div>
-                                  )}
-
-                                  <button
-                                      className="mt-3 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition disabled:opacity-50"
-                                      onClick={() => verDetalleCompra(compra.id)}
-                                      disabled={loadingDetalle}
-                                  >
-                                      {loadingDetalle ? (
-                                          "Cargando..."
-                                      ) : compraAbiertaId === compra.id ? (
-                                          "Ocultar detalle"
-                                      ) : (
-                                          "Ver detalle"
-                                      )}
-                                  </button>
-
-                                  {/* Detalle de esa compra */}
-                                  {compraAbiertaId === compra.id && compraDetalle && (
-                                      <div className="mt-4">
-                                          <DetalleCompra
-                                              compra={compraDetalle}
-                                              onClose={() => {
-                                                  setCompraDetalle(null);
-                                                  setCompraAbiertaId(null);
-                                              }}
-                                          />
-                                      </div>
-                                  )}
-                              </li>
-                          ))}
-                      </ul>
-                  )}
-              </div>
-          )}
-
-          {activeTab === "pagos" && (
-              <div className="bg-white p-8 rounded shadow">
-                <h2 className="text-xl font-bold">Métodos de Pago</h2>
-                <p className="mt-2 text-gray-600">Acá irían los métodos de pago del usuario.</p>
-              </div>
-          )}
-
-          {activeTab === "envios" && (
-              <DireccionesPanel token={user.token} />
-          )}
-
-        </main>
-
-        {/* Modal contraseña */}
         {showPasswordModal && (
-            <div className="fixed inset-0 flex items-center justify-center z-40 bg-black bg-opacity-30">
-              <div className="bg-white rounded-xl shadow-xl p-8 min-w-[320px] flex flex-col gap-4">
-                <h3 className="font-bold text-lg text-leather-700 mb-2">
-                  Cambiar contraseña
-                </h3>
-                <input
-                    type="password"
-                    placeholder="Contraseña actual"
-                    className="border p-2 rounded"
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                />
-                <input
-                    type="password"
-                    placeholder="Nueva contraseña"
-                    className="border p-2 rounded"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                />
-                <button
-                    onClick={handleChangePassword}
-                    className="bg-leather-600 text-white rounded-lg py-2 hover:bg-leather-700 transition mt-2"
-                >
-                  Guardar cambio
-                </button>
-                <button
-                    onClick={() => {
-                      setShowPasswordModal(false);
-                      setOldPassword("");
-                      setNewPassword("");
-                    }}
-                    className="text-leather-700 underline text-xs mt-1"
-                >
-                  Cancelar
-                </button>
+          <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
+            <div className="bg-white rounded-xl shadow-lg p-6 w-80">
+              <h3 className="text-lg font-semibold text-orange-900 mb-4">Cambiar Contraseña</h3>
+              <input type="password" placeholder="Contraseña actual" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className="w-full border p-2 mb-3 rounded" />
+              <input type="password" placeholder="Nueva contraseña" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full border p-2 mb-4 rounded" />
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setShowPasswordModal(false)} className="text-sm text-orange-600">Cancelar</button>
+                <button onClick={handleChangePassword} className="px-3 py-1 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417] text-sm">Guardar</button>
               </div>
             </div>
+          </div>
         )}
       </div>
+
+      <Footer />
+    </div>
   );
 };
 
