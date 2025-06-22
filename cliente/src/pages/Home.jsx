@@ -2,16 +2,24 @@ import { useState, useEffect, useRef } from 'react';
 import ProductCard from '../components/ProductCard';
 import carrusel1 from '../assets/CARRUSEL_OFICIAL_1.jpg';
 import artesano from '../assets/artesano-trabajando.jpg';
+import heritageBannerImg from '../assets/fotos-bufalo_hombre-cartera.webp';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProducts } from '../store/slices/productsSlice';
 import FeaturedProducts from '../components/FeaturedProducts';
 import { useNavigate, Link } from 'react-router-dom';
 import cueroFondo from '../assets/cuero-fondo.jpg';
+import nubesConCarteras from '../assets/foto-de-nubes-concarteras.webp';
 import Footer from '../components/Footer';
 import cercaTextura from '../assets/cerca-en-la-textura-delicada.jpg';
 import CategoryGrid from '../components/CategoryGrid';
+import seleccionCuero from '../assets/cerca-en-la-textura-delicada.jpg';
+import corteCuero from '../assets/fot-3carruseñ.jpg';
+import costuraManual from '../assets/costuraManual-carruse_4.jpg';
+import muchasCarteras from '../assets/muchascartera-jutnas.webp';
+import dividerBannerImg from '../assets/bufalo-homber campera.webp';
+import staticDividerImg from '../assets/hombe-concarterita.webp';
 
-const heroImage = cueroFondo;
+const heroImage = nubesConCarteras;
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -22,8 +30,7 @@ const Home = () => {
   const navigate = useNavigate();
   const heroRef = useRef(null);
   const [heroVisible, setHeroVisible] = useState(false);
-
-
+  const [activeStep, setActiveStep] = useState(0);
 
   // el effect ponerle ligca=
   useEffect(() => {
@@ -32,6 +39,14 @@ const Home = () => {
 
   useEffect(() => {
     setTimeout(() => setHeroVisible(true), 300);
+  }, []);
+
+  // Auto-rotate craftsmanship steps
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % 3);
+    }, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   // Intersection Observer for animations
@@ -79,6 +94,27 @@ const Home = () => {
 
   // Selecciono los 3 productos más recientes (por id descendente)
   const featuredProducts = [...productos].sort((a, b) => b.id - a.id).slice(0, 3);
+
+  const craftSteps = [
+    { 
+      title: "SELECCIÓN", 
+      subtitle: "Cuero Premium", 
+      desc: "Cuero argentino de grano completo, seleccionado a mano por su carácter y durabilidad.",
+      img: seleccionCuero 
+    },
+    { 
+      title: "MANUFACTURA", 
+      subtitle: "Construcción Experta", 
+      desc: "Cortado y moldeado por maestros artesanos utilizando técnicas tradicionales.",
+      img: corteCuero 
+    },
+    { 
+      title: "ACABADO", 
+      subtitle: "Detalles Cosidos a Mano", 
+      desc: "Cada puntada está reforzada para resistir toda una vida de uso rudo.",
+      img: costuraManual 
+    },
+  ];
 
   return (
     <div className="bg-gradient-to-br from-orange-100 to-amber-100">
@@ -140,113 +176,184 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Brand Philosophy */}
+      {/* Collection Section */}
       <section 
-        id="philosophy" 
+        id="collection-highlight"
         data-animate
-        className={`py-32 px-4 transition-all duration-1000 ${
-          isVisible.philosophy ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
+        className={`py-32 px-4 bg-white transition-all duration-1000 ${
+          isVisible['collection-highlight'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
         }`}
-        style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.8)), url(${artesano})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          
-        }}
       >
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <div className="inline-block">
-                  <span className="text-xs font-medium text-orange-300 bg-orange-900/50 px-4 py-2 rounded-full tracking-widest uppercase">
-                    Desde 1985
-                  </span>
-                </div>
-                
-                <h2 className="text-5xl lg:text-6xl font-light text-white leading-tight">
-                  Tradición que
-                  <span className="block font-serif italic text-amber-400">trasciende</span>
-                </h2>
-              </div>
-              
-              <div className="w-32 h-px bg-gradient-to-r from-orange-500 to-amber-300"></div>
-              
-              <div className="space-y-6">
-                <p className="text-lg text-orange-200 leading-relaxed font-light">
-                  En cada puntada reside el alma de la artesanía argentina. 
-                  Cuatro décadas perfeccionando el arte del cuero, creando piezas 
-                  que trascienden tendencias y perduran en el tiempo.
-                </p>
-                
-                <p className="text-orange-300 leading-relaxed">
-                  Nuestros maestros artesanos transforman materiales nobles en 
-                  objetos de deseo, donde cada imperfección cuenta una historia 
-                  y cada detalle habla de excelencia.
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row items-center gap-x-8 gap-y-4 pt-6 border-t border-white/10">
-                <Link to="/garantia" className="text-amber-300 hover:text-white transition duration-300 flex items-center gap-2 group text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                  <span>Nuestra Garantía</span>
-                </Link>
-                <Link to="/cuidado-del-cuero" className="text-amber-300 hover:text-white transition duration-300 flex items-center gap-2 group text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-                  <span>Cuidado del Cuero</span>
-                </Link>
-              </div>
-
-              <div className="flex space-x-8 pt-8">
-                <div>
-                  <div className="text-3xl font-light text-white mb-2">40+</div>
-                  <div className="text-sm text-orange-300 uppercase tracking-wide">Años de experiencia</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-light text-white mb-2">100%</div>
-                  <div className="text-sm text-orange-300 uppercase tracking-wide">Artesanal</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-light text-white mb-2">∞</div>
-                  <div className="text-sm text-orange-300 uppercase tracking-wide">Durabilidad</div>
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-16 gap-y-12 items-center">
+            {/* Text Content */}
+            <div className="space-y-6 text-center lg:text-left">
+              <h2 className="text-5xl font-light text-orange-950 leading-tight">
+                Nada Dura Como el
+                <span className="block font-serif italic text-amber-900">Cuero Genuino</span>
+              </h2>
+              <div className="w-24 h-px bg-gradient-to-r from-orange-500 to-amber-400 mx-auto lg:mx-0"></div>
+              <p className="text-xl text-orange-800 leading-relaxed font-light">
+                Confort robusto y un atractivo atemporal. Creamos bolsos, carteras y accesorios con el mejor cuero argentino, construidos para acompañarte toda la vida.
+              </p>
+              <p className="text-orange-900/80 leading-relaxed">
+                Nuestra colección es un homenaje a la durabilidad y al estilo que solo mejora con el tiempo. Cada pieza es una inversión en calidad y tradición.
+              </p>
+              <div>
+                <button
+                  onClick={() => navigate('/productos')}
+                  className="group relative mt-4 px-8 py-3 bg-gradient-to-r from-orange-900 to-amber-900 text-white font-medium tracking-wide overflow-hidden transition-all duration-300 hover:from-orange-800 hover:to-amber-800 shadow-xl"
+                >
+                  <span className="relative z-10">Ver Colección</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </button>
               </div>
             </div>
             
-            <div className="relative">
-              <div className="aspect-[4/5] overflow-hidden rounded-2xl bg-black/20 backdrop-blur-sm border border-white/10">
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-center p-12">
-                    <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-white/20 to-white/10 rounded-full flex items-center justify-center shadow-lg">
-                      <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17v4a2 2 0 002 2h4M11 7.343V10a1 1 0 001 1h2.657" />
-                      </svg>
-                    </div>
-                    <div className="text-white font-medium text-xl mb-2">Maestros Artesanos</div>
-                    <div className="text-orange-200 text-sm">Creando belleza desde 1985</div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Floating element */}
-              <div className="absolute -bottom-8 -left-8 bg-black/40 p-8 rounded-2xl shadow-2xl max-w-xs backdrop-blur-lg border border-white/10">
-                <div className="space-y-3">
-                  <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h4 className="font-medium text-white">Certificación Artesanal</h4>
-                  <p className="text-sm text-orange-200">Cada pieza lleva el sello de autenticidad de nuestros maestros.</p>
-                </div>
+            {/* Image */}
+            <div className="relative flex justify-center">
+              <div className="aspect-[4/5] w-full max-w-md lg:max-w-none overflow-hidden rounded-2xl shadow-2xl">
+                <img 
+                  src={muchasCarteras} 
+                  alt="Colección de bolsos de cuero apilados"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Parallax Divider */}
+      <section
+        className="h-80 bg-fixed bg-cover bg-center"
+        style={{ backgroundImage: `url(${dividerBannerImg})` }}
+      >
+        <div className="h-full w-full bg-black/20"></div>
+      </section>
+
       {/* Featured Products */}
       <FeaturedProducts />
+
+      {/* Static Divider */}
+      <section
+        className="h-64 bg-cover bg-center"
+        style={{ backgroundImage: `url(${staticDividerImg})` }}
+      >
+        <div className="h-full w-full bg-black/10"></div>
+      </section>
+
+      {/* Craftsmanship Section */}
+      <section 
+        id="craftsmanship"
+        data-animate
+        className={`py-32 px-4 bg-white transition-all duration-1000 ${
+          isVisible.craftsmanship ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-20">
+            <h2 className="text-5xl font-light text-orange-950 mb-8">
+              El Arte de
+              <span className="block font-serif italic text-amber-900">Nuestra Artesanía</span>
+            </h2>
+            <p className="text-xl text-orange-800 leading-relaxed font-light max-w-3xl mx-auto">
+              Tres pasos definen nuestra promesa de calidad: la selección del mejor cuero, una manufactura experta y un acabado impecable cosido a mano.
+            </p>
+            <div className="w-32 h-px bg-gradient-to-r from-orange-600 to-amber-400 mx-auto mt-8"></div>
+          </div>
+
+          {/* Interactive Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-16">
+            {craftSteps.map((step, index) => (
+              <div 
+                key={index}
+                className="text-center group"
+                onMouseEnter={() => setActiveStep(index)}
+              >
+                {/* Image */}
+                <div className="relative overflow-hidden mb-8 rounded-lg shadow-lg aspect-[4/3]">
+                  <img
+                    src={step.img}
+                    alt={step.title}
+                    className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+                  />
+                  <div className={`absolute inset-0 bg-black/40 transition-all duration-500 ${activeStep === index ? 'opacity-0' : 'opacity-10'}`}></div>
+                  <div className="absolute top-4 left-4 w-12 h-12 bg-white/90 text-orange-900 text-2xl font-serif italic flex items-center justify-center rounded-full shadow-md">
+                    {index + 1}
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="space-y-2">
+                  <h3 className="text-2xl text-orange-950 font-light tracking-wide uppercase">
+                    {step.title}
+                  </h3>
+                  <h4 className="text-lg font-serif italic text-amber-800">
+                    {step.subtitle}
+                  </h4>
+                  <p className="text-orange-900/80 font-light leading-relaxed pt-2">
+                    {step.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Process indicator */}
+          <div className="flex justify-center mt-20">
+            <div className="flex space-x-4">
+              {craftSteps.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveStep(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ease-in-out ${
+                    activeStep === index ? 'bg-amber-700 scale-125' : 'bg-orange-200 hover:bg-orange-300'
+                  }`}
+                ></button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Heritage Banner */}
+      <section 
+        className="py-32 relative bg-fixed"
+        style={{
+          backgroundImage: `url(${heritageBannerImg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/70 to-black/60"></div>
+        
+        <div className="relative z-10 max-w-5xl mx-auto px-8 text-center">
+          <h2 className="text-5xl lg:text-6xl font-light text-white leading-tight drop-shadow-md mb-8">
+            "Hecho para la Aventura.
+            <span className="block font-serif italic text-amber-300 mt-2">Creado para Durar.</span>"
+          </h2>
+          <p className="text-xl text-orange-200 leading-relaxed max-w-3xl mx-auto mb-16 font-light">
+            Cada pieza de nuestra colección honra el arte perdido de un oficio aprendido con esmero y el trabajo duro 
+            de nuestras manos. Creamos artículos de cuero que te conectan con tus raíces e inspiran tu próxima aventura.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center md:border-r border-white/10 md:pr-8">
+              <div className="text-4xl font-light text-amber-300 mb-3">Desde 1985</div>
+              <div className="text-sm text-white uppercase tracking-widest">Marca con Historia</div>
+            </div>
+            <div className="text-center md:border-r border-white/10 md:pr-8">
+              <div className="text-4xl font-light text-amber-300 mb-3">Cuero Genuino</div>
+              <div className="text-sm text-white uppercase tracking-widest">Calidad Premium</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-light text-amber-300 mb-3">Garantía</div>
+              <div className="text-sm text-white uppercase tracking-widest">De por Vida</div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Testimonials */}
       <section 
