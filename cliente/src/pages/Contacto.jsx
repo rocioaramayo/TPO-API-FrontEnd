@@ -1,5 +1,24 @@
 import Footer from '../components/Footer';
 import { useState } from 'react';
+import heroImage from '../assets/hombe-concarterita.webp';
+
+// Local SVG icon components
+const EnvelopeIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+  </svg>
+);
+const PhoneIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+  </svg>
+);
+const MapPinIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+  </svg>
+);
 
 const Contacto = () => {
   const [form, setForm] = useState({ nombre: '', email: '', mensaje: '' });
@@ -11,63 +30,89 @@ const Contacto = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Aquí iría la lógica de envío real
+    console.log("Formulario enviado:", form);
     setEnviado(true);
+    // Resetear form después de un tiempo
+    setTimeout(() => {
+        setForm({ nombre: '', email: '', mensaje: '' });
+        setEnviado(false);
+    }, 5000);
   };
 
   return (
-    <div className="min-h-screen bg-cream-50 flex flex-col justify-between">
-      <div className="max-w-4xl mx-auto py-16 px-4 flex flex-col md:flex-row gap-12">
-        {/* Info de contacto */}
-        <div className="md:w-1/2 flex flex-col justify-center mb-8 md:mb-0">
-          <h1 className="text-4xl font-serif font-bold text-leather-900 mb-6">Contacto</h1>
-          <p className="text-leather-700 mb-6 text-lg">¿Tenés dudas, consultas o querés personalizar un producto? ¡Escribinos!</p>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <span className="bg-leather-100 p-2 rounded-full">
-                <svg className="w-6 h-6 text-leather-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-              </span>
-              <span className="text-leather-800 font-medium">info@cueroargentino.com</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="bg-leather-100 p-2 rounded-full">
-                <svg className="w-6 h-6 text-leather-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-              </span>
-              <span className="text-leather-800 font-medium">+54 11 1234-5678</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="bg-leather-100 p-2 rounded-full">
-                <svg className="w-6 h-6 text-leather-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              </span>
-              <span className="text-leather-800 font-medium">Buenos Aires, Argentina</span>
-            </div>
-          </div>
+    <div className="bg-white text-orange-950">
+       {/* Hero Section */}
+       <section 
+        className="relative h-[50vh] bg-cover bg-center bg-fixed"
+        style={{ backgroundImage: `url(${heroImage})` }}
+      >
+        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
+          <h1 className="text-5xl lg:text-6xl font-light mb-4">
+            Contáctanos
+          </h1>
+          <p className="text-lg lg:text-xl font-light max-w-3xl leading-relaxed">
+            Estamos aquí para ayudarte. Envíanos tu consulta y te responderemos a la brevedad.
+          </p>
         </div>
-        {/* Formulario */}
-        <div className="md:w-1/2">
-          <div className="bg-white p-8 rounded-2xl shadow-lg">
-            {enviado ? (
-              <div className="bg-green-100 text-green-800 p-4 rounded mb-6 text-center font-medium">
-                ¡Gracias por tu mensaje! Nos pondremos en contacto pronto.
+      </section>
+
+      <div className="bg-orange-50/50">
+        <div className="max-w-7xl mx-auto py-24 sm:py-32 px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+            
+            {/* Info de contacto */}
+            <div className="space-y-12">
+              <div>
+                <h2 className="text-4xl font-light text-orange-950 leading-tight mb-4">Ponte en Contacto</h2>
+                <p className="text-lg text-orange-800 leading-relaxed font-light">
+                  ¿Tienes dudas, consultas o quieres personalizar un producto? Completa el formulario o utiliza nuestros canales de contacto directo.
+                </p>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-leather-700 mb-2 font-medium">Nombre</label>
-                  <input type="text" name="nombre" value={form.nombre} onChange={handleChange} required className="w-full border border-leather-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-leather-400 bg-cream-50" placeholder="Tu nombre" />
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <EnvelopeIcon className="w-8 h-8 text-orange-900/70" strokeWidth={1} />
+                  <span className="text-lg text-orange-800 font-light">info@cueroargentino.com</span>
                 </div>
-                <div>
-                  <label className="block text-leather-700 mb-2 font-medium">Email</label>
-                  <input type="email" name="email" value={form.email} onChange={handleChange} required className="w-full border border-leather-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-leather-400 bg-cream-50" placeholder="tu@email.com" />
+                <div className="flex items-center gap-4">
+                  <PhoneIcon className="w-8 h-8 text-orange-900/70" strokeWidth={1} />
+                  <span className="text-lg text-orange-800 font-light">+54 11 1234-5678</span>
                 </div>
-                <div>
-                  <label className="block text-leather-700 mb-2 font-medium">Mensaje</label>
-                  <textarea name="mensaje" value={form.mensaje} onChange={handleChange} required rows={4} className="w-full border border-leather-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-leather-400 bg-cream-50" placeholder="¿En qué podemos ayudarte?" />
+                <div className="flex items-center gap-4">
+                  <MapPinIcon className="w-8 h-8 text-orange-900/70" strokeWidth={1} />
+                  <span className="text-lg text-orange-800 font-light">Buenos Aires, Argentina</span>
                 </div>
-                <button type="submit" className="w-full bg-leather-800 text-white px-6 py-3 rounded-lg hover:bg-leather-900 transition font-semibold text-lg shadow">
-                  Enviar mensaje
-                </button>
-              </form>
-            )}
+              </div>
+            </div>
+
+            {/* Formulario */}
+            <div className="bg-white p-8 sm:p-12 rounded-lg shadow-lg">
+              {enviado ? (
+                <div className="text-center">
+                  <h3 className="text-2xl font-light text-orange-950 mb-3">¡Gracias por tu mensaje!</h3>
+                  <p className="text-orange-800 leading-relaxed font-light">Hemos recibido tu consulta y nos pondremos en contacto contigo a la brevedad.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <label htmlFor="nombre" className="block text-sm font-medium text-orange-800 mb-2">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" value={form.nombre} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 font-light" placeholder="Tu nombre completo" />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-orange-800 mb-2">Email</label>
+                    <input type="email" id="email" name="email" value={form.email} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 font-light" placeholder="tu@email.com" />
+                  </div>
+                  <div>
+                    <label htmlFor="mensaje" className="block text-sm font-medium text-orange-800 mb-2">Mensaje</label>
+                    <textarea id="mensaje" name="mensaje" value={form.mensaje} onChange={handleChange} required rows={5} className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 font-light resize-none" placeholder="¿En qué podemos ayudarte?" />
+                  </div>
+                  <button type="submit" className="w-full bg-orange-950 text-white px-6 py-4 rounded-md hover:bg-orange-900 transition font-light text-lg tracking-wider shadow">
+                    Enviar Mensaje
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         </div>
       </div>

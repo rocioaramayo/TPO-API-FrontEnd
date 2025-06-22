@@ -15,9 +15,9 @@ import CategoryGrid from '../components/CategoryGrid';
 import seleccionCuero from '../assets/cerca-en-la-textura-delicada.jpg';
 import corteCuero from '../assets/fot-3carruseñ.jpg';
 import costuraManual from '../assets/costuraManual-carruse_4.jpg';
-import muchasCarteras from '../assets/muchascartera-jutnas.webp';
 import dividerBannerImg from '../assets/bufalo-homber campera.webp';
 import staticDividerImg from '../assets/hombe-concarterita.webp';
+import muchasCarteras from '../assets/muchascartera-jutnas.webp';
 
 const heroImage = nubesConCarteras;
 

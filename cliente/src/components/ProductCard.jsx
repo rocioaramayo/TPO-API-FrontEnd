@@ -38,7 +38,9 @@ const ProductCard = ({
   const formatPrice = (price) =>
     new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(price);
 
-  const handleClick = () => navigate(`/productos/${id}`);
+  const handleClick = () => {
+    navigate(`/productos/${id}`);
+  };
 
   const handleFavoriteClick = (e) => {
     e.stopPropagation();
