@@ -255,17 +255,6 @@ const Navigation = ({ onCartClick }) => {
                             >
                               Mi Perfil
                             </Link>
-                            {user?.role?.toLowerCase() === 'admin' && (
-                              <button
-                                onClick={() => {
-                                  setMostrarPerfil(false);
-                                  navigate('/admin');
-                                }}
-                                className="block w-full text-left px-4 py-2 text-sm text-leather-700 hover:bg-leather-50 transition-colors duration-200"
-                              >
-                                Panel Admin
-                              </button>
-                            )}
                           </div>
                           <div className="py-1 border-t border-leather-100">
                             <button
@@ -405,6 +394,18 @@ const Navigation = ({ onCartClick }) => {
               >
                 Garantía
               </NavLink>
+
+              {user?.role?.toLowerCase() === 'admin' && (
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) => `
+                    font-semibold text-red-700 hover:text-red-900 text-sm uppercase tracking-wider transition-colors duration-200 pb-1
+                    ${isActive ? 'border-b-2 border-red-700' : ''}
+                  `}
+                >
+                  Panel Admin
+                </NavLink>
+              )}
             </div>
           </div>
 

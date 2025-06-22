@@ -233,9 +233,6 @@ const mostrarInfoEntrega = (compra) => {
               </button>
             </nav>
           </div>
-          <button className="flex items-center gap-2 text-red-600 font-semibold mt-8">
-            <FaSignOutAlt /> Salir
-          </button>
         </aside>
 
         {/* Contenido principal */}
