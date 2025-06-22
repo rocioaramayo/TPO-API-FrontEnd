@@ -1,9 +1,21 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
-const AuthMessage = ({ isOpen, onClose }) => {
+const AuthMessage = ({ isOpen, onClose, title, description }) => {
   const navigate = useNavigate();
+  const [show, setShow] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) {
+      // Delay slightly to allow the component to mount before transitioning
+      const timer = setTimeout(() => setShow(true), 50);
+      return () => clearTimeout(timer);
+    } else {
+      setShow(false);
+    }
+  }, [isOpen]);
+
+  if (!isOpen && !show) return null;
 
   const handleLogin = () => {
     navigate('/login');
@@ -16,55 +28,57 @@ const AuthMessage = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full px-6 pt-4 pb-6 relative text-center">
-        
-        {/* Botón cerrar arriba a la derecha */}
+    <div 
+      className={`fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 transition-opacity duration-300 ${show ? 'opacity-100' : 'opacity-0'}`}
+      onClick={onClose}
+    >
+      <div 
+        className={`bg-white rounded-lg shadow-2xl max-w-sm w-full p-8 relative text-center transform transition-all duration-300 ${show ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-leather-400 hover:text-leather-600 transition-colors"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        {/* Contenido */}
-        <div className="w-14 h-14 bg-leather-100 rounded-full flex items-center justify-center mx-auto mb-4 mt-2">
-          <svg className="w-7 h-7 text-leather-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        <div className="w-16 h-16 bg-orange-100/50 rounded-full flex items-center justify-center mx-auto mb-5">
+          <svg className="w-8 h-8 text-amber-800" fill="none" viewBox="0 0 24 24">
+            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
         </div>
 
-        <h4 className="text-lg font-semibold text-leather-900 mb-1">
-          ¡Inicia sesión para guardar favoritos!
-        </h4>
-        <p className="text-sm text-leather-600 mb-6">
-          Crea una cuenta para guardar tus productos favoritos
+        <h2 className="text-2xl font-light text-orange-950 mb-2">
+          {title || "¡Guarda tus favoritos!"}
+        </h2>
+        <p className="text-base text-gray-600 mb-8 font-light">
+          {description || "Crea una cuenta o inicia sesión para guardar y ver tus productos preferidos."}
         </p>
 
         <div className="space-y-3">
           <button
             onClick={handleRegister}
-            className="w-full bg-leather-800 text-white py-3 px-4 rounded-lg font-medium hover:bg-leather-900 transition-colors"
+            className="w-full bg-orange-950 text-white py-3 px-4 rounded-md font-light tracking-wider hover:bg-orange-900 transition-colors"
           >
-            Crear cuenta
+            Crear Cuenta
           </button>
-
           <button
             onClick={handleLogin}
-            className="w-full border border-leather-800 text-leather-800 py-3 px-4 rounded-lg font-medium hover:bg-leather-800 hover:text-white transition-all"
+            className="w-full border border-gray-300 text-orange-950 py-3 px-4 rounded-md font-light tracking-wider hover:bg-gray-100 transition-all"
           >
-            Ya tengo cuenta
-          </button>
-
-          <button
-            onClick={onClose}
-            className="w-full text-center text-leather-400 hover:text-leather-600 text-xs mt-2"
-          >
-            Continuar sin registro
+            Ya tengo Cuenta
           </button>
         </div>
+        
+        <button
+          onClick={onClose}
+          className="w-full text-center text-gray-400 hover:text-gray-600 text-xs mt-6 tracking-wide"
+        >
+          CONTINUAR SIN GUARDAR
+        </button>
       </div>
     </div>
   );

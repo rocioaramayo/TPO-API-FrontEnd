@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import AuthMessage from './AuthMessage';
-import FavoriteNotification from './FavoriteNotification'; 
+import FavoriteNotification from './FavoriteNotification';
 
-function guessMimeType(foto) {
+const guessMimeType = (foto) => {
   if (foto?.nombre) {
     const ext = foto.nombre.split('.').pop().toLowerCase();
     if (ext === "png") return "image/png";
@@ -14,7 +14,7 @@ function guessMimeType(foto) {
   }
   if (foto?.file && foto.file.startsWith("/9j/")) return "image/jpeg";
   return "image/jpeg";
-}
+};
 
 const ProductCard = ({ 
   id, 
@@ -24,25 +24,19 @@ const ProductCard = ({
   stock, 
   categoria, 
   fotos, 
-  tipoCuero, 
-  color, 
-  pocoStock,
   isFavorite,
-  onFavoriteClick
+  onFavoriteClick,
+  onAddToCart
 }) => {
   const navigate = useNavigate();
   const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
   const [showAuthMessage, setShowAuthMessage] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
-  const [notificationData, setNotificationData] = useState({
-    isAdded: false,
-    productName: ''
-  });
-
-  const [fotoIndex, setFotoIndex] = useState(0); // nuevo estado
+  const [notificationData, setNotificationData] = useState({ isAdded: false, productName: '' });
+  const [fotoIndex, setFotoIndex] = useState(0);
 
   const formatPrice = (price) =>
-    new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(price);
+    new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(price);
 
   const handleClick = () => navigate(`/productos/${id}`);
 
@@ -65,99 +59,93 @@ const ProductCard = ({
   return (
     <>
       <div
-        className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer"
+        className="group relative flex flex-col h-full bg-white transition-shadow duration-300 overflow-hidden cursor-pointer border border-transparent hover:border-gray-200"
         onClick={handleClick}
       >
-        {/* Imagen del producto */}
-        <div className="aspect-square bg-cream-100 relative">
+        {/* Product Image */}
+        <div className="relative aspect-[4/5] overflow-hidden">
           {fotoPrincipal ? (
             <img
               src={fotoPrincipal}
               alt={nombre}
-              className="w-full h-full object-cover"
-              onError={(e) => console.error("Error cargando imagen:", e.target.src)}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <svg className="w-16 h-16 text-leather-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-full h-full flex items-center justify-center bg-gray-50">
+              <svg className="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
           )}
 
-          {/* Flechas de navegación */}
-          {fotos?.length > 1 && (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setFotoIndex((prev) => (prev === 0 ? fotos.length - 1 : prev - 1));
-                }}
-                className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-1 shadow"
-              >
-                ‹
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setFotoIndex((prev) => (prev + 1) % fotos.length);
-                }}
-                className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-1 shadow"
-              >
-                ›
-              </button>
-            </>
-          )}
-
-          {/* Ícono de favorito */}
+          {/* Image Navigation & Favorite Button (Appear on hover) */}
+          <div className="absolute inset-0 flex items-center justify-between p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            {fotos?.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFotoIndex((prev) => (prev === 0 ? fotos.length - 1 : prev - 1));
+                  }}
+                  className="bg-white/80 hover:bg-white rounded-full h-8 w-8 flex items-center justify-center shadow-md"
+                >
+                  <span className="text-xl text-orange-950">‹</span>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFotoIndex((prev) => (prev + 1) % fotos.length);
+                  }}
+                  className="bg-white/80 hover:bg-white rounded-full h-8 w-8 flex items-center justify-center shadow-md"
+                >
+                  <span className="text-xl text-orange-950">›</span>
+                </button>
+              </>
+            )}
+          </div>
+          
           <button
             onClick={handleFavoriteClick}
-            className="absolute top-3 right-3 p-2 rounded-full bg-white hover:bg-gray-50 shadow-sm"
-            title={!isAuthenticated ? 'Regístrate para agregar a favoritos' : isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+            className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300"
+            title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
           >
             <svg
-              className={`w-5 h-5 ${isFavorite ? 'text-red-500 fill-current' : isAuthenticated ? 'text-gray-400 hover:text-red-400' : 'text-gray-300'}`}
-              fill={isFavorite ? "currentColor" : "none"}
-              stroke="currentColor"
+              className={`w-5 h-5 transition-colors ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400 group-hover:text-red-400'}`}
               viewBox="0 0 24 24"
             >
               <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={isFavorite ? 0 : 2}
                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
               />
             </svg>
           </button>
 
-          {pocoStock && (
-            <div className="absolute top-3 left-3">
-              <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">Poco stock</span>
+          {stock > 0 && stock < 10 && (
+            <div className="absolute top-3 left-3 bg-red-800 text-white text-[10px] font-semibold px-2 py-1 rounded-full tracking-wider uppercase">
+              Poco Stock
             </div>
           )}
         </div>
 
-        {/* Info producto */}
-        <div className="p-4">
-          <span className="inline-block bg-leather-100 text-leather-700 text-xs font-medium px-2 py-1 rounded mb-2">
-            {categoria}
-          </span>
-          <h3 className="font-serif text-lg font-semibold text-leather-900 mb-2 line-clamp-2">
-            {nombre}
-          </h3>
-          <p className="text-leather-600 text-sm mb-3 line-clamp-2">{descripcion}</p>
-          {tipoCuero && (
-            <div className="flex flex-wrap gap-1 mb-3">
-              <span className="text-xs bg-cream-100 text-leather-600 px-2 py-1 rounded">{tipoCuero}</span>
-              {color && (
-                <span className="text-xs bg-cream-100 text-leather-600 px-2 py-1 rounded">{color}</span>
-              )}
-            </div>
-          )}
-          <div className="flex items-center justify-between">
-            <span className="text-xl font-bold text-leather-800">{formatPrice(precio)}</span>
+        {/* Product Info */}
+        <div className="flex-grow p-4 text-center flex flex-col">
+          <div className="flex-grow">
+            <h3 className="text-base font-light text-orange-950 mb-1 tracking-wide">
+              {nombre}
+            </h3>
+            <p className="font-serif italic text-sm text-amber-900 mb-3">
+              {categoria?.nombre || 'Sin categoría'}
+            </p>
           </div>
-          <div className="mt-2 text-xs text-leather-500">Stock: {stock} unidades</div>
+          <div className="mt-auto">
+            <span className="text-lg font-medium text-orange-950">{formatPrice(precio)}</span>
+            <button 
+              onClick={(e) => { e.stopPropagation(); onAddToCart(); }}
+              className="mt-3 w-full bg-transparent border border-orange-900 text-orange-950 py-2 text-sm font-light tracking-wider
+                         hover:bg-orange-950 hover:text-white transition-all duration-300"
+            >
+              Añadir al Carrito
+            </button>
+          </div>
         </div>
       </div>
 

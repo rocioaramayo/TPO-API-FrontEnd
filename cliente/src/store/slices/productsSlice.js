@@ -3,38 +3,35 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8080';
 
-export const fetchProducts = createAsyncThunk('products/fetchProducts', async (filtros = {}, { rejectWithValue }) => {
-  try {
-    // Si no hay filtros activos, usar GET /productos
-    const tieneFiltros = Object.entries(filtros).some(
-      ([k, v]) => v && v !== '' && k !== 'ordenarPor' && k !== 'orden'
-    );
-    if (!tieneFiltros) {
-      // GET /productos (devuelve ProductPageResponse)
-      const res = await axios.get(`${API_URL}/productos`);
-      // El array de productos está en res.data.productos
-      return res.data.productos || [];
-    } else {
-      // Si hay filtros, usar /productos/filtrar
+export const fetchProducts = createAsyncThunk(
+  'products/fetchProducts',
+  async (filtros = {}, { rejectWithValue }) => {
+    try {
       const params = new URLSearchParams();
-      if (filtros.nombre) params.append('nombre', filtros.nombre);
-      if (filtros.categoriaId) params.append('categoriaId', filtros.categoriaId);
-      if (filtros.tipoCuero) params.append('tipoCuero', filtros.tipoCuero);
-      if (filtros.color) params.append('color', filtros.color);
-      if (filtros.precioMin) params.append('precioMin', filtros.precioMin);
-      if (filtros.precioMax) params.append('precioMax', filtros.precioMax);
-      params.append('ordenarPor', filtros.ordenarPor || 'nombre');
-      params.append('orden', filtros.orden || 'asc');
-      params.append('size', '50');
-      const url = `${API_URL}/productos/filtrar?${params.toString()}`;
-      const res = await axios.get(url);
-      // El array de productos está en res.data.content
-      return res.data.content || [];
+
+      // Append all filters that have a value
+      Object.entries(filtros).forEach(([key, value]) => {
+        if (value) {
+          params.append(key, value);
+        }
+      });
+
+      // Always add pagination and sorting defaults if not present
+      if (!params.has('page')) params.append('page', '0');
+      if (!params.has('size')) params.append('size', '100');
+      if (!params.has('ordenarPor')) params.append('ordenarPor', 'nombre');
+      if (!params.has('orden')) params.append('orden', 'asc');
+
+      const response = await axios.get(`${API_URL}/productos/filtrar`, { params });
+      
+      // The paginated response has products in `content`
+      return response.data.content || [];
+
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error al cargar productos');
     }
-  } catch (err) {
-    return rejectWithValue(err.response?.data || err.message);
   }
-});
+);
 
 export const fetchAdminProducts = createAsyncThunk('products/fetchAdminProducts', async (_, { rejectWithValue }) => {
   try {
@@ -112,7 +109,8 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = Array.isArray(action.payload) ? action.payload : [];
+        state.items = action.payload;
+        state.error = null;
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;

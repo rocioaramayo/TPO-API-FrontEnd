@@ -23,6 +23,24 @@ import ReviewList from '../components/ReviewList';
 import ReviewForm from '../components/ReviewForm';
 import FavoriteNotification from '../components/FavoriteNotification';
 
+const AccordionItem = ({ title, children, isOpen, onClick }) => (
+  <div className="border-b border-gray-200 py-6">
+    <button onClick={onClick} className="w-full flex justify-between items-center text-left">
+      <span className="text-lg font-light text-orange-950">{title}</span>
+      <svg className={`w-5 h-5 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    <div className={`grid overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100 pt-4' : 'grid-rows-[0fr] opacity-0'}`}>
+      <div className="overflow-hidden">
+        <div className="prose prose-sm font-light text-gray-600 leading-relaxed">
+          {children}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const ProductDetail = ({ onAddToCart }) => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -43,6 +61,8 @@ const ProductDetail = ({ onAddToCart }) => {
       isAdded: false,
       productName: ''
     });
+    const [quantity, setQuantity] = useState(1);
+    const [openAccordion, setOpenAccordion] = useState('descripcion');
     
     // Usar Redux para cargar el producto
     useEffect(() => {  
@@ -123,250 +143,106 @@ const ProductDetail = ({ onAddToCart }) => {
     }
 
     return (
-        <div className="min-h-screen bg-cream-50">
-            {/* Breadcrumb */}
-            <div className="bg-white border-b border-leather-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <nav className="flex text-sm">
-                        <button 
-                            onClick={() => navigate('/')}
-                            className="text-leather-600 hover:text-leather-800"
-                        >
-                            Inicio
-                        </button>
-                        <span className="mx-2 text-leather-400">/</span>
-                        <button 
-                            onClick={() => navigate('/productos')}
-                            className="text-leather-600 hover:text-leather-800"
-                        >
-                            Productos
-                        </button>
-                        <span className="mx-2 text-leather-400">/</span>
-                        <span className="text-leather-800 font-medium">{producto.nombre}</span>
-                    </nav>
-                </div>
-            </div>
+        <div className="bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <nav className="py-6 text-sm">
+                    <button onClick={() => navigate('/')} className="hover:text-amber-800">Inicio</button>
+                    <span className="mx-2 text-gray-400">/</span>
+                    <button onClick={() => navigate('/productos')} className="hover:text-amber-800">Productos</button>
+                    <span className="mx-2 text-gray-400">/</span>
+                    <span className="font-medium text-orange-950">{producto.nombre}</span>
+                </nav>
 
-            {/* Mensaje para usuarios no logueados */}
-            <AuthMessage 
-                isOpen={showAuthMessage}
-                onClose={() => setShowAuthMessage(false)}
-            />
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    
-                    {/* Galería */}
-                    <div>
-                        {/* Imagen principal */}
-                        {/* Imagen principal */}
-<div className="aspect-square bg-cream-100 rounded-lg mb-4 relative overflow-hidden">
-  {producto.fotos && producto.fotos.length > 0 ? (
-    <>
-      {(() => {
-        const foto = producto.fotos[selectedPhoto];
-        const mimeType = guessMimeType(foto);
-        return (
-          <img
-            src={`data:${mimeType};base64,${foto.file}`}
-            alt={producto.nombre}
-            className="w-full h-full object-cover"
-          />
-        );
-      })()}
-
-      {/* Flechas para cambiar imagen */}
-      {producto.fotos.length > 1 && (
-        <>
-          <button
-            onClick={() => setSelectedPhoto((prev) => (prev === 0 ? producto.fotos.length - 1 : prev - 1))}
-            className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-1 shadow"
-          >
-            ‹
-          </button>
-          <button
-            onClick={() => setSelectedPhoto((prev) => (prev + 1) % producto.fotos.length)}
-            className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-1 shadow"
-          >
-            ›
-          </button>
-        </>
-      )}
-
-      {/* Badge de stock bajo */}
-      {producto.pocoStock && (
-        <div className="absolute top-4 left-4">
-          <span className="bg-red-100 text-red-800 text-sm font-medium px-3 py-1 rounded">
-            ¡Poco stock!
-          </span>
-        </div>
-      )}
-    </>
-  ) : (
-    <div className="w-full h-full flex items-center justify-center">
-      <svg className="w-24 h-24 text-leather-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-    </div>
-  )}
-</div>
-
-
-                        {/* Miniaturas */}
+                <main className="grid grid-cols-1 lg:grid-cols-2 gap-x-16 pb-24">
+                    {/* Gallery */}
+                    <section className="space-y-4">
+                        <div className="aspect-[4/5] bg-gray-50 rounded-lg overflow-hidden">
+                            {producto.fotos?.length > 0 && (
+                                <img
+                                    src={`data:${guessMimeType(producto.fotos[selectedPhoto])};base64,${producto.fotos[selectedPhoto].file || producto.fotos[selectedPhoto].contenidoBase64}`}
+                                    alt={producto.nombre}
+                                    className="w-full h-full object-cover"
+                                />
+                            )}
+                        </div>
+                        
+                        {/* Thumbnails below main image */}
                         {producto.fotos && producto.fotos.length > 1 && (
-                            <div className="flex space-x-2">
+                            <div className="flex gap-3 overflow-x-auto pb-2">
                                 {producto.fotos.map((foto, index) => (
                                     <button
-                                        key={index}
+                                        key={foto.id || index}
                                         onClick={() => setSelectedPhoto(index)}
-                                        className={`w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                                            selectedPhoto === index ? 'border-leather-800' : 'border-leather-200'
-                                        }`}
+                                        className={`flex-shrink-0 aspect-square w-20 rounded-md overflow-hidden border-2 transition-colors ${selectedPhoto === index ? 'border-amber-800' : 'border-transparent hover:border-gray-300'}`}
                                     >
-                                        {(() => {
-                                            const mimeType = guessMimeType(foto);
-                                            return (
-                                                <img
-                                                    src={`data:${mimeType};base64,${foto.file}`}
-                                                    alt={`${producto.nombre} - ${index + 1}`}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            );
-                                        })()}
+                                        <img
+                                            src={`data:${guessMimeType(foto)};base64,${foto.file || foto.contenidoBase64}`}
+                                            alt={`${producto.nombre} - thumbnail ${index + 1}`}
+                                            className="w-full h-full object-cover"
+                                        />
                                     </button>
                                 ))}
                             </div>
                         )}
-                    </div>
+                    </section>
 
-                    {/* Info producto */}
-                    <div>
-                        <div className="flex items-start justify-between mb-4">
-                            <span className="inline-block bg-leather-100 text-leather-700 text-sm font-medium px-3 py-1 rounded">
-                                {producto.categoria}
-                            </span>
-                            
-                            {/* Botón de favorito GRANDE */}
+                    {/* Product Info */}
+                    <section className="py-8 lg:py-0">
+                        <h1 className="text-4xl font-light text-orange-950 leading-tight">{producto.nombre}</h1>
+                        <p className="text-3xl font-medium text-amber-900 mt-4">{formatPrice(producto.precio)}</p>
+                        
+                        <div className="mt-6 flex items-center gap-4">
+                            <div className="flex items-center border border-gray-300 rounded-md">
+                                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-3 text-lg hover:bg-gray-100 rounded-l-md transition-colors">-</button>
+                                <span className="px-5 py-3 text-base font-medium">{quantity}</span>
+                                <button onClick={() => setQuantity(q => Math.min(producto.stock, q + 1))} className="px-4 py-3 text-lg hover:bg-gray-100 rounded-r-md transition-colors">+</button>
+                            </div>
+                            <button
+                                onClick={() => onAddToCart({ ...producto, quantity })}
+                                className="flex-1 bg-orange-950 text-white py-3 px-6 rounded-md font-light tracking-wider hover:bg-orange-900 transition-colors uppercase text-sm"
+                            >
+                                Añadir al Carrito
+                            </button>
                             <button
                                 onClick={handleFavoriteToggle}
-                                disabled={!isAuthenticated}
-                                className={`p-2 rounded-full transition-colors duration-300 ${isFavorite ? 'text-red-500 bg-red-100' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'}`}
-                                title={!isAuthenticated ? 'Regístrate para agregar a favoritos' : isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                                className="p-3 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
+                                title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={isFavorite ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
+                                <svg className={`w-6 h-6 transition-colors ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} viewBox="0 0 24 24">
+                                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>
                             </button>
                         </div>
+                        
+                        <p className="mt-4 text-sm text-gray-500">{producto.stock > 0 ? `Disponible - ${producto.stock} unidades en stock` : 'Agotado'}</p>
 
-                        <h1 className="text-3xl font-serif font-bold text-leather-900 mb-4">
-                            {producto.nombre}
-                        </h1>
-                        <div className="mb-6">
-                            <span className="text-4xl font-bold text-leather-800">
-                                {formatPrice(producto.precio)}
-                            </span>
+                        <div className="mt-10">
+                            <AccordionItem title="Descripción" isOpen={openAccordion === 'descripcion'} onClick={() => setOpenAccordion('descripcion')}>
+                                <p>{producto.descripcion}</p>
+                                <ul className="list-disc pl-5 mt-4 space-y-1">
+                                    <li>Tipo de Cuero: {producto.tipoCuero}</li>
+                                    <li>Color: {producto.color}</li>
+                                    <li>Categoría: {producto.categoria?.nombre || producto.categoria}</li>
+                                </ul>
+                            </AccordionItem>
+                            <AccordionItem title="Envíos y Devoluciones" isOpen={openAccordion === 'envios'} onClick={() => setOpenAccordion('envios')}>
+                                <p>Ofrecemos envío gratuito a todo el país en compras superiores a $50.000. Las devoluciones son gratuitas dentro de los 30 días posteriores a la compra.</p>
+                            </AccordionItem>
+                            <AccordionItem title="Cuidado del Cuero" isOpen={openAccordion === 'cuidado'} onClick={() => setOpenAccordion('cuidado')}>
+                                <p>Para mantener tu producto en las mejores condiciones, evita la exposición prolongada al sol y al agua. Limpia con un paño seco y suave y usa acondicionadores de cuero de calidad periódicamente.</p>
+                            </AccordionItem>
                         </div>
-
-                        <div className="mb-6">
-                            <h3 className="text-lg font-semibold text-leather-900 mb-2">Descripción</h3>
-                            <p className="text-leather-600 leading-relaxed">
-                                {producto.descripcion}
-                            </p>
-                        </div>
-
-                        {(producto.tipoCuero || producto.color || producto.acabado) && (
-                            <div className="mb-6">
-                                <h3 className="text-lg font-semibold text-leather-900 mb-3">Características</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    {producto.tipoCuero && (
-                                        <div>
-                                            <span className="text-sm text-leather-600">Tipo de cuero:</span>
-                                            <p className="font-medium text-leather-800">{producto.tipoCuero}</p>
-                                        </div>
-                                    )}
-                                    {producto.color && (
-                                        <div>
-                                            <span className="text-sm text-leather-600">Color:</span>
-                                            <p className="font-medium text-leather-800">{producto.color}</p>
-                                        </div>
-                                    )}
-                                    {producto.acabado && (
-                                        <div>
-                                            <span className="text-sm text-leather-600">Acabado:</span>
-                                            <p className="font-medium text-leather-800">{producto.acabado}</p>
-                                        </div>
-                                    )}
-                                    {producto.grosor && (
-                                        <div>
-                                            <span className="text-sm text-leather-600">Grosor:</span>
-                                            <p className="font-medium text-leather-800">{producto.grosor}</p>
-                                        </div>
-                                    )}
-                                    {producto.textura && (
-                                        <div>
-                                            <span className="text-sm text-leather-600">Textura:</span>
-                                            <p className="font-medium text-leather-800">{producto.textura}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="mb-6">
-                            <span className="text-sm text-leather-600">Stock disponible:</span>
-                            <p className="font-medium text-leather-800">{producto.stock} unidades</p>
-                        </div>
-
-                        {/* Instrucciones de cuidado */}
-                        {producto.instruccionesCuidado && (
-                            <div className="mb-8">
-                                <h3 className="text-lg font-semibold text-leather-900 mb-2">Cuidado del producto</h3>
-                                <p className="text-leather-600 text-sm leading-relaxed bg-cream-100 p-4 rounded-lg">
-                                    {producto.instruccionesCuidado}
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Botones */}
-                        <div className="space-y-4">
-                            <button 
-                                className="w-full bg-leather-800 text-white py-3 px-6 rounded-lg font-medium hover:bg-leather-900 transition-colors"
-                                onClick={() => onAddToCart(producto)}
-                            >
-                                Agregar al carrito
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Sección de Reviews */}
-                <div className="mt-16 border-t border-leather-200">
-                    <div className="pt-8">
-                        <h2 className="text-2xl font-serif font-bold text-leather-900 mb-2">
-                            Reseñas y Opiniones
-                        </h2>
-                        <p className="text-leather-600 mb-8">
-                            Conoce la experiencia de otros clientes con este producto
-                        </p>
-                    </div>
-                    
-                    {/* Lista de reviews existentes */}
-                    <ReviewList key={reviewsKey} productoId={id} />
-                    
-                    {/* Formulario para escribir nueva review */}
-                    <ReviewForm 
-                        productoId={id} 
-                        onReviewSubmitted={handleReviewSubmitted} 
-                    />
-                </div>
+                    </section>
+                </main>
+                
+                <section className="pb-24">
+                    <ReviewList key={producto.id} productoId={producto.id} />
+                    {isAuthenticated && <ReviewForm productoId={producto.id} onReviewSubmitted={handleReviewSubmitted} />}
+                </section>
             </div>
-            <FavoriteNotification
-                isVisible={showNotification}
-                isAdded={notificationData.isAdded}
-                productName={notificationData.productName}
-                onClose={() => setShowNotification(false)}
-                />
+            
+            <AuthMessage isOpen={showAuthMessage} onClose={() => setShowAuthMessage(false)} />
+            <FavoriteNotification isVisible={showNotification} isAdded={notificationData.isAdded} productName={notificationData.productName} onClose={() => setShowNotification(false)} />
             <Footer />
         </div>
     );

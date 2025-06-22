@@ -2,26 +2,25 @@ import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProducts, fetchTiposCuero, fetchColores } from '../store/slices/productsSlice';
 import { fetchCategories } from '../store/slices/categoriesSlice';
+import { useLocation } from 'react-router-dom';
 import Footer from '../components/Footer';
 import ProductFilters from '../components/ProductFilters';
 import ProductGrid from '../components/ProductGrid';
 import FilterTags from '../components/FilterTags';
-import { useLocation } from 'react-router-dom';
+import heroBanner from '../assets/alguien-conmapoa.webp';
 
-const Productos = () => {
+const Productos = ({ onAddToCart }) => {
   const dispatch = useDispatch();
   const { items: productos, loading, tiposCuero, colores } = useSelector((state) => state.products);
-  const { items: categorias, loading: categoriasLoading } = useSelector((state) => state.categories);
-  const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
-  // Estados principales locales solo para filtros y UI
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const { items: categorias } = useSelector((state) => state.categories);
   const location = useLocation();
+
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [filtros, setFiltros] = useState(() => {
     const params = new URLSearchParams(location.search);
-    const busqueda = params.get('busqueda') || '';
     return {
-      nombre: busqueda,
-      categoriaId: '',
+      nombre: params.get('busqueda') || '',
+      categoriaId: params.get('categoriaId') || '',
       tipoCuero: '',
       color: '',
       precioMin: '',
@@ -30,95 +29,110 @@ const Productos = () => {
       orden: 'asc',
     };
   });
-
+  
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const busqueda = params.get('busqueda') || '';
-    setFiltros((prev) => {
-      if (prev.nombre !== busqueda) {
-        return { ...prev, nombre: busqueda };
-      }
-      return prev;
-    });
-  }, [location.search]);
+    const categoriaId = params.get('categoria') ? categorias.find(c => c.nombre === params.get('categoria'))?.id || '' : '';
+    setFiltros(prev => ({ ...prev, nombre: busqueda, categoriaId }));
+  }, [location.search, categorias]);
 
-  // Cargar datos iniciales usando Redux
   useEffect(() => {
     dispatch(fetchCategories());
     dispatch(fetchTiposCuero());
     dispatch(fetchColores());
   }, [dispatch]);
 
-  // Cargar productos (con filtros) usando Redux
   useEffect(() => {
     dispatch(fetchProducts(filtros));
   }, [dispatch, filtros]);
 
-  // Manejar cambios en filtros
-  const handleFiltroChange = (campo, valor) => {
-    setFiltros((prev) => ({ ...prev, [campo]: valor }));
-  };
+  const handleFiltroChange = (campo, valor) => setFiltros(prev => ({ ...prev, [campo]: valor }));
+  
   const handleOrdenChange = (valor) => {
-    const opcionesOrden = [
-      { value: 'nombre_asc', ordenarPor: 'nombre', orden: 'asc' },
-      { value: 'nombre_desc', ordenarPor: 'nombre', orden: 'desc' },
-      { value: 'precio_asc', ordenarPor: 'precio', orden: 'asc' },
-      { value: 'precio_desc', ordenarPor: 'precio', orden: 'desc' },
-      { value: 'stock_desc', ordenarPor: 'stock', orden: 'desc' },
-    ];
-    const opcion = opcionesOrden.find((op) => op.value === valor);
-    setFiltros((prev) => ({ ...prev, ordenarPor: opcion.ordenarPor, orden: opcion.orden }));
+    const [ordenarPor, orden] = valor.split('_');
+    setFiltros(prev => ({ ...prev, ordenarPor, orden }));
   };
+
   const limpiarFiltros = () => {
     setFiltros({
-      nombre: '',
-      categoriaId: '',
-      tipoCuero: '',
-      color: '',
-      precioMin: '',
-      precioMax: '',
-      ordenarPor: 'nombre',
-      orden: 'asc',
+      nombre: '', categoriaId: '', tipoCuero: '', color: '',
+      precioMin: '', precioMax: '', ordenarPor: 'nombre', orden: 'asc',
     });
   };
-  const filtrosActivos = Object.values(filtros).filter(
-    (valor) => valor !== '' && valor !== 'nombre' && valor !== 'asc'
+
+  const filtrosActivos = Object.entries(filtros).filter(([key, value]) => 
+    value !== '' && !['ordenarPor', 'orden', 'nombre'].includes(key)
   ).length;
+  
+  const categoriaActual = categorias.find(cat => cat.id === parseInt(filtros.categoriaId))?.nombre;
 
   return (
-    <div className="min-h-screen bg-cream-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-serif font-bold text-leather-900 mb-2">Productos</h1>
-          <div className="flex items-center justify-between">
-            <p className="text-leather-600">
-              Encuentra el producto perfecto para ti
-              {filtros.nombre && (
-                <span className="ml-2 text-leather-800 font-medium">- Buscando: "{filtros.nombre}"</span>
-              )}
+    <div className="bg-white text-orange-950">
+      {/* Hero Banner */}
+      <section className="relative h-96 bg-cover bg-center" style={{ backgroundImage: `url(${heroBanner})` }}>
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+          <div className="text-center text-white">
+            <h1 className="text-5xl lg:text-7xl font-light drop-shadow-lg">
+              {categoriaActual || 'Nuestra Colección'}
+            </h1>
+            <p className="font-serif italic text-2xl text-amber-300 mt-4">
+              {categoriaActual ? `Explora nuestros productos de ${categoriaActual}` : 'Diseños para cada aventura'}
             </p>
-            <div className="flex items-center space-x-4">
-              <span className="text-leather-600 text-sm">
-                {loading
-                  ? 'Cargando...'
-                  : productos.length === 0
-                  ? 'No se encontraron productos'
-                  : `${productos.length} producto${productos.length > 1 ? 's' : ''} encontrado${productos.length > 1 ? 's' : ''}`}
-              </span>
-              <button
-                onClick={() => setFiltersOpen(!filtersOpen)}
-                className="lg:hidden bg-leather-800 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
-                </svg>
-                <span>Filtros</span>
-              </button>
-            </div>
           </div>
         </div>
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className={`lg:w-80 ${filtersOpen ? 'block' : 'hidden'} lg:block`}>
+      </section>
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Filters and Sorting Bar */}
+        <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
+          <button
+            onClick={() => setFiltersOpen(true)}
+            className="flex items-center gap-2 text-sm font-medium hover:text-amber-800 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path></svg>
+            <span>Filtros {filtrosActivos > 0 && `(${filtrosActivos})`}</span>
+          </button>
+          
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">
+              {loading ? 'Cargando...' : `${productos.length} resultados`}
+            </span>
+            <select
+              onChange={(e) => handleOrdenChange(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-amber-800 focus:border-amber-800"
+            >
+              <option value="nombre_asc">Ordenar: Alfabéticamente (A-Z)</option>
+              <option value="nombre_desc">Ordenar: Alfabéticamente (Z-A)</option>
+              <option value="precio_asc">Ordenar: Precio (Menor a Mayor)</option>
+              <option value="precio_desc">Ordenar: Precio (Mayor a Menor)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Filter Tags */}
+        <FilterTags filtros={filtros} categorias={categorias} onFiltroChange={handleFiltroChange} />
+
+        {/* Products Grid */}
+        <ProductGrid 
+          productos={productos} 
+          categorias={categorias}
+          loading={loading} 
+          onLimpiarFiltros={limpiarFiltros} 
+          onAddToCart={onAddToCart}
+        />
+      </main>
+
+      {/* Filters Sidebar */}
+      <aside className={`fixed top-0 left-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ${filtersOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-6 h-full flex flex-col">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-xl font-light">Filtros</h2>
+            <button onClick={() => setFiltersOpen(false)} className="p-1 hover:bg-gray-100 rounded-full">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+          <div className="overflow-y-auto flex-grow pr-2">
             <ProductFilters
               filtros={filtros}
               onFiltroChange={handleFiltroChange}
@@ -127,23 +141,12 @@ const Productos = () => {
               categorias={categorias}
               tiposCuero={tiposCuero}
               colores={colores}
-              filtrosActivos={filtrosActivos}
-            />
-          </div>
-          <div className="flex-1">
-            <FilterTags
-              filtros={filtros}
-              categorias={categorias}
-              onFiltroChange={handleFiltroChange}
-            />
-            <ProductGrid
-              productos={productos}
-              loading={loading}
-              onLimpiarFiltros={limpiarFiltros}
             />
           </div>
         </div>
-      </div>
+      </aside>
+      {filtersOpen && <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setFiltersOpen(false)}></div>}
+
       <Footer />
     </div>
   );

@@ -152,7 +152,7 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
           disabled={!interactive}
         >
           <svg
-            className={`w-6 h-6 ${i <= reviewData.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'} ${interactive ? 'hover:text-yellow-300' : ''}`}
+            className={`w-6 h-6 ${i <= reviewData.rating ? 'text-amber-400 fill-current' : 'text-gray-300'} ${interactive ? 'hover:text-amber-300' : ''}`}
             viewBox="0 0 20 20"
           >
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -165,28 +165,28 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
 
   if (!isAuthenticated) {
     return (
-      <div className="py-8 border-t border-leather-200">
+      <div className="py-12 border-t border-gray-200">
         <div className="text-center">
-          <h4 className="text-lg font-serif font-semibold text-leather-900 mb-2">
+          <h4 className="text-2xl font-light text-orange-950 mb-3">
             ¿Has comprado este producto?
           </h4>
-          <p className="text-leather-600 mb-4">
+          <p className="text-orange-800 mb-6 font-light">
             Comparte tu experiencia con otros clientes
           </p>
-          <div className="bg-leather-50 border border-leather-200 rounded-lg p-4">
-            <p className="text-leather-700 mb-3">
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 max-w-md mx-auto">
+            <p className="text-orange-800 mb-4 font-light">
               Para escribir una reseña necesitas tener una cuenta
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button 
                 onClick={() => navigate('/login')}
-                className="bg-leather-800 text-white px-6 py-2 rounded-lg hover:bg-leather-900 transition-colors"
+                className="bg-orange-950 text-white px-6 py-3 rounded-md hover:bg-orange-900 transition-colors font-light"
               >
                 Iniciar Sesión
               </button>
               <button 
                 onClick={() => navigate('/register')}
-                className="border border-leather-800 text-leather-800 px-6 py-2 rounded-lg hover:bg-leather-800 hover:text-white transition-colors"
+                className="border border-orange-950 text-orange-950 px-6 py-3 rounded-md hover:bg-orange-950 hover:text-white transition-colors font-light"
               >
                 Crear Cuenta
               </button>
@@ -198,32 +198,32 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
   }
 
   return (
-    <div className="py-8 border-t border-leather-200">
+    <div className="py-12 border-t border-gray-200">
       {!isOpen ? (
         <div className="text-center">
-          <h4 className="text-lg font-serif font-semibold text-leather-900 mb-2">
+          <h4 className="text-2xl font-light text-orange-950 mb-3">
             ¿Has comprado este producto?
           </h4>
-          <p className="text-leather-600 mb-4">
+          <p className="text-orange-800 mb-6 font-light">
             Comparte tu experiencia con otros clientes
           </p>
           <button
             onClick={() => setIsOpen(true)}
-            className="bg-leather-800 text-white px-8 py-3 rounded-lg hover:bg-leather-900 transition-colors font-medium"
+            className="bg-orange-950 text-white px-8 py-3 rounded-md hover:bg-orange-900 transition-colors font-light"
           >
             Escribir Reseña
           </button>
         </div>
       ) : (
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white border border-leather-200 rounded-lg p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <h4 className="text-xl font-serif font-semibold text-leather-900">
+          <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-8">
+              <h4 className="text-2xl font-light text-orange-950">
                 Escribir Reseña
               </h4>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-leather-400 hover:text-leather-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -258,13 +258,13 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Rating */}
               <div>
-                <label className="block text-sm font-medium text-leather-700 mb-2">
+                <label className="block text-sm font-medium text-orange-800 mb-3">
                   Calificación *
                 </label>
                 <div className="flex items-center space-x-1">
                   {renderStars(true)}
                   {reviewData.rating > 0 && (
-                    <span className="ml-2 text-leather-600">
+                    <span className="ml-3 text-orange-700 font-light">
                       {reviewData.rating} de 5 estrellas
                     </span>
                   )}
@@ -273,7 +273,7 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
 
               {/* Título (opcional) */}
               <div>
-                <label htmlFor="titulo" className="block text-sm font-medium text-leather-700 mb-2">
+                <label htmlFor="titulo" className="block text-sm font-medium text-orange-800 mb-2">
                   Título de tu reseña (opcional)
                 </label>
                 <input
@@ -283,12 +283,12 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
                   value={reviewData.titulo}
                   onChange={handleInputChange}
                   placeholder="Ej: Excelente calidad, muy recomendado"
-                  className="w-full px-3 py-2 border border-leather-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-leather-500 focus:border-leather-500 transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors font-light"
                   maxLength="100"
                 />
-                <div className="flex justify-between items-center mt-1">
-                  <p className="text-xs text-leather-500">Máximo 100 caracteres</p>
-                  <p className="text-xs text-leather-400">
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-xs text-gray-500 font-light">Máximo 100 caracteres</p>
+                  <p className="text-xs text-gray-400">
                     {reviewData.titulo.length}/100
                   </p>
                 </div>
@@ -296,7 +296,7 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
 
               {/* Comentario */}
               <div>
-                <label htmlFor="comentario" className="block text-sm font-medium text-leather-700 mb-2">
+                <label htmlFor="comentario" className="block text-sm font-medium text-orange-800 mb-2">
                   Tu reseña *
                 </label>
                 <textarea
@@ -306,21 +306,21 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
                   onChange={handleInputChange}
                   placeholder="Cuéntanos sobre tu experiencia con este producto. ¿Qué te gustó? ¿Cómo es la calidad? ¿Lo recomendarías?"
                   rows={5}
-                  className="w-full px-3 py-2 border border-leather-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-leather-500 focus:border-leather-500 transition-colors resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors resize-none font-light"
                   maxLength="1000"
                   required
                 />
-                <p className="text-xs text-leather-500 mt-1">
+                <p className="text-xs text-gray-500 mt-2 font-light">
                   {reviewData.comentario.length}/1000 caracteres
                 </p>
               </div>
 
               {/* Botones */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <div className="flex flex-col sm:flex-row gap-4 pt-6">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-leather-800 text-white px-6 py-3 rounded-lg hover:bg-leather-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                  className="bg-orange-950 text-white px-8 py-3 rounded-md hover:bg-orange-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-light"
                 >
                   {loading ? (
                     <div className="flex items-center justify-center">
@@ -334,7 +334,7 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="border border-leather-300 text-leather-700 px-6 py-3 rounded-lg hover:bg-leather-50 transition-colors font-medium"
+                  className="border border-gray-300 text-gray-700 px-8 py-3 rounded-md hover:bg-gray-50 transition-colors font-light"
                 >
                   Cancelar
                 </button>

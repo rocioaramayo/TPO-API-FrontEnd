@@ -24,6 +24,7 @@ import CartSidebar from "./components/CartSidebar";
 import CheckoutPage from './pages/CheckoutPage.jsx';
 import AdminProfilePage from "./pages/admin/AdminProfilePage.jsx"; // ⬅️ arriba junto a los otros imports
 import ConfirmacionPedido from './pages/ConfirmacionPedido';
+import AuthMessage from './components/AuthMessage';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
 
@@ -37,6 +38,7 @@ const AppContent = () => {
 
   const [cartOpen, setCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
+  const [authModalInfo, setAuthModalInfo] = useState({ isOpen: false, title: '', description: '' });
 
   // Función para manejar el logout
   const handleLogout = () => {
@@ -47,7 +49,11 @@ const AppContent = () => {
 
   const handleAddToCart = (product) => {
     if (!isAuthenticated) {
-      alert("Debés iniciar sesión para agregar productos al carrito");
+      setAuthModalInfo({
+        isOpen: true,
+        title: 'Inicia sesión para comprar',
+        description: 'Debes tener una cuenta para añadir productos al carrito.'
+      });
       return;
     }
 
@@ -166,7 +172,7 @@ const AppContent = () => {
           element={
             <>
               <Navigation onLogout={handleLogout} onCartClick={() => setCartOpen(true)} cartItems={cartItems.filter(item => item.quantity > 0)} />
-              <Productos />
+              <Productos onAddToCart={handleAddToCart} />
             </>
           } 
         />
@@ -258,6 +264,12 @@ const AppContent = () => {
         onRemove={handleRemoveFromCart}
         onAddQty={handleAddQty}
         onSubQty={handleSubQty}
+      />
+      <AuthMessage 
+        isOpen={authModalInfo.isOpen} 
+        onClose={() => setAuthModalInfo({ isOpen: false, title: '', description: '' })}
+        title={authModalInfo.title}
+        description={authModalInfo.description}
       />
     </>
   );
