@@ -22,12 +22,8 @@ const GestionCategorias = () => {
   const navigate = useNavigate();
 
   // Cargar categorías usando Redux
-  const cargarCategorias = () => {
-    dispatch(fetchCategories());
-  };
-
   useEffect(() => {
-    cargarCategorias();
+    dispatch(fetchCategories());
   }, [dispatch]);
 
   // Manejar cambios en el formulario

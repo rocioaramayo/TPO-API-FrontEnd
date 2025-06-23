@@ -3,13 +3,9 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8080';
 
-export const fetchOrders = createAsyncThunk('orders/fetchOrders', async (token, { rejectWithValue }) => {
+export const fetchMetodoEntrega = createAsyncThunk('metodoEntrega/fetchMetodoEntrega', async (token, { rejectWithValue }) => {
   try {
-    const res = await axios.get(`${API_URL}/compras`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await axios.get(`${API_URL}/entregas/metodos`);
     return res.data;
   } catch (err) {
     return rejectWithValue(err.response?.data || err.message);
@@ -22,25 +18,26 @@ const initialState = {
   error: null,
 };
 
-const ordersSlice = createSlice({
-  name: 'orders',
+const metodoEntregaSlice = createSlice({
+  name: 'metodoEntrega',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchOrders.pending, (state) => {
+      .addCase(fetchMetodoEntrega.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchOrders.fulfilled, (state, action) => {
+      .addCase(fetchMetodoEntrega.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload;
+        state.error = null;
       })
-      .addCase(fetchOrders.rejected, (state, action) => {
+      .addCase(fetchMetodoEntrega.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
   },
 });
 
-export default ordersSlice.reducer; 
+export default metodoEntregaSlice.reducer; 

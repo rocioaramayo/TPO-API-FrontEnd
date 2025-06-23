@@ -1,30 +1,21 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchOrders } from "../../store/slices/ordersSlice";
 
 const GestionComprasAdmin = () => {
+    const dispatch = useDispatch();
     const { user } = useSelector((state) => state.users);
-    const [compras, setCompras] = useState([]);
-    const [error, setError] = useState(null);
+    const compras = useSelector((state) => state.orders.items)
+    const { error } = useSelector((state) => state.orders)
     const [compraDetalleId, setCompraDetalleId] = useState(null);
     const [ordenarPor, setOrdenarPor] = useState("fecha-desc"); // por defecto: fecha descendente
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (user?.token) {
-            fetch("http://localhost:8080/compras/admin/compras", {
-                headers: {
-                    Authorization: `Bearer ${user.token}`,
-                },
-            })
-                .then((res) => {
-                    if (!res.ok) throw new Error("Error al obtener compras");
-                    return res.json();
-                })
-                .then(setCompras)
-                .catch((err) => setError(err.message));
-        }
-    }, [user]);
+        if (!user || !user.token) return;
+        dispatch(fetchOrders(user.token))
+    }, [dispatch]);
 
     return (
         <div className="p-6">

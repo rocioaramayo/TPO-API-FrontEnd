@@ -154,10 +154,11 @@ const AppContent = () => {
           path="/admin/*" 
           element={
           <>
-              <AdminNavigation user={user} />
-              <AdminPanel user={user} />
+              <AdminNavigation />
+              <AdminPanel/>
           </>} 
         />
+        
         {/* Páginas legales y de ayuda */}
         <Route path="/contacto" element={
           <>

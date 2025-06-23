@@ -5,6 +5,8 @@ import usersReducer from './slices/usersSlice';
 import ordersReducer from './slices/ordersSlice';
 import favoritosReducer from './slices/favoritosSlice';
 import cartReducer from './slices/cartSlice';
+import metodoEntregaReducer from './slices/metodoEntregaSlice';
+import puntoEntregaReducer from './slices/puntoEntregaSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +16,8 @@ export const store = configureStore({
     orders: ordersReducer,
     favoritos: favoritosReducer,
     cart: cartReducer,
+    metodoEntrega: metodoEntregaReducer,
+    puntoEntrega: puntoEntregaReducer,
   },
   devTools: process.env.NODE_ENV !== 'production',
 }); 

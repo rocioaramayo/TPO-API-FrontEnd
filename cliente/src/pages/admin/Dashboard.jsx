@@ -1,39 +1,42 @@
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { fetchUsers } from "../../store/slices/usersSlice";
+import { fetchProducts } from "../../store/slices/productsSlice";
+import { fetchOrders } from "../../store/slices/ordersSlice";
 
-const Dashboard = ({user}) => {
-  const [stats, setStats] = useState([]);
+const Dashboard = () => {
+  const dispatch = useDispatch()
+  const usuarios = useSelector((state) => state.users.items);
+  const user = useSelector((state)=> state.users.user);
+  const productos = useSelector((state) => state.products.items);
+  const stats = useSelector((state) => state.orders.items)
   const [ingresosDiarios, setIngresosDiarios] = useState(0);
   const [ingresosMensuales, setIngresosMensuales] = useState(0);
   const [ingresosAnuales, setIngresosAnuales] = useState(0);
   const [cantidadVentasDia, setCantidadVentasDia] = useState(0);
   const [cantidadVentasMes, setCantidadVentasMes] = useState(0);
   const [cantidadVentasAnio, setCantidadVentasAnio] = useState(0);
-  const [usuarios, setUsuarios] = useState([]);
   const [cantUsuarios, setCantUsuarios] = useState(0);
-  const [productos, setProductos] = useState([]);
   const [productosPocoStock, setProductosPocoStock] = useState(0);
   const [productosActivos, setProductosActivos] = useState(0);
   const [productosInactivos, setProductosInactivos] = useState(0);
-
+  // Cargar compras
   useEffect(() => {
     if (!user || !user.token) return;
-    // Cargar compras
-    fetch("http://localhost:8080/compras", {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${user.token}`
-      }
-    })
-    .then((res) => res.json())
-    .then((data) => {
-      console.log('Compras cargadas:', data);
-      setStats(data);
-    })
-    .catch((error) => {
-      console.error('Error al cargar compras:', error);
-    });
-  }, [user]);
+    dispatch(fetchOrders(user.token))
+  }, [dispatch]);
+
+   // Cargar usuarios
+  useEffect(() => {
+    if (!user || !user.token) return;
+    dispatch(fetchUsers(user.token));
+  }, [dispatch]);
+
+  // Cargar productos
+  useEffect(() => {
+    dispatch(fetchProducts(user.token))
+  }, [dispatch]);
 
   useEffect(() => {
     if (!stats || stats.length === 0) return;
@@ -92,23 +95,7 @@ const Dashboard = ({user}) => {
 
   }, [stats]);
 
-  useEffect(() => {
-    if (!user || !user.token) return;
-    // Cargar usuarios
-    fetch('http://127.0.0.1:8080/api/v1/users', {
-      method: "GET",
-      headers: {
-        'Authorization': `Bearer ${user.token}`
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      setUsuarios(data);
-    })
-    .catch((error) => {
-      console.error('Error al cargar usuarios:', error);
-    });
-  }, [user]);
+  
 
   useEffect(() => {
     if (!user || !user.token) return;
@@ -122,22 +109,7 @@ const Dashboard = ({user}) => {
     setCantUsuarios(cantidad);
   }, [user, usuarios]);
 
-  useEffect(() => {
-    if (!user || !user.token) return;
-    // Cargar productos
-    fetch("http://localhost:8080/productos/admin", {
-      headers: {
-        'Authorization': `Bearer ${user.token}`
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setProductos(data.productos || []);
-      })
-      .catch((error) => {
-        console.error('Error al cargar productos:', error);
-      });
-  }, [user]);
+  
 
   useEffect(() => {
     if (!user || !user.token) return;

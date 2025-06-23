@@ -6,7 +6,7 @@ import FormEditarProducto from "./FormEditarProducto";
 export default function TablaProductos({ mostrarCrearProducto, onEditar }) {
   const dispatch = useDispatch();
   const productos = useSelector((state) => state.products.items) || [];
-  const { user } = useSelector((state) => state.users);
+  const user = useSelector((state) => state.users.user);
   const loading = useSelector((state) => state.products.loading);
   const [mostrarAlertaDesactivar, setMostrarAlertaDesactivar] = useState(false);
   const [mostrarAlertaActivar, setMostrarAlertaActivar] = useState(false);
@@ -16,8 +16,8 @@ export default function TablaProductos({ mostrarCrearProducto, onEditar }) {
   const [stock, setStock] = useState(0);
 
   useEffect(() => {
-    dispatch(fetchAdminProducts());
-  }, [dispatch, mostrarCrearProducto]);
+    dispatch(fetchAdminProducts(user.token));
+  }, [dispatch]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const startIndex = (currentPage - 1) * itemsPerPage;

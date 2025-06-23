@@ -3,12 +3,11 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8080';
 
-export const fetchUsers = createAsyncThunk('users/fetchUsers', async (_, { rejectWithValue, getState }) => {
+export const fetchUsers = createAsyncThunk('users/fetchUsers', async (token, { rejectWithValue, getState }) => {
   try {
-    const { user } = getState().users;
     const res = await axios.get(`${API_URL}/api/v1/users`, {
       headers: {
-        'Authorization': `Bearer ${user?.token}`
+        'Authorization': `Bearer ${token}`
       }
     });
     return res.data;

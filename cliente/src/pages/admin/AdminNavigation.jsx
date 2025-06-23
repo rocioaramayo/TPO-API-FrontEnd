@@ -1,14 +1,7 @@
 // src/components/Navigation.jsx
-import { Link, useNavigate } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
-// import DescuentosAdminPanel from "../components/DescuentosAdminPanel";
+import { Link } from 'react-router-dom';
 
-const AdminNavigation = ({ onLogout }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showDescuentosPanel, setShowDescuentosPanel] = useState(false);
-  const [mostrarPanel, setMostrarPanel] = useState(false);
-  const panelRef = useRef();
-  const navigate = useNavigate();
+const AdminNavigation = () => {
 
   return (
     <nav className="bg-white shadow-sm border-b border-leather-200 sticky top-0 z-50">

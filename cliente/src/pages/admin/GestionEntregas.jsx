@@ -2,11 +2,15 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import FormCrearMetodoEntrega from "./FormCrearMetodoEntrega";
 import FormCrearPuntoEntrega from "./FormCrearPuntoEntrega";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchMetodoEntrega } from "../../store/slices/metodoEntregaSlice";
+import { fetchPuntoEntrega } from "../../store/slices/puntoEntregaSlice";
 
 export default function GestionEntregas({user}) {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [metodosEntrega, setMetodosEntrega] = useState([]);
-  const [puntosEntrega, setPuntosEntrega] = useState([]);
+  const metodosEntrega = useSelector(state => state.metodoEntrega.items);
+  const puntosEntrega = useSelector(state => state.puntoEntrega.items);
   const [mostrarAlertaDesactivarMetodo, setMostrarAlertaDesactivarMetodo] = useState(false);
   const [mostrarAlertaDesactivarPunto, setMostrarAlertaDesactivarPunto] = useState(false);
   const [mostrarAlertaActivarMetodo, setMostrarAlertaActivarMetodo] = useState(false);
@@ -18,18 +22,14 @@ export default function GestionEntregas({user}) {
   const [success, setSuccess] = useState(null);
   const [error, setError] = useState(null);
 
+  // cargar metodos de entrega
   useEffect(() => {
-    fetch("http://localhost:8080/entregas/metodos")
-      .then(res => res.json())
-      .then(data => setMetodosEntrega(data));
-  }, [mostrarAlertaDesactivarMetodo, mostrarAlertaActivarMetodo, mostrarCrearMetodo]);
-
+    dispatch(fetchMetodoEntrega());
+  }, [dispatch]);
+ // cargar puntos de entrega
   useEffect(() => {
-    fetch("http://localhost:8080/entregas/puntos")
-      .then(res => res.json())
-      .then(setPuntosEntrega)
-      .catch(err => console.error("Error al obtener puntos:", err));
-  }, [mostrarAlertaDesactivarPunto, mostrarAlertaActivarPunto, mostrarCrearPunto]);
+    dispatch(fetchPuntoEntrega());
+  }, [dispatch]);
 
   const [currentPagePuntos, setCurrentPagePuntos] = useState(1);
   const itemsPerPagePuntos = 4;

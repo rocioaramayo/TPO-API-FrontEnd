@@ -1,26 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUsers } from "../../store/slices/usersSlice";
 
 const GestionUsuarios = () => {
+    const dispatch = useDispatch();
     const { user } = useSelector((state) => state.users);
-    const [usuarios, setUsuarios] = useState([]);
-    const [error, setError] = useState(null);
+    const usuarios = useSelector((state) => state.users.items);
+    const { error } = useSelector((state) => state.users);
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (user?.token) {
-            fetch("http://localhost:8080/api/v1/users", {
-                headers: { Authorization: `Bearer ${user.token}` },
-            })
-                .then((res) => {
-                    if (!res.ok) throw new Error("Error al obtener usuarios");
-                    return res.json();
-                })
-                .then(setUsuarios)
-                .catch((err) => setError(err.message));
-        }
-    }, [user]);
+        if (!user || !user.token) return;
+        dispatch(fetchUsers(user.token));
+    }, [dispatch]);
 
     const deshabilitarUsuario = (id) => {
         fetch(`http://localhost:8080/api/v1/users/${id}/deshabilitar`, {

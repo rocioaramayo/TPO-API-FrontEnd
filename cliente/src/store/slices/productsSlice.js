@@ -33,13 +33,17 @@ export const fetchProducts = createAsyncThunk(
   }
 );
 
-export const fetchAdminProducts = createAsyncThunk('products/fetchAdminProducts', async (_, { rejectWithValue }) => {
+export const fetchAdminProducts = createAsyncThunk('products/fetchAdminProducts', async (token, { rejectWithValue }) => {
   try {
-    const res = await axios.get(`${API_URL}/productos/admin`);
-    console.log('Respuesta cruda de /productos/admin:', res.data);
+    const res = await axios.get(`${API_URL}/productos/admin`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    // console.log('Respuesta cruda de /productos/admin:', res.data);
     return res.data;
   } catch (err) {
-    return rejectWithValue(err.response?.data || err.message);
+    return rejectWithValue(err.response?.data?.message || err.message);
   }
 });
 
@@ -87,6 +91,19 @@ export const fetchColores = createAsyncThunk(
     }
   }
 );
+
+export const createProduct = createAsyncThunk('products/createProduct', async(token,data,{rejectWithValue}) =>{
+  try{
+    const response = await axios.post(`${API_URL}/productos/upload`,data,{
+      headers:{
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    return response.data;
+  } catch (error){
+    return rejectWithValue(err.response?.data || err.message);
+  }
+})
 
 const initialState = {
   items: [],
@@ -151,7 +168,20 @@ const productsSlice = createSlice({
       // Reducers para fetchColores
       .addCase(fetchColores.fulfilled, (state, action) => {
         state.colores = action.payload;
-      });
+      })
+      .addCase(createProduct.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createProduct.rejected, (state, action) =>{
+        state.error = action.payload;
+        state.loading = false;
+      })
+      .addCase(createProduct.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
+        state.items.push(action.payload); 
+      })
   },
 });
 
