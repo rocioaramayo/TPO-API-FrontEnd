@@ -118,54 +118,54 @@ const ProfilePage = () => {
       <div>
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row gap-12">
-            <aside className="w-full md:w-64 bg-white shadow-xl rounded-xl p-6 space-y-6">
+            <aside className="w-full md:w-64 bg-white/90 shadow-xl rounded-xl p-6 space-y-6">
               <div className="flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-orange-300 text-white text-3xl rounded-full flex items-center justify-center font-bold">
+                <div className="w-20 h-20 bg-orange-300 text-white text-3xl rounded-full flex items-center justify-center font-bold shadow-inner">
                   {user.firstName?.charAt(0).toUpperCase() ?? "U"}
                 </div>
                 <div className="mt-2 text-sm text-orange-950">{user.email}</div>
               </div>
               <nav className="space-y-2">
-                <button onClick={() => setActiveTab("perfil")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "perfil" ? "bg-orange-100 font-semibold" : "hover:bg-orange-50"}`}><FaUser className="inline mr-2" /> Perfil</button>
-                <button onClick={() => setActiveTab("compras")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "compras" ? "bg-orange-100 font-semibold" : "hover:bg-orange-50"}`}><FaShoppingCart className="inline mr-2" /> Mis Compras</button>
-                <button onClick={() => setActiveTab("envios")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "envios" ? "bg-orange-100 font-semibold" : "hover:bg-orange-50"}`}><FaMapMarkedAlt className="inline mr-2" /> Direcciones</button>
+                <button onClick={() => setActiveTab("perfil")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "perfil" ? "bg-orange-100 font-light" : "hover:bg-orange-50"}`}><FaUser className="inline mr-2" /> Perfil</button>
+                <button onClick={() => setActiveTab("compras")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "compras" ? "bg-orange-100 font-light" : "hover:bg-orange-50"}`}><FaShoppingCart className="inline mr-2" /> Mis Compras</button>
+                <button onClick={() => setActiveTab("envios")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "envios" ? "bg-orange-100 font-light" : "hover:bg-orange-50"}`}><FaMapMarkedAlt className="inline mr-2" /> Direcciones</button>
               </nav>
             </aside>
 
             <main className="flex-1 space-y-8">
               {activeTab === "perfil" && (
-                <div className="bg-white shadow rounded-xl p-8 animate-fade-in">
+                <div className="bg-white/90 shadow-xl rounded-xl p-8 animate-fade-in">
                   <h2 className="text-2xl font-light text-orange-900 mb-6">Perfil de Usuario</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <span className="text-orange-700">Nombre:</span>
-                      {editMode ? <input name="firstName" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="border p-1 rounded ml-2" /> : <strong> {user.firstName}</strong>}
+                      {editMode ? <input name="firstName" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="border p-1 rounded ml-2" /> : <span className="ml-2">{user.firstName}</span>}
                     </div>
                     <div>
                       <span className="text-orange-700">Apellido:</span>
-                      {editMode ? <input name="lastName" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="border p-1 rounded ml-2" /> : <strong> {user.lastName}</strong>}
+                      {editMode ? <input name="lastName" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="border p-1 rounded ml-2" /> : <span className="ml-2">{user.lastName}</span>}
                     </div>
                     <div className="col-span-2">
                       <span className="text-orange-700">Email:</span>
-                      <strong> {user.email}</strong>
+                      <span className="ml-2">{user.email}</span>
                     </div>
                   </div>
                   <div className="mt-6 flex gap-4">
                     {!editMode ? (
                       <>
-                        <button onClick={() => setShowPasswordModal(true)} className="px-4 py-2 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417]">Cambiar contraseña</button>
-                        <button onClick={() => setEditMode(true)} className="px-4 py-2 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417]">Editar perfil</button>
+                        <button onClick={() => setShowPasswordModal(true)} className="px-4 py-2 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417] transition-all duration-300 shadow">Cambiar contraseña</button>
+                        <button onClick={() => setEditMode(true)} className="px-4 py-2 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417] transition-all duration-300 shadow">Editar perfil</button>
                       </>
                     ) : (
-                      <button onClick={handleSave} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Guardar</button>
+                      <button onClick={handleSave} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 shadow">Guardar</button>
                     )}
                   </div>
                 </div>
               )}
 
               {activeTab === "compras" && (
-                <div className="bg-white shadow rounded-xl p-8 animate-fade-in">
-                  <h3 className="text-xl font-light text-orange-900 mb-4">Historial de Compras</h3>
+                <div className="bg-white/90 shadow-xl rounded-xl p-8 animate-fade-in">
+                  <h3 className="text-xl font-light text-orange-950 mb-4">Historial de Compras</h3>
                   {misCompras.length === 0 ? (
                     <p className="text-orange-500">No tenés compras registradas.</p>
                   ) : (
@@ -174,7 +174,7 @@ const ProfilePage = () => {
                         <div key={i} className="border p-4 rounded-lg bg-orange-50 shadow-sm">
                           <div className="flex justify-between items-center">
                             <div>
-                              <p className="font-semibold text-orange-800">Compra #{compra.id}</p>
+                              <p className="font-light text-orange-800">Compra #{compra.id}</p>
                               <p className="text-sm text-orange-600">{new Date(compra.fecha).toLocaleString()}</p>
                             </div>
                             <button onClick={() => verDetalleCompra(compra.id)} className="text-sm text-orange-700 underline">
@@ -204,7 +204,7 @@ const ProfilePage = () => {
         {showPasswordModal && (
           <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
             <div className="bg-white rounded-xl shadow-lg p-6 w-80">
-              <h3 className="text-lg font-semibold text-orange-900 mb-4">Cambiar Contraseña</h3>
+              <h3 className="text-lg font-light text-orange-900 mb-4">Cambiar Contraseña</h3>
               <input type="password" placeholder="Contraseña actual" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className="w-full border p-2 mb-3 rounded" />
               <input type="password" placeholder="Nueva contraseña" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full border p-2 mb-4 rounded" />
               <div className="flex justify-end gap-2">
