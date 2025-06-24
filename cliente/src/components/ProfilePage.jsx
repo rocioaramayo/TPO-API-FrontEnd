@@ -194,20 +194,27 @@ const ProfilePage = () => {
     ) : (
       <ul className="space-y-4">
         {misCompras.map((compra, index) => (
-          <li key={compra.id} className="bg-orange-50 p-4 rounded-lg shadow flex justify-between items-start">
+          <li
+            key={compra.id}
+            className="bg-orange-50 p-4 rounded-lg shadow flex justify-between items-start"
+          >
             <div>
-              <h3 className="font-semibold text-orange-900 mb-1">Compra #{index + 1}</h3>
+              <h3 className="font-semibold text-orange-900 mb-1">
+                Compra #{index + 1}
+              </h3>
               <p className="text-sm text-orange-800 mb-1">
-                <strong>Fecha:</strong> {new Date(compra.fecha).toLocaleString()}
+                <strong>Fecha:</strong>{" "}
+                {new Date(compra.fecha).toLocaleString()}
               </p>
               <p className="text-sm text-orange-800 mb-1">
                 <strong>Entrega:</strong> {mostrarInfoEntrega(compra)}
               </p>
               <p className="text-sm text-orange-800 mb-1">
-                <strong>Pago:</strong> {formatearMetodoPago(compra.metodoPago)}
+                <strong>Pago:</strong> {formatearMetodoPago(compra.metodoDePago)}
               </p>
               <p className="text-sm text-orange-800">
-                <strong>Total:</strong> ${compra.total.toLocaleString("es-AR")}
+                <strong>Total:</strong>{" "}
+                ${compra.total?.toLocaleString("es-AR")}
               </p>
             </div>
             <button
