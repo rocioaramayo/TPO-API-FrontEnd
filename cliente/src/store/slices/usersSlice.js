@@ -79,6 +79,39 @@ export const logoutUser = createAsyncThunk('auth/logoutUser', async (_, { reject
   }
 });
 
+export const fetchUserInfo = createAsyncThunk('users/fetchUserInfo', async (token, { rejectWithValue }) => {
+  try {
+    const res = await axios.get('http://localhost:8080/api/v1/users/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data || err.message);
+  }
+});
+
+export const updateProfile = createAsyncThunk('users/updateProfile', async ({ token, firstName, lastName }, { rejectWithValue }) => {
+  try {
+    const res = await axios.put(`${API_URL}/api/v1/users/me`, { firstName, lastName }, {
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+    });
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.message || err.message);
+  }
+});
+
+export const changePassword = createAsyncThunk('users/changePassword', async ({ token, oldPassword, newPassword }, { rejectWithValue }) => {
+  try {
+    const res = await axios.put(`${API_URL}/api/v1/auth/change-password`, { oldPassword, newPassword }, {
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+    });
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.message || err.message);
+  }
+});
+
 const initialState = {
   // Estado para gestión de usuarios (admin)
   items: [],
@@ -90,6 +123,15 @@ const initialState = {
   isAuthenticated: false,
   authLoading: false,
   authError: null,
+  userInfo: null,
+  loadingUserInfo: false,
+  errorUserInfo: null,
+  updateProfileLoading: false,
+  updateProfileError: null,
+  updateProfileSuccess: false,
+  changePasswordLoading: false,
+  changePasswordError: null,
+  changePasswordSuccess: false,
 };
 
 const usersSlice = createSlice({
@@ -118,6 +160,16 @@ const usersSlice = createSlice({
       state.user = null;
       state.isAuthenticated = false;
       state.authError = null;
+    },
+    clearUpdateProfileStatus: (state) => {
+      state.updateProfileLoading = false;
+      state.updateProfileError = null;
+      state.updateProfileSuccess = false;
+    },
+    clearChangePasswordStatus: (state) => {
+      state.changePasswordLoading = false;
+      state.changePasswordError = null;
+      state.changePasswordSuccess = false;
     },
   },
   extraReducers: (builder) => {
@@ -173,9 +225,52 @@ const usersSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
         state.authError = null;
+      })
+      .addCase(fetchUserInfo.pending, (state) => {
+        state.loadingUserInfo = true;
+        state.errorUserInfo = null;
+      })
+      .addCase(fetchUserInfo.fulfilled, (state, action) => {
+        state.loadingUserInfo = false;
+        state.userInfo = action.payload;
+      })
+      .addCase(fetchUserInfo.rejected, (state, action) => {
+        state.loadingUserInfo = false;
+        state.errorUserInfo = action.payload;
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.updateProfileLoading = true;
+        state.updateProfileError = null;
+        state.updateProfileSuccess = false;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.updateProfileLoading = false;
+        state.updateProfileSuccess = true;
+        // Actualiza los datos del usuario en el store
+        if (state.user) {
+          state.user.firstName = action.payload.firstName;
+          state.user.lastName = action.payload.lastName;
+        }
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.updateProfileLoading = false;
+        state.updateProfileError = action.payload;
+      })
+      .addCase(changePassword.pending, (state) => {
+        state.changePasswordLoading = true;
+        state.changePasswordError = null;
+        state.changePasswordSuccess = false;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.changePasswordLoading = false;
+        state.changePasswordSuccess = true;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.changePasswordLoading = false;
+        state.changePasswordError = action.payload;
       });
   },
 });
 
-export const { clearAuthError, clearError, updateUser, setUser, clearUser, logout } = usersSlice.actions;
+export const { clearAuthError, clearError, updateUser, setUser, clearUser, logout, clearUpdateProfileStatus, clearChangePasswordStatus } = usersSlice.actions;
 export default usersSlice.reducer; 

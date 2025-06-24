@@ -8,6 +8,7 @@ import cartReducer from './slices/cartSlice';
 import metodoEntregaReducer from './slices/metodoEntregaSlice';
 import puntoEntregaReducer from './slices/puntoEntregaSlice';
 import descuentosReducer from './slices/descuentosSlice';
+import direccionReducer from './slices/direccionSlice';
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
     metodoEntrega: metodoEntregaReducer,
     puntoEntrega: puntoEntregaReducer,
     descuentos: descuentosReducer,
+    direccion: direccionReducer,
   },
   devTools: process.env.NODE_ENV !== 'production',
 }); 

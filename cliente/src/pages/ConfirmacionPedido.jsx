@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import Footer from "../components/Footer";
+import { fetchOrderDetail } from "../store/slices/ordersSlice";
 
 // Función para deducir tipo mime
 function guessMimeType(foto) {
@@ -42,46 +43,23 @@ const ConfirmacionPedido = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.users.user);
   const isAuthenticated = useSelector((state) => state.users.isAuthenticated);
-  
-  const [compra, setCompra] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
 
-  const API_BASE = "http://localhost:8080";
+  const compra = useSelector((state) => state.orders.orderDetail);
+  const loading = useSelector((state) => state.orders.loadingOrderDetail);
+  const error = useSelector((state) => state.orders.errorOrderDetail);
 
   useEffect(() => {
     if (!isAuthenticated || !user?.token) {
       navigate('/login');
       return;
     }
-
     if (!compraId) {
-      setError("ID de compra no válido");
-      setLoading(false);
+      // Manejo de error por id inválido
       return;
     }
-
-    // Cargar los detalles de la compra
-    fetch(`${API_BASE}/compras/${compraId}`, {
-      headers: {
-        'Authorization': `Bearer ${user.token}`
-      }
-    })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error('No se pudo cargar la información de la compra');
-        }
-        return res.json();
-      })
-      .then(data => {
-        setCompra(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, [compraId, user, isAuthenticated, navigate]);
+    dispatch(fetchOrderDetail({ token: user.token, id: compraId }));
+  }, [compraId, user, isAuthenticated, navigate, dispatch]);
 
   // Función para mostrar información de entrega
   const mostrarInfoEntrega = (compra) => {
@@ -355,7 +333,7 @@ const ConfirmacionPedido = () => {
               {/* Acciones */}
               <div className="mt-8 space-y-3">
                 <button
-                  onClick={() => navigate('/perfil')}
+                  onClick={() => navigate('/perfil', { state: { tab: 'compras' } })}
                   className="w-full bg-leather-800 text-white py-3 px-4 rounded-lg font-medium hover:bg-leather-900 transition-colors"
                 >
                   Ver mis compras

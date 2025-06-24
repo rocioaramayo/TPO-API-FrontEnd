@@ -28,13 +28,13 @@ const CheckoutSummary = ({
   montoDescuento,
   totalBD,
   metodoSeleccionado,
+  cotizacion,
   cotizando,
-  costoEnvio,
+  errorCotizacion,
   handleProcederPago,
   procesandoCompra,
   errorCategoria,
 }) => {
-  
   return (
     <div className="bg-white border rounded-lg p-4 flex flex-col h-[650px] min-w-[370px] max-w-[500px]">
       <ProductsHeader />
@@ -61,8 +61,9 @@ const CheckoutSummary = ({
           descuento={descuento}
           montoDescuento={montoDescuento}
           metodoSeleccionado={metodoSeleccionado}
+          cotizacion={cotizacion}
           cotizando={cotizando}
-          costoEnvio={costoEnvio}
+          errorCotizacion={errorCotizacion}
           totalBD={totalBD}
         />
         <button
@@ -199,14 +200,14 @@ const OrderSummary = ({
   descuento,
   montoDescuento,
   metodoSeleccionado,
+  cotizacion,
   cotizando,
-  costoEnvio,
+  errorCotizacion,
   totalBD
 }) => {
-  
   const calcularTotal = () => {
     const subtotalFinal = aplicado && totalBD !== null ? totalBD : subtotal;
-    const envio = metodoSeleccionado?.requiereDireccion && costoEnvio ? costoEnvio : 0;
+    const envio = metodoSeleccionado?.requiereDireccion && cotizacion && cotizacion.precio !== undefined ? cotizacion.precio : 0;
     return subtotalFinal + envio;
   };
   
@@ -229,8 +230,10 @@ const OrderSummary = ({
         {metodoSeleccionado?.requiereDireccion ? (
           cotizando ? (
             <span>Cotizando...</span>
-          ) : costoEnvio !== null ? (
-            <span>${costoEnvio.toLocaleString("es-AR")}</span>
+          ) : errorCotizacion ? (
+            <span className="text-red-600">Error</span>
+          ) : cotizacion && cotizacion.precio !== undefined ? (
+            <span>${cotizacion.precio.toLocaleString("es-AR")}</span>
           ) : (
             <span>Selecciona dirección</span>
           )

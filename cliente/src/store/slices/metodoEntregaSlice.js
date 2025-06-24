@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8080';
@@ -21,10 +21,29 @@ export const fetchMetodoEntregaActivos = createAsyncThunk('metodoEntrega/fetchMe
   }
 });
 
+export const cotizarEnvio = createAsyncThunk('metodoEntrega/cotizarEnvio', async ({ token, direccion }, { rejectWithValue }) => {
+  try {
+    const res = await axios.post('http://localhost:8080/entregas/cotizar', direccion, {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json',
+      },
+    });
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data || err.message);
+  }
+});
+
+export const limpiarCotizacion = createAction('metodoEntrega/limpiarCotizacion');
+
 const initialState = {
   items: [],
   loading: false,
   error: null,
+  cotizacion: null,
+  cotizando: false,
+  errorCotizacion: null,
 };
 
 const metodoEntregaSlice = createSlice({
@@ -59,6 +78,26 @@ const metodoEntregaSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(cotizarEnvio.pending, (state) => {
+        state.cotizando = true;
+        state.errorCotizacion = null;
+        state.cotizacion = null;
+      })
+      .addCase(cotizarEnvio.fulfilled, (state, action) => {
+        state.cotizando = false;
+        state.cotizacion = action.payload;
+        state.errorCotizacion = null;
+      })
+      .addCase(cotizarEnvio.rejected, (state, action) => {
+        state.cotizando = false;
+        state.errorCotizacion = action.payload;
+        state.cotizacion = null;
+      })
+      .addCase(limpiarCotizacion, (state) => {
+        state.cotizacion = null;
+        state.cotizando = false;
+        state.errorCotizacion = null;
+      });
   },
 });
 

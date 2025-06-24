@@ -1,119 +1,74 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchDirecciones, crearDireccion, desactivarDireccion, limpiarEstadoDireccion } from '../store/slices/direccionSlice';
 
-const DireccionesPanel = () => {
-  const token = useSelector((state) => state.users.user?.token);
-  const [direcciones, setDirecciones] = useState([]);
-  const [nuevaDireccion, setNuevaDireccion] = useState({
-    calle: "",
-    numero: "",
-    piso: "",
-    departamento: "",
-    localidad: "",
-    provincia: "",
-    codigoPostal: "",
-    telefonoContacto: "",
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [submitIntentado, setSubmitIntentado] = useState(false);
-  const [mensaje, setMensaje] = useState(null);
-  const [direccionAEliminar, setDireccionAEliminar] = useState(null);
-  const [mostrarModalBorrar, setMostrarModalBorrar] = useState(false);
+const DireccionesPanel = ({ token }) => {
+    const dispatch = useDispatch();
+    const direcciones = useSelector((state) => state.direccion.items);
+    const loading = useSelector((state) => state.direccion.loading);
+    const error = useSelector((state) => state.direccion.error);
+    const loadingDesactivar = useSelector((state) => state.direccion.loadingDesactivar);
+    const errorDesactivar = useSelector((state) => state.direccion.errorDesactivar);
+    const success = useSelector((state) => state.direccion.success);
+    const [nuevaDireccion, setNuevaDireccion] = useState({
+        calle: "",
+        numero: "",
+        piso: "",
+        departamento: "",
+        localidad: "",
+        provincia: "",
+        codigoPostal: "",
+        telefonoContacto: "",
+    });
+    const [submitIntentado, setSubmitIntentado] = useState(false);
+    const [mensaje, setMensaje] = useState(null);
 
-  const API_BASE = "http://localhost:8080";
+    useEffect(() => {
+        if (token) {
+            dispatch(fetchDirecciones(token));
+        }
+    }, [token, dispatch]);
 
-  const fetchDirecciones = () => {
-    fetch(`${API_BASE}/direcciones/mias`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al cargar direcciones");
-        return res.json();
-      })
-      .then((data) => setDirecciones(data))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  };
+    useEffect(() => {
+        if (success) {
+            setMensaje({ tipo: "success", texto: "Dirección guardada correctamente" });
+            setNuevaDireccion({
+                calle: "",
+                numero: "",
+                piso: "",
+                departamento: "",
+                localidad: "",
+                provincia: "",
+                codigoPostal: "",
+                telefonoContacto: "",
+            });
+            setSubmitIntentado(false);
+            dispatch(limpiarEstadoDireccion());
+        }
+    }, [success, dispatch]);
 
-  useEffect(() => {
-    if (token) fetchDirecciones();
-  }, [token]);
+    const handleBorrar = (id) => {
+        dispatch(desactivarDireccion({ token, id }))
+            .unwrap()
+            .then(() => setMensaje({ tipo: "success", texto: "Dirección borrada correctamente" }))
+            .catch((err) => setMensaje({ tipo: "error", texto: "Error al borrar dirección: " + err }));
+    };
 
-  const handleBorrar = (id) => {
-    setDireccionAEliminar(id);
-    setMostrarModalBorrar(true);
-  };
-
-  const confirmarBorrado = () => {
-    fetch(`${API_BASE}/direcciones/${direccionAEliminar}/desactivar`, {
-      method: "PUT",
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("No se pudo borrar la dirección");
-        setMensaje({ tipo: "success", texto: "Dirección borrada con éxito" });
-        fetchDirecciones();
-      })
-      .catch((err) =>
-        setMensaje({ tipo: "error", texto: "Error al borrar dirección: " + err.message })
-      )
-      .finally(() => {
-        setMostrarModalBorrar(false);
-        setDireccionAEliminar(null);
-      });
-  };
-
-  const cancelarBorrado = () => {
-    setMostrarModalBorrar(false);
-    setDireccionAEliminar(null);
-  };
-
-  const handleGuardar = () => {
-    setSubmitIntentado(true);
-    const camposObligatorios = ["calle", "numero", "localidad", "provincia", "codigoPostal"];
-    const faltantes = camposObligatorios.filter((campo) => !nuevaDireccion[campo]?.trim());
-
-    if (faltantes.length > 0) {
-      setMensaje({
-        tipo: "error",
-        texto: "Completá los campos obligatorios: " + faltantes.join(", "),
-      });
-      return;
-    }
-
-    fetch(`${API_BASE}/direcciones`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(nuevaDireccion),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}: Error al guardar dirección`);
-        return res;
-      })
-      .then(() => {
-        setMensaje({ tipo: "success", texto: "Dirección guardada correctamente" });
-        setNuevaDireccion({
-          calle: "",
-          numero: "",
-          piso: "",
-          departamento: "",
-          localidad: "",
-          provincia: "",
-          codigoPostal: "",
-          telefonoContacto: "",
-        });
-        setSubmitIntentado(false);
-        fetchDirecciones();
-      })
-      .catch((err) => {
-        console.error("Error:", err);
-        setMensaje({ tipo: "error", texto: err.message });
-      });
-  };
+    const handleGuardar = () => {
+        setSubmitIntentado(true);
+        const camposObligatorios = ["calle", "numero", "localidad", "provincia", "codigoPostal"];
+        const faltantes = camposObligatorios.filter(campo => !nuevaDireccion[campo]?.trim());
+        if (faltantes.length > 0) {
+            setMensaje({
+                tipo: "error",
+                texto: "Completá los campos obligatorios: " + faltantes.join(", "),
+            });
+            return;
+        }
+        dispatch(crearDireccion({ token, data: nuevaDireccion }))
+            .unwrap()
+            .catch((err) => setMensaje({ tipo: "error", texto: err }));
+    };
 
   if (loading) {
     return (

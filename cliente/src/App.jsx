@@ -22,7 +22,7 @@ import Garantia from './pages/Garantia.jsx';
 import CuidadoDelCuero from './pages/CuidadoDelCuero.jsx';
 import ProfilePage from "./components/ProfilePage.jsx";
 import CartSidebar from "./components/CartSidebar";
-import CheckoutPage from './pages/CheckoutPage.jsx';
+import CheckoutForm from './components/CheckoutForm';
 import AdminProfilePage from "./pages/admin/AdminProfilePage.jsx";
 import ConfirmacionPedido from './pages/ConfirmacionPedido';
 import AuthMessage from './components/AuthMessage';
@@ -201,7 +201,7 @@ const AppContent = () => {
           element={
             <>
               <Navigation onLogout={handleLogout} onCartClick={handleOpenCart} />
-              <CheckoutPage user={user} />
+              <CheckoutForm />
             </>
           }
         />

@@ -6,10 +6,13 @@ import PaymentSection from "./PaymentSection";
 import DeliverySection from "./DeliverySection";
 import CheckoutSummary from "./CheckoutSummary";
 import { validarCupon, limpiarCupon } from '../store/slices/descuentosSlice';
-import { fetchMetodoEntregaActivos } from '../store/slices/metodoEntregaSlice';
+import { fetchMetodoEntregaActivos, cotizarEnvio, limpiarCotizacion } from '../store/slices/metodoEntregaSlice';
 import { fetchPuntoEntregaActivos } from '../store/slices/puntoEntregaSlice';
+import { createOrder } from '../store/slices/ordersSlice';
+import { fetchDirecciones, crearDireccion, limpiarEstadoDireccion } from '../store/slices/direccionSlice';
+import { fetchUserInfo } from '../store/slices/usersSlice';
 
-const CheckoutForm = ({ cartItems }) => {
+const CheckoutForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.users);
@@ -28,7 +31,9 @@ const CheckoutForm = ({ cartItems }) => {
   const [errorCategoria, setErrorCategoria] = React.useState("");
 
   // Estados de usuario y checkout
-  const [userInfo, setUserInfo] = React.useState(null);
+  const userInfo = useSelector((state) => state.users.userInfo);
+  const loadingUserInfo = useSelector((state) => state.users.loadingUserInfo);
+  const errorUserInfo = useSelector((state) => state.users.errorUserInfo);
   const [metodoEntrega, setMetodoEntrega] = React.useState("");
   const [metodoPago, setMetodoPago] = React.useState("");
   const [numeroTarjeta, setNumeroTarjeta] = React.useState("");
@@ -38,7 +43,10 @@ const CheckoutForm = ({ cartItems }) => {
   const [cuotas, setCuotas] = React.useState("");
   
   // Estados para direcciones
-  const [direcciones, setDirecciones] = React.useState([]);
+  const direcciones = useSelector((state) => state.direccion.items);
+  const loadingDirecciones = useSelector((state) => state.direccion.loading);
+  const errorDirecciones = useSelector((state) => state.direccion.error);
+  const direccionSuccess = useSelector((state) => state.direccion.success);
   const [direccionSeleccionada, setDireccionSeleccionada] = React.useState("");
   const [mostrarFormNuevaDireccion, setMostrarFormNuevaDireccion] = React.useState(false);
   const [nuevaDireccion, setNuevaDireccion] = React.useState({
@@ -54,19 +62,22 @@ const CheckoutForm = ({ cartItems }) => {
   
   const [puntoRetiroId, setPuntoRetiroId] = React.useState("");
   const [costoEnvio, setCostoEnvio] = React.useState(null);
-  const [cotizando, setCotizando] = React.useState(false);
+  const cotizacion = useSelector((state) => state.metodoEntrega.cotizacion);
+  const cotizando = useSelector((state) => state.metodoEntrega.cotizando);
+  const errorCotizacion = useSelector((state) => state.metodoEntrega.errorCotizacion);
 
   // Estados de error y loading
   const [errorCheckout, setErrorCheckout] = React.useState("");
-  const [loadingDirecciones, setLoadingDirecciones] = React.useState(false);
-  const [errorDirecciones, setErrorDirecciones] = React.useState("");
   const [procesandoCompra, setProcesandoCompra] = React.useState(false);
 
+  const cartItems = useSelector((state) => state.cart.items);
   const cuponRedux = useSelector((state) => state.descuentos.cupon);
   const metodosEntrega = useSelector((state) => state.metodoEntrega.items);
   const metodosEntregaLoading = useSelector((state) => state.metodoEntrega.loading);
   const puntosRetiro = useSelector((state) => state.puntoEntrega.items);
   const puntosRetiroLoading = useSelector((state) => state.puntoEntrega.loading);
+  const orderLoading = useSelector((state) => state.orders.loadingCreateOrder);
+  const orderError = useSelector((state) => state.orders.errorCreateOrder);
 
   // Calcular subtotal
   const subtotal = cartItems.reduce((acc, item) => acc + item.precio * item.quantity, 0);
@@ -77,29 +88,11 @@ const CheckoutForm = ({ cartItems }) => {
   // useEffect para cargar datos iniciales
   React.useEffect(() => {
     if (isAuthenticated && user?.token) {
-      // Cargar info del usuario
-      fetch(`${API_BASE}/api/v1/users/me`, {
-        headers: { 'Authorization': `Bearer ${user.token}` }
-      })
-        .then(res => res.ok ? res.json() : Promise.reject())
-        .then(setUserInfo)
-        .catch(() => setUserInfo(null));
+      // Cargar info del usuario desde Redux
+      dispatch(fetchUserInfo(user.token));
 
-      // Cargar direcciones
-      setLoadingDirecciones(true);
-      fetch(`${API_BASE}/direcciones/mias`, {
-        headers: { 'Authorization': `Bearer ${user.token}` }
-      })
-        .then(res => res.ok ? res.json() : Promise.reject())
-        .then(data => {
-          setDirecciones(data);
-          setErrorDirecciones("");
-        })
-        .catch(err => {
-          setErrorDirecciones(err.message || "Error al cargar direcciones");
-          setDirecciones([]);
-        })
-        .finally(() => setLoadingDirecciones(false));
+      // Cargar direcciones desde Redux
+      dispatch(fetchDirecciones(user.token));
     }
 
     // Cargar métodos de entrega activos desde Redux
@@ -110,30 +103,26 @@ const CheckoutForm = ({ cartItems }) => {
   React.useEffect(() => {
     if (metodoSeleccionado?.requiereDireccion && direccionSeleccionada) {
       const direccion = direcciones.find(d => d.id.toString() === direccionSeleccionada);
-      if (direccion) {
-        setCotizando(true);
-        fetch(`${API_BASE}/entregas/cotizar`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": user?.token ? `Bearer ${user.token}` : ""
-          },
-          body: JSON.stringify({
+      if (
+        direccion &&
+        direccion.calle && direccion.numero && direccion.localidad && direccion.provincia && direccion.codigoPostal
+      ) {
+        dispatch(cotizarEnvio({
+          token: user?.token,
+          direccion: {
             direccion: `${direccion.calle} ${direccion.numero}`,
             localidad: direccion.localidad,
             provincia: direccion.provincia,
             codigoPostal: direccion.codigoPostal
-          }),
-        })
-          .then(res => res.ok ? res.json() : Promise.reject())
-          .then(data => setCostoEnvio(data.precio ?? null))
-          .catch(() => setCostoEnvio(null))
-          .finally(() => setCotizando(false));
+          }
+        }));
+      } else {
+        dispatch(limpiarCotizacion());
       }
     } else {
-      setCostoEnvio(null);
+      dispatch(limpiarCotizacion());
     }
-  }, [direccionSeleccionada, direcciones, metodoSeleccionado, user]);
+  }, [direccionSeleccionada, direcciones, metodoSeleccionado, user, dispatch]);
 
   // useEffect para puntos de retiro activos desde Redux cuando corresponde
   React.useEffect(() => {
@@ -208,53 +197,38 @@ const CheckoutForm = ({ cartItems }) => {
     dispatch(validarCupon({ token: user.token, codigoDescuento: codigo, items }));
   };
 
-  const handleCrearNuevaDireccion = () => {
+  const handleCrearNuevaDireccion = async () => {
     if (!isAuthenticated) {
       setErrorDirecciones("Debes estar autenticado para crear una dirección");
       return;
     }
-
     const camposRequeridos = ['calle', 'numero', 'localidad', 'provincia', 'codigoPostal'];
     const camposFaltantes = camposRequeridos.filter(campo => !nuevaDireccion[campo]?.trim());
-    
     if (camposFaltantes.length > 0) {
       setErrorDirecciones(`Por favor, completa los siguientes campos: ${camposFaltantes.join(', ')}`);
       return;
     }
-
-    setLoadingDirecciones(true);
-    setErrorDirecciones("");
-    
-    fetch(`${API_BASE}/direcciones`, {
-      method: "POST",
-      headers: {
-        'Authorization': `Bearer ${user.token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(nuevaDireccion)
-    })
-      .then(res => res.ok ? res : Promise.reject(new Error(`Error ${res.status}`)))
-      .then(() => fetch(`${API_BASE}/direcciones/mias`, {
-        headers: { 'Authorization': `Bearer ${user.token}` }
-      }))
-      .then(res => res.ok ? res.json() : Promise.reject())
-      .then(data => {
-        setDirecciones(data);
-        setMostrarFormNuevaDireccion(false);
-        setNuevaDireccion({
-          calle: "", numero: "", piso: "", departamento: "",
-          localidad: "", provincia: "", codigoPostal: "", telefonoContacto: ""
-        });
-        if (data.length > 0) {
-          setDireccionSeleccionada(data[data.length - 1].id.toString());
-        }
-        setErrorDirecciones("");
-      })
-      .catch(err => setErrorDirecciones(err.message))
-      .finally(() => setLoadingDirecciones(false));
+    dispatch(limpiarEstadoDireccion());
+    try {
+      await dispatch(crearDireccion({ token: user.token, data: nuevaDireccion }));
+      // Refrescar direcciones después de crear
+      await dispatch(fetchDirecciones(user.token));
+      setMostrarFormNuevaDireccion(false);
+      setNuevaDireccion({
+        calle: "", numero: "", piso: "", departamento: "",
+        localidad: "", provincia: "", codigoPostal: "", telefonoContacto: ""
+      });
+      // Seleccionar la última dirección creada
+      if (direcciones.length > 0) {
+        setDireccionSeleccionada(direcciones[direcciones.length - 1].id.toString());
+      }
+      setErrorDirecciones("");
+    } catch (err) {
+      setErrorDirecciones(err.message || "Error al crear dirección");
+    }
   };
 
-  const handleProcederPago = () => {
+  const handleProcederPago = async () => {
     setErrorCheckout("");
     
     // Validaciones básicas
@@ -360,32 +334,10 @@ const CheckoutForm = ({ cartItems }) => {
     setProcesandoCompra(true);
     setErrorCheckout("");
 
-    fetch(`${API_BASE}/compras`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${user.token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    })
-      .then(res => {
-        if (!res.ok) {
-          if (res.status === 400) {
-            return res.json().then(data => {
-              throw new Error(data.message || "Datos de compra inválidos");
-            });
-          }
-          if (res.status === 409) {
-            throw new Error("Algunos productos no tienen suficiente stock disponible");
-          }
-          if (res.status === 401) {
-            throw new Error("Tu sesión ha expirado. Por favor, inicia sesión nuevamente");
-          }
-          throw new Error(`Error ${res.status}: No se pudo procesar la compra`);
-        }
-        return res.json();
-      })
-      .then((data) => {
+    try {
+      const resultAction = await dispatch(createOrder({ token: user.token, data: body }));
+      if (createOrder.fulfilled.match(resultAction)) {
+        const data = resultAction.payload;
         dispatch(clearCart());
         dispatch(limpiarCupon());
         setDescuento(0);
@@ -395,13 +347,14 @@ const CheckoutForm = ({ cartItems }) => {
         setMontoDescuento(null);
         setTotalBD(null);
         navigate(`/confirmacion-pedido/${data.id}`);
-      })
-      .catch(err => {
-        setErrorCheckout(err.message || "Hubo un error al procesar la compra. Intenta nuevamente.");
-      })
-      .finally(() => {
-        setProcesandoCompra(false);
-      });
+      } else {
+        // El error ya está en orderError
+      }
+    } catch (err) {
+      // El error ya está en orderError
+    } finally {
+      setProcesandoCompra(false);
+    }
   };
 
   if (isBlocked) {
@@ -451,7 +404,7 @@ const CheckoutForm = ({ cartItems }) => {
               setMetodoEntrega={setMetodoEntrega}
               metodoSeleccionado={metodoSeleccionado}
               direcciones={direcciones}
-              direccionSeleccionada={direccionSeleccionada}
+              direccionSeleccionada={direccionSeleccionada ? String(direccionSeleccionada) : ""}
               setDireccionSeleccionada={setDireccionSeleccionada}
               mostrarFormNuevaDireccion={mostrarFormNuevaDireccion}
               setMostrarFormNuevaDireccion={setMostrarFormNuevaDireccion}
@@ -488,6 +441,14 @@ const CheckoutForm = ({ cartItems }) => {
                 <strong>Error:</strong> {errorCheckout}
               </div>
             )}
+
+            {/* Estado de carga de direcciones */}
+            {loadingDirecciones && (
+              <div className="text-orange-600 text-sm mb-2">Cargando direcciones...</div>
+            )}
+            {errorDirecciones && (
+              <div className="text-red-600 text-sm mb-2">{errorDirecciones}</div>
+            )}
           </div>
 
           {/* Columna derecha: productos, cupón y resumen de pedido */}
@@ -506,13 +467,35 @@ const CheckoutForm = ({ cartItems }) => {
             montoDescuento={montoDescuento}
             totalBD={totalBD}
             metodoSeleccionado={metodoSeleccionado}
+            cotizacion={cotizacion}
             cotizando={cotizando}
-            costoEnvio={costoEnvio}
+            errorCotizacion={errorCotizacion}
             handleProcederPago={handleProcederPago}
             procesandoCompra={procesandoCompra}
             errorCategoria={errorCategoria}
           />
+
+          {/* Estado de carga de datos de usuario */}
+          {loadingUserInfo && (
+            <div className="text-orange-600 text-sm mb-2">Cargando datos de usuario...</div>
+          )}
+          {errorUserInfo && (
+            <div className="text-red-600 text-sm mb-2">{typeof errorUserInfo === 'string' ? errorUserInfo : 'Error al cargar datos de usuario'}</div>
+          )}
         </div>
+        {orderError && (
+          <div className="bg-red-100 text-red-700 p-2 rounded mb-2 text-center">
+            {orderError}
+          </div>
+        )}
+        <button
+          type="button"
+          className="w-full bg-leather-800 text-white py-3 rounded-lg font-bold text-lg mt-6 hover:bg-leather-900 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          onClick={handleProcederPago}
+          disabled={orderLoading || procesandoCompra}
+        >
+          {orderLoading || procesandoCompra ? "Procesando..." : "Confirmar compra"}
+        </button>
       </div>
     </div>
   );

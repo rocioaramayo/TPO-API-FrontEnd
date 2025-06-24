@@ -67,7 +67,13 @@ const Login = () => {
                 <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {typeof authError === 'object' ? authError.message : authError}
+                {(() => {
+                  const msg = typeof authError === 'object' ? authError.message : authError;
+                  if (msg && (msg.toLowerCase().includes('bad credentials') || msg.toLowerCase().includes('credenciales incorrectas') || msg.toLowerCase().includes('unauthorized') || msg.toLowerCase().includes('access denied'))) {
+                    return 'Contraseña incorrecta';
+                  }
+                  return msg;
+                })()}
               </div>
             </div>
           )}

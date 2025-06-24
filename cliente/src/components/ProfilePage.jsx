@@ -3,33 +3,43 @@ import { useSelector, useDispatch } from "react-redux";
 import DetalleCompra from "./DetalleCompra";
 import DireccionesPanel from "./DireccionesPanel";
 import { FaUser, FaMapMarkedAlt, FaShoppingCart } from "react-icons/fa";
-import Footer from "../components/Footer";
-import { updateUser } from "../store/slices/usersSlice";
+import Footer from '../components/Footer';
+import { fetchMyOrders, fetchOrderDetail } from "../store/slices/ordersSlice";
+import { useLocation } from 'react-router-dom';
+import { updateProfile, changePassword, clearUpdateProfileStatus, clearChangePasswordStatus } from '../store/slices/usersSlice';
 
 const ProfilePage = () => {
   const user = useSelector((state) => state.users.user);
   const dispatch = useDispatch();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("perfil");
   const [editMode, setEditMode] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [formData, setFormData] = useState({ firstName: "", lastName: "", email: "" });
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [misCompras, setMisCompras] = useState([]);
-  const [compraDetalle, setCompraDetalle] = useState(null);
   const [compraAbiertaId, setCompraAbiertaId] = useState(null);
-  const [loadingDetalle, setLoadingDetalle] = useState(false);
+
+  // Redux selectors para compras y detalle
+  const misCompras = useSelector((state) => state.orders.myOrders);
+  const loadingMisCompras = useSelector((state) => state.orders.loadingMyOrders);
+  const errorMisCompras = useSelector((state) => state.orders.errorMyOrders);
+  const compraDetalle = useSelector((state) => state.orders.orderDetail);
+  const loadingDetalle = useSelector((state) => state.orders.loadingOrderDetail);
+  const errorDetalle = useSelector((state) => state.orders.errorOrderDetail);
+
+  const updateProfileLoading = useSelector((state) => state.users.updateProfileLoading);
+  const updateProfileError = useSelector((state) => state.users.updateProfileError);
+  const updateProfileSuccess = useSelector((state) => state.users.updateProfileSuccess);
+  const changePasswordLoading = useSelector((state) => state.users.changePasswordLoading);
+  const changePasswordError = useSelector((state) => state.users.changePasswordError);
+  const changePasswordSuccess = useSelector((state) => state.users.changePasswordSuccess);
 
   useEffect(() => {
     if (user?.token) {
-      fetch("http://localhost:8080/compras/mias", {
-        headers: { Authorization: `Bearer ${user.token}` },
-      })
-        .then((res) => res.json())
-        .then(setMisCompras)
-        .catch(console.error);
+      dispatch(fetchMyOrders(user.token));
     }
-  }, [user]);
+  }, [user, dispatch]);
 
   useEffect(() => {
     if (user) {
@@ -41,26 +51,19 @@ const ProfilePage = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (location.state && location.state.tab) {
+      setActiveTab(location.state.tab);
+    }
+  }, [location.state]);
+
   const verDetalleCompra = (id) => {
     if (compraAbiertaId === id) {
       setCompraAbiertaId(null);
-      setCompraDetalle(null);
       return;
     }
-    setLoadingDetalle(true);
-    fetch(`http://localhost:8080/compras/${id}`, {
-      headers: { Authorization: `Bearer ${user.token}` },
-    })
-      .then((res) => res.json())
-      .then((detalle) => {
-        setCompraDetalle(detalle);
-        setCompraAbiertaId(id);
-        setLoadingDetalle(false);
-      })
-      .catch((err) => {
-        alert("Error al cargar detalle: " + err.message);
-        setLoadingDetalle(false);
-      });
+    setCompraAbiertaId(id);
+    dispatch(fetchOrderDetail({ token: user.token, id }));
   };
 
   const mostrarInfoEntrega = (compra) => {
@@ -80,54 +83,29 @@ const ProfilePage = () => {
   }[m] || m);
 
   const handleSave = () => {
-    fetch(`http://localhost:8080/api/v1/users/me`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({ firstName: formData.firstName, lastName: formData.lastName }),
-    })
-      .then((res) => res.json())
-      .then((updatedUser) => {
-        dispatch(updateUser(updatedUser));
-        setFormData({
-          firstName: updatedUser.firstName,
-          lastName: updatedUser.lastName,
-          email: updatedUser.email,
-        });
-        setEditMode(false);
-      })
-      .catch(() => alert("Error al guardar los cambios"));
+    dispatch(updateProfile({ token: user.token, firstName: formData.firstName, lastName: formData.lastName }));
   };
+
+  useEffect(() => {
+    if (updateProfileSuccess) {
+      setEditMode(false);
+      dispatch(clearUpdateProfileStatus());
+    }
+  }, [updateProfileSuccess, dispatch]);
 
   const handleChangePassword = () => {
-    console.log("Intentando cambiar contraseña con:", {
-  oldPassword,
-  newPassword,
-  token: user?.token
-});
-    fetch(`http://localhost:8080/api/v1/auth/change-password`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({ oldPassword, newPassword }),
-    })
-      .then((res) => res.ok ? res : res.json().then(err => { throw new Error(err.message); }))
-      .then(() => {
-        alert("¡Contraseña cambiada!");
-        setShowPasswordModal(false);
-        setOldPassword("");
-        setNewPassword("");
-      })
-      .catch((e) => {
-  console.error("Error al cambiar contraseña:", e);
-  alert("No se pudo cambiar la contraseña: " + e.message);
-});
-
+    dispatch(changePassword({ token: user.token, oldPassword, newPassword }));
   };
+
+  useEffect(() => {
+    if (changePasswordSuccess) {
+      alert("¡Contraseña cambiada!");
+      setShowPasswordModal(false);
+      setOldPassword("");
+      setNewPassword("");
+      dispatch(clearChangePasswordStatus());
+    }
+  }, [changePasswordSuccess, dispatch]);
 
   if (!user)
     return <div className="min-h-screen flex items-center justify-center text-orange-800 text-xl">Cargando perfil...</div>;
@@ -182,68 +160,63 @@ const ProfilePage = () => {
                     </div>
                   </div>
                   <div className="mt-6 flex gap-4">
-                    {!editMode ? (
-                      <>
-                        <button onClick={() => setShowPasswordModal(true)} className="px-4 py-2 bg-[#8B5E3C] text-white rounded hover:bg-[#A2714C] transition-all duration-300 shadow">Cambiar contraseña</button>
-                        <button onClick={() => setEditMode(true)} className="px-4 py-2 bg-[#8B5E3C] text-white rounded hover:bg-[#A2714C] transition-all duration-300 shadow">Editar perfil</button>
-                      </>
+                    {editMode ? (
+                      <button onClick={handleSave} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 shadow" disabled={updateProfileLoading}>
+                        {updateProfileLoading ? "Guardando..." : "Guardar"}
+                      </button>
                     ) : (
-                      <button onClick={handleSave} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 shadow">Guardar</button>
+                      <>
+                        <button onClick={() => setShowPasswordModal(true)} className="px-4 py-2 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417] transition-all duration-300 shadow">Cambiar contraseña</button>
+                        <button onClick={() => setEditMode(true)} className="px-4 py-2 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417] transition-all duration-300 shadow">Editar perfil</button>
+                      </>
                     )}
                   </div>
+                  {updateProfileError && <div className="text-red-500 mt-2">{updateProfileError}</div>}
                 </div>
               )}
 
               {activeTab === "compras" && (
-  <div className="bg-white/90 shadow-xl rounded-xl p-8 animate-fade-in">
-    <h2 className="text-2xl font-light text-orange-900 mb-6">Historial de Compras</h2>
-
-    {misCompras.length === 0 ? (
-      <p className="text-orange-700">No tenés compras registradas.</p>
-    ) : (
-      <ul className="space-y-4">
-        {misCompras.map((compra, index) => (
-          <li
-            key={compra.id}
-            className="bg-orange-50 p-4 rounded-lg shadow flex justify-between items-start"
-          >
-            <div>
-              <h3 className="font-semibold text-orange-900 mb-1">
-                Compra #{index + 1}
-              </h3>
-              <p className="text-sm text-orange-800 mb-1">
-                <strong>Fecha:</strong>{" "}
-                {new Date(compra.fecha).toLocaleString()}
-              </p>
-              <p className="text-sm text-orange-800 mb-1">
-                <strong>Entrega:</strong> {mostrarInfoEntrega(compra)}
-              </p>
-              <p className="text-sm text-orange-800 mb-1">
-                <strong>Pago:</strong> {formatearMetodoPago(compra.metodoDePago)}
-              </p>
-              <p className="text-sm text-orange-800">
-                <strong>Total:</strong>{" "}
-                ${compra.total?.toLocaleString("es-AR")}
-              </p>
-            </div>
-            <button
-              className="text-sm text-orange-700 hover:underline hover:text-orange-900 transition mt-1"
-              onClick={() => verDetalleCompra(compra.id)}
-            >
-              {compraAbiertaId === compra.id ? "Ocultar" : "Ver detalle"}
-            </button>
-          </li>
-        ))}
-      </ul>
-    )}
-
-    {compraAbiertaId && compraDetalle && (
-      <div className="mt-6">
-        <DetalleCompra compra={compraDetalle} loading={loadingDetalle} />
-      </div>
-    )}
-  </div>
-)}
+                <div className="bg-white/90 shadow-xl rounded-xl p-8 animate-fade-in">
+                  <h3 className="text-xl font-light text-orange-950 mb-4">Historial de Compras</h3>
+                  {loadingMisCompras ? (
+                    <p className="text-orange-500">Cargando compras...</p>
+                  ) : errorMisCompras ? (
+                    <p className="text-red-500">Error: {errorMisCompras}</p>
+                  ) : misCompras.length === 0 ? (
+                    <p className="text-orange-500">No tenés compras registradas.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {misCompras.map((compra, i) => (
+                        <div key={i} className="border p-4 rounded-lg bg-orange-50 shadow-sm">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="font-light text-orange-800">Compra #{compra.id}</p>
+                              <p className="text-sm text-orange-600">{new Date(compra.fecha).toLocaleString()}</p>
+                            </div>
+                            <button onClick={() => verDetalleCompra(compra.id)} className="text-sm text-orange-700 underline">
+                              {compraAbiertaId === compra.id ? "Ocultar detalle" : "Ver detalle"}
+                            </button>
+                          </div>
+                          <p className="text-orange-700 text-sm mt-2">Entrega: {mostrarInfoEntrega(compra)}</p>
+                          <p className="text-orange-700 text-sm">Pago: {formatearMetodoPago(compra.metodoDePago)}</p>
+                          <p className="text-orange-700 text-sm">Total: ${compra.total?.toLocaleString()}</p>
+                          {compraAbiertaId === compra.id && (
+                            <div className="mt-4">
+                              {loadingDetalle ? (
+                                <p className="text-orange-500">Cargando detalle...</p>
+                              ) : errorDetalle ? (
+                                <p className="text-red-500">Error: {errorDetalle}</p>
+                              ) : compraDetalle && compraDetalle.id === compra.id ? (
+                                <DetalleCompra compra={compraDetalle} onClose={() => setCompraAbiertaId(null)} />
+                              ) : null}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
 
               {activeTab === "envios" && (
@@ -261,8 +234,11 @@ const ProfilePage = () => {
               <input type="password" placeholder="Nueva contraseña" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full border p-2 mb-4 rounded" />
               <div className="flex justify-end gap-2">
                 <button onClick={() => setShowPasswordModal(false)} className="text-sm text-orange-600">Cancelar</button>
-                <button onClick={handleChangePassword} className="px-3 py-1 bg-[#8B5E3C] text-white rounded hover:bg-[#A2714C] text-sm">Guardar</button>
+                <button onClick={handleChangePassword} className="px-3 py-1 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417] text-sm" disabled={changePasswordLoading}>
+                  {changePasswordLoading ? "Guardando..." : "Guardar"}
+                </button>
               </div>
+              {changePasswordError && <div className="text-red-500 mt-2">{changePasswordError}</div>}
             </div>
           </div>
         )}
