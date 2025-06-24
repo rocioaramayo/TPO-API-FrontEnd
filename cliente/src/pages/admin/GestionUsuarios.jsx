@@ -16,57 +16,55 @@ const GestionUsuarios = () => {
     }, [dispatch]);
 
     const deshabilitarUsuario = (id) => {
-        fetch(`http://localhost:8080/api/v1/users/${id}/deshabilitar`, {
-            method: "PUT",
-            headers: {
-                Authorization: `Bearer ${user.token}`,
-                "Content-Type": "application/json",
-            },
+    fetch(`http://localhost:8080/api/v1/users/${id}/deshabilitar`, {
+        method: "PUT",
+        headers: {
+            Authorization: `Bearer ${user.token}`,
+            "Content-Type": "application/json",
+        },
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            alert(data.mensaje);
+            dispatch(fetchUsers(user.token)); // 👈 importante: recargar lista desde el backend
         })
-            .then((res) => res.json())
-            .then((data) => {
-                alert(data.mensaje);
-                setUsuarios((prev) =>
-                    prev.map((u) => (u.id === id ? { ...u, activo: false } : u))
-                );
-            })
-            .catch((err) => alert("Error al deshabilitar usuario: " + err.message));
-    };
+        .catch((err) => alert("Error al deshabilitar usuario: " + err.message));
+};
 
-    const habilitarUsuario = (id) => {
-        fetch(`http://localhost:8080/api/v1/users/${id}/habilitar`, {
-            method: "PUT",
-            headers: {
-                Authorization: `Bearer ${user.token}`,
-                "Content-Type": "application/json",
-            },
+const habilitarUsuario = (id) => {
+    fetch(`http://localhost:8080/api/v1/users/${id}/habilitar`, {
+        method: "PUT",
+        headers: {
+            Authorization: `Bearer ${user.token}`,
+            "Content-Type": "application/json",
+        },
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            alert(data.mensaje);
+            dispatch(fetchUsers(user.token)); // 👈 importante: recargar lista desde el backend
         })
-            .then((res) => res.json())
-            .then((data) => {
-                alert(data.mensaje);
-                setUsuarios((prev) =>
-                    prev.map((u) => (u.id === id ? { ...u, activo: true } : u))
-                );
-            })
-            .catch((err) => alert("Error al habilitar usuario: " + err.message));
-    };
+        .catch((err) => alert("Error al habilitar usuario: " + err.message));
+};
 
-    const cambiarPasswordUsuario = (email) => {
-        const nuevaPassword = prompt("Ingrese la nueva contraseña:");
-        if (!nuevaPassword) return;
+   const cambiarPasswordUsuario = (email) => {
+  const nuevaPassword = prompt("Ingrese la nueva contraseña:");
+  if (!nuevaPassword) return;
 
-        fetch("http://localhost:8080/api/v1/auth/admin/change-password", {
-            method: "PUT",
-            headers: {
-                Authorization: `Bearer ${user.token}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email, newPassword: nuevaPassword }),
-        })
-            .then((res) => res.json())
-            .then((data) => alert(data.message || "Contraseña actualizada"))
-            .catch((err) => alert("Error al cambiar contraseña: " + err.message));
-    };
+  dispatch(adminChangeUserPassword({
+    token: user.token,
+    email,
+    newPassword: nuevaPassword
+  }))
+  .unwrap()
+  .then(() => {
+    alert("Contraseña actualizada correctamente.");
+  })
+  .catch((err) => {
+    alert("Error al cambiar contraseña: " + err);
+  });
+};
+
 
     return (
         <div className="px-6 py-4 font-sans">

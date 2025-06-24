@@ -112,6 +112,28 @@ export const changePassword = createAsyncThunk('users/changePassword', async ({ 
   }
 });
 
+export const adminChangeUserPassword = createAsyncThunk(
+  'users/adminChangeUserPassword',
+  async ({ token, email, newPassword }, { rejectWithValue }) => {
+    try {
+      const res = await axios.put(`${API_URL}/api/v1/auth/admin/change-password`, {
+        email,
+        newPassword,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+
 const initialState = {
   // Estado para gestión de usuarios (admin)
   items: [],
@@ -138,6 +160,8 @@ const usersSlice = createSlice({
   name: 'users',
   initialState,
   reducers: {
+
+    
     clearAuthError: (state) => {
       state.authError = null;
     },
@@ -171,6 +195,7 @@ const usersSlice = createSlice({
       state.changePasswordError = null;
       state.changePasswordSuccess = false;
     },
+
   },
   extraReducers: (builder) => {
     builder
@@ -187,6 +212,8 @@ const usersSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      
+
       
       // Autenticación - Login
       .addCase(loginUser.pending, (state) => {
@@ -268,7 +295,21 @@ const usersSlice = createSlice({
       .addCase(changePassword.rejected, (state, action) => {
         state.changePasswordLoading = false;
         state.changePasswordError = action.payload;
+      })
+            .addCase(adminChangeUserPassword.pending, (state) => {
+        state.changePasswordLoading = true;
+        state.changePasswordError = null;
+        state.changePasswordSuccess = false;
+      })
+      .addCase(adminChangeUserPassword.fulfilled, (state) => {
+        state.changePasswordLoading = false;
+        state.changePasswordSuccess = true;
+      })
+      .addCase(adminChangeUserPassword.rejected, (state, action) => {
+        state.changePasswordLoading = false;
+        state.changePasswordError = action.payload;
       });
+
   },
 });
 
