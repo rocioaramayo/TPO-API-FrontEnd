@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { FaUser } from "react-icons/fa";
+import { updateUser } from "../../store/slices/usersSlice";
 
 const AdminProfilePage = () => {
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.users.user);
   const [editMode, setEditMode] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -49,7 +51,8 @@ const AdminProfilePage = () => {
         }
         return res.json();
       })
-      .then(() => {
+      .then((data) => {
+        dispatch(updateUser(data)); // actualizar el user en redux
         setEditMode(false);
         alert("Perfil actualizado correctamente.");
       })
@@ -111,20 +114,21 @@ const AdminProfilePage = () => {
                 <div className="mt-2 text-sm text-orange-950">{user.email}</div>
               </div>
               <nav className="space-y-2">
-                                <button className={`w-full text-left px-4 py-2 rounded transition text-orange-950 bg-orange-100 font-light`}><FaUser className="inline mr-2" /> Perfil</button>
-
+                <button className="w-full text-left px-4 py-2 rounded transition text-orange-950 bg-orange-100 font-light">
+                  <FaUser className="inline mr-2" /> Perfil
+                </button>
               </nav>
             </aside>
 
+            {/* MAIN CONTENIDO */}
             <main className="flex-1 space-y-8">
               <div className="bg-white/90 shadow-xl rounded-xl p-8 animate-fade-in">
                 <h2 className="text-2xl font-light text-orange-900 mb-6">Perfil de Administrador</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-orange-900">
                   <div>
                     <span className="text-orange-700">Nombre:</span>
                     {editMode ? (
                       <input
-                        type="text"
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
@@ -138,7 +142,6 @@ const AdminProfilePage = () => {
                     <span className="text-orange-700">Apellido:</span>
                     {editMode ? (
                       <input
-                        type="text"
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
@@ -157,18 +160,18 @@ const AdminProfilePage = () => {
                     <span className="ml-2 text-orange-800">{user.role}</span>
                   </div>
                 </div>
-                <div className="mt-6 flex gap-4 justify-end">
+                <div className="mt-6 flex gap-4">
                   {!editMode ? (
                     <>
                       <button
                         onClick={() => setShowPasswordModal(true)}
-                        className="px-4 py-2 bg-orange-200 text-orange-900 rounded hover:bg-orange-300 transition shadow"
+                        className="px-4 py-2 bg-[#8B5E3C] text-white rounded hover:bg-[#A2714C] transition-all duration-300 shadow"
                       >
                         Cambiar contraseña
                       </button>
                       <button
                         onClick={() => setEditMode(true)}
-                        className="px-4 py-2 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417] transition shadow"
+                        className="px-4 py-2 bg-[#8B5E3C] text-white rounded hover:bg-[#A2714C] transition-all duration-300 shadow"
                       >
                         Editar perfil
                       </button>
@@ -176,7 +179,7 @@ const AdminProfilePage = () => {
                   ) : (
                     <button
                       onClick={handleSave}
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition shadow"
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 shadow"
                     >
                       Guardar
                     </button>

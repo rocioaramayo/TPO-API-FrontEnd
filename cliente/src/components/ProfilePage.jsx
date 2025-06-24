@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux"; 
 import DetalleCompra from "./DetalleCompra";
 import DireccionesPanel from "./DireccionesPanel";
 import { FaUser, FaMapMarkedAlt, FaShoppingCart } from "react-icons/fa";
 import Footer from '../components/Footer';
+import { updateUser } from "../store/slices/usersSlice"; // <-- AGREGADO
+
 
 const ProfilePage = () => {
   const user = useSelector((state) => state.users.user);
+  const dispatch = useDispatch(); 
   const [activeTab, setActiveTab] = useState("perfil");
   const [editMode, setEditMode] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -61,6 +64,7 @@ const ProfilePage = () => {
       });
   };
 
+
   const mostrarInfoEntrega = (compra) => {
     if (compra.direccionEntrega)
       return `${compra.direccionEntrega?.calle ?? ""} ${compra.direccionEntrega?.numero ?? ""}, ${compra.direccionEntrega?.localidad ?? ""}`;
@@ -87,11 +91,23 @@ const ProfilePage = () => {
       body: JSON.stringify({ firstName: formData.firstName, lastName: formData.lastName }),
     })
       .then((res) => res.json())
-      .then(() => setEditMode(false))
+      .then((updatedUser) => {
+        // ACTUALIZAR REDUX
+        dispatch(updateUser(updatedUser));
+
+        // Actualizar formulario
+        setFormData({
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          email: updatedUser.email,
+        });
+
+        setEditMode(false);
+      })
       .catch(() => alert("Error al guardar los cambios"));
   };
 
-  const handleChangePassword = () => {
+   const handleChangePassword = () => {
     fetch(`http://localhost:8080/api/v1/auth/change-password`, {
       method: "PUT",
       headers: {
@@ -126,78 +142,79 @@ const ProfilePage = () => {
                 <div className="mt-2 text-sm text-orange-950">{user.email}</div>
               </div>
               <nav className="space-y-2">
-                <button onClick={() => setActiveTab("perfil")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "perfil" ? "bg-orange-100 font-light" : "hover:bg-orange-50"}`}><FaUser className="inline mr-2" /> Perfil</button>
-                <button onClick={() => setActiveTab("compras")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "compras" ? "bg-orange-100 font-light" : "hover:bg-orange-50"}`}><FaShoppingCart className="inline mr-2" /> Mis Compras</button>
-                <button onClick={() => setActiveTab("envios")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "envios" ? "bg-orange-100 font-light" : "hover:bg-orange-50"}`}><FaMapMarkedAlt className="inline mr-2" /> Direcciones</button>
+                <button onClick={() => setActiveTab("perfil")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "perfil" ? "bg-orange-100 font-light" : "hover:bg-orange-50"}`}><FaUser className="inline mr-2 text-[#8B5E3C]" />Perfil</button>
+                <button onClick={() => setActiveTab("compras")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "compras" ? "bg-orange-100 font-light" : "hover:bg-orange-50"}`}><FaShoppingCart className="inline mr-2 text-[#8B5E3C]"/> Mis Compras</button>
+                <button onClick={() => setActiveTab("envios")} className={`w-full text-left px-4 py-2 rounded transition text-orange-950 ${activeTab === "envios" ? "bg-orange-100 font-light" : "hover:bg-orange-50"}`}><FaMapMarkedAlt className="inline mr-2 text-[#8B5E3C]" /> Direcciones</button>
               </nav>
             </aside>
 
             <main className="flex-1 space-y-8">
-              {activeTab === "perfil" && (
-                <div className="bg-white/90 shadow-xl rounded-xl p-8 animate-fade-in">
-                  <h2 className="text-2xl font-light text-orange-900 mb-6">Perfil de Usuario</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-orange-700">Nombre:</span>
-                      {editMode ? <input name="firstName" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="border p-1 rounded ml-2" /> : <span className="ml-2">{user.firstName}</span>}
-                    </div>
-                    <div>
-                      <span className="text-orange-700">Apellido:</span>
-                      {editMode ? <input name="lastName" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="border p-1 rounded ml-2" /> : <span className="ml-2">{user.lastName}</span>}
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-orange-700">Email:</span>
-                      <span className="ml-2">{user.email}</span>
-                    </div>
-                  </div>
-                  <div className="mt-6 flex gap-4">
-                    {!editMode ? (
-                      <>
-                        <button onClick={() => setShowPasswordModal(true)} className="px-4 py-2 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417] transition-all duration-300 shadow">Cambiar contraseña</button>
-                        <button onClick={() => setEditMode(true)} className="px-4 py-2 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417] transition-all duration-300 shadow">Editar perfil</button>
-                      </>
-                    ) : (
-                      <button onClick={handleSave} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 shadow">Guardar</button>
-                    )}
-                  </div>
-                </div>
-              )}
+  <div className="bg-white/90 shadow-xl rounded-xl p-8 animate-fade-in">
+    <h2 className="text-2xl font-light text-orange-900 mb-6">Perfil de Administrador</h2>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-orange-900">
+      <div>
+        <span className="text-orange-700">Nombre:</span>
+        {editMode ? (
+          <input
+            name="firstName"
+            value={formData.firstName}
+            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+            className="border p-1 rounded ml-2"
+          />
+        ) : (
+          <span className="ml-2">{user.firstName}</span>
+        )}
+      </div>
+      <div>
+        <span className="text-orange-700">Apellido:</span>
+        {editMode ? (
+          <input
+            name="lastName"
+            value={formData.lastName}
+            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+            className="border p-1 rounded ml-2"
+          />
+        ) : (
+          <span className="ml-2">{user.lastName}</span>
+        )}
+      </div>
+      <div className="col-span-2">
+        <span className="text-orange-700">Email:</span>
+        <span className="ml-2">{user.email}</span>
+      </div>
+      <div className="col-span-2">
+        <span className="text-orange-700">Rol:</span>
+        <span className="ml-2 text-orange-800">{user.role}</span>
+      </div>
+    </div>
+    <div className="mt-6 flex gap-4">
+      {!editMode ? (
+        <>
+          <button
+            onClick={() => setShowPasswordModal(true)}
+            className="px-4 py-2 bg-[#8B5E3C] text-white rounded hover:bg-[#A2714C] transition-all duration-300 shadow"
+          >
+            Cambiar contraseña
+          </button>
+          <button
+            onClick={() => setEditMode(true)}
+            className="px-4 py-2 bg-[#8B5E3C] text-white rounded hover:bg-[#A2714C] transition-all duration-300 shadow"
+          >
+            Editar perfil
+          </button>
+        </>
+      ) : (
+        <button
+          onClick={handleSave}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 shadow"
+        >
+          Guardar
+        </button>
+      )}
+    </div>
+  </div>
+</main>
 
-              {activeTab === "compras" && (
-                <div className="bg-white/90 shadow-xl rounded-xl p-8 animate-fade-in">
-                  <h3 className="text-xl font-light text-orange-950 mb-4">Historial de Compras</h3>
-                  {misCompras.length === 0 ? (
-                    <p className="text-orange-500">No tenés compras registradas.</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {misCompras.map((compra, i) => (
-                        <div key={i} className="border p-4 rounded-lg bg-orange-50 shadow-sm">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <p className="font-light text-orange-800">Compra #{compra.id}</p>
-                              <p className="text-sm text-orange-600">{new Date(compra.fecha).toLocaleString()}</p>
-                            </div>
-                            <button onClick={() => verDetalleCompra(compra.id)} className="text-sm text-orange-700 underline">
-                              {compraAbiertaId === compra.id ? "Ocultar detalle" : "Ver detalle"}
-                            </button>
-                          </div>
-                          <p className="text-orange-700 text-sm mt-2">Entrega: {mostrarInfoEntrega(compra)}</p>
-                          <p className="text-orange-700 text-sm">Pago: {formatearMetodoPago(compra.metodoDePago)}</p>
-                          <p className="text-orange-700 text-sm">Total: ${compra.total?.toLocaleString()}</p>
-                          {compraAbiertaId === compra.id && compraDetalle && (
-                            <div className="mt-4">
-                              <DetalleCompra compra={compraDetalle} />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {activeTab === "envios" && <DireccionesPanel token={user.token} />}
-            </main>
           </div>
         </div>
 
@@ -209,7 +226,7 @@ const ProfilePage = () => {
               <input type="password" placeholder="Nueva contraseña" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full border p-2 mb-4 rounded" />
               <div className="flex justify-end gap-2">
                 <button onClick={() => setShowPasswordModal(false)} className="text-sm text-orange-600">Cancelar</button>
-                <button onClick={handleChangePassword} className="px-3 py-1 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417] text-sm">Guardar</button>
+                <button onClick={handleChangePassword} className="px-3 py-1 bg-[#8B5E3C] text-white rounded hover:bg-[#A2714C] text-sm">Guardar</button>
               </div>
             </div>
           </div>
