@@ -102,6 +102,11 @@ const ProfilePage = () => {
   };
 
   const handleChangePassword = () => {
+    console.log("Intentando cambiar contraseña con:", {
+  oldPassword,
+  newPassword,
+  token: user?.token
+});
     fetch(`http://localhost:8080/api/v1/auth/change-password`, {
       method: "PUT",
       headers: {
@@ -117,7 +122,11 @@ const ProfilePage = () => {
         setOldPassword("");
         setNewPassword("");
       })
-      .catch((e) => alert(e.message));
+      .catch((e) => {
+  console.error("Error al cambiar contraseña:", e);
+  alert("No se pudo cambiar la contraseña: " + e.message);
+});
+
   };
 
   if (!user)
