@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchDirecciones, crearDireccion, desactivarDireccion, limpiarEstadoDireccion } from '../store/slices/direccionSlice';
 
-const DireccionesPanel = ({ token }) => {
+const DireccionesPanel = () => {
     const dispatch = useDispatch();
+    const token = useSelector((state) => state.users.user?.token);
     const direcciones = useSelector((state) => state.direccion.items);
     const loading = useSelector((state) => state.direccion.loading);
     const error = useSelector((state) => state.direccion.error);
@@ -22,6 +23,8 @@ const DireccionesPanel = ({ token }) => {
     });
     const [submitIntentado, setSubmitIntentado] = useState(false);
     const [mensaje, setMensaje] = useState(null);
+    const [mostrarModalBorrar, setMostrarModalBorrar] = useState(false);
+    const [direccionAEliminar, setDireccionAEliminar] = useState(null);
 
     useEffect(() => {
         if (token) {
