@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers } from "../../store/slices/usersSlice";
+import { adminChangeUserPassword } from '../../store/slices/usersSlice';
+
 
 const GestionUsuarios = () => {
     const dispatch = useDispatch();
@@ -52,17 +54,20 @@ const habilitarUsuario = (id) => {
   if (!nuevaPassword) return;
 
   dispatch(adminChangeUserPassword({
-    token: user.token,
-    email,
-    newPassword: nuevaPassword
-  }))
-  .unwrap()
-  .then(() => {
-    alert("Contraseña actualizada correctamente.");
-  })
-  .catch((err) => {
-    alert("Error al cambiar contraseña: " + err);
-  });
+  token: user.token,
+  email,
+  newPassword: nuevaPassword
+}))
+.unwrap()
+.then(() => {
+  alert("Contraseña actualizada correctamente.");
+})
+.catch((err) => {
+  console.error("ERROR RESPUESTA:", err);
+  alert("Error al cambiar contraseña: " + (err?.response?.data?.message || err));
+});
+
+
 };
 
 
