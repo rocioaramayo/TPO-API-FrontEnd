@@ -45,7 +45,7 @@ const CheckoutForm = () => {
   // Estados para direcciones
   const direcciones = useSelector((state) => state.direccion.items);
   const loadingDirecciones = useSelector((state) => state.direccion.loading);
-  const errorDirecciones = useSelector((state) => state.direccion.error);
+  const [errorDirecciones, setErrorDirecciones] = React.useState("");
   const direccionSuccess = useSelector((state) => state.direccion.success);
   const [direccionSeleccionada, setDireccionSeleccionada] = React.useState("");
   const [mostrarFormNuevaDireccion, setMostrarFormNuevaDireccion] = React.useState(false);
