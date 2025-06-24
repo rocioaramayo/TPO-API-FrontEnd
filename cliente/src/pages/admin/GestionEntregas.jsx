@@ -6,7 +6,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchMetodoEntrega } from "../../store/slices/metodoEntregaSlice";
 import { fetchPuntoEntrega } from "../../store/slices/puntoEntregaSlice";
 
-export default function GestionEntregas({user}) {
+export default function GestionEntregas() {
+  const user = useSelector((state) => state.users.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const metodosEntrega = useSelector(state => state.metodoEntrega.items);
@@ -321,8 +322,17 @@ export default function GestionEntregas({user}) {
             </div>
         )}
         {mostrarCrearMetodo && (
-           <FormCrearMetodoEntrega user={user} setMostrarCrearMetodo={setMostrarCrearMetodo}/>
-        )}
+   <FormCrearMetodoEntrega
+     user={user}
+     setMostrarCrearMetodo={(valor) => {
+       setMostrarCrearMetodo(valor);
+       if (!valor) {
+         dispatch(fetchMetodoEntrega()); // 👈 se actualiza cuando se cierra el modal
+       }
+     }}
+   />
+)}
+
         {mostrarCrearPunto && (
            <FormCrearPuntoEntrega user={user} setMostrarCrearPunto={setMostrarCrearPunto}/>
         )}
