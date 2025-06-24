@@ -186,33 +186,49 @@ const ProfilePage = () => {
               )}
 
               {activeTab === "compras" && (
-                <div className="bg-white/90 shadow-xl rounded-xl p-8 animate-fade-in">
-                  <h2 className="text-2xl font-light text-orange-900 mb-6">Mis Compras</h2>
-                  {misCompras.length === 0 ? (
-                    <p className="text-orange-700">No tenés compras registradas.</p>
-                  ) : (
-                    <ul className="space-y-4">
-                      {misCompras.map((c) => (
-                        <li key={c.id} className="border p-4 rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <p><strong>Fecha:</strong> {new Date(c.fecha).toLocaleString()}</p>
-                              <p><strong>Total:</strong> ${c.total}</p>
-                              <p><strong>Entrega:</strong> {mostrarInfoEntrega(c)}</p>
-                            </div>
-                            <button onClick={() => verDetalleCompra(c.id)} className="text-sm text-orange-800 underline">
-                              {compraAbiertaId === c.id ? "Ocultar" : "Ver detalle"}
-                            </button>
-                          </div>
-                          {compraAbiertaId === c.id && compraDetalle && (
-                            <DetalleCompra compra={compraDetalle} loading={loadingDetalle} />
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
+  <div className="bg-white/90 shadow-xl rounded-xl p-8 animate-fade-in">
+    <h2 className="text-2xl font-light text-orange-900 mb-6">Historial de Compras</h2>
+
+    {misCompras.length === 0 ? (
+      <p className="text-orange-700">No tenés compras registradas.</p>
+    ) : (
+      <ul className="space-y-4">
+        {misCompras.map((compra, index) => (
+          <li key={compra.id} className="bg-orange-50 p-4 rounded-lg shadow flex justify-between items-start">
+            <div>
+              <h3 className="font-semibold text-orange-900 mb-1">Compra #{index + 1}</h3>
+              <p className="text-sm text-orange-800 mb-1">
+                <strong>Fecha:</strong> {new Date(compra.fecha).toLocaleString()}
+              </p>
+              <p className="text-sm text-orange-800 mb-1">
+                <strong>Entrega:</strong> {mostrarInfoEntrega(compra)}
+              </p>
+              <p className="text-sm text-orange-800 mb-1">
+                <strong>Pago:</strong> {formatearMetodoPago(compra.metodoPago)}
+              </p>
+              <p className="text-sm text-orange-800">
+                <strong>Total:</strong> ${compra.total.toLocaleString("es-AR")}
+              </p>
+            </div>
+            <button
+              className="text-sm text-orange-700 hover:underline hover:text-orange-900 transition mt-1"
+              onClick={() => verDetalleCompra(compra.id)}
+            >
+              {compraAbiertaId === compra.id ? "Ocultar" : "Ver detalle"}
+            </button>
+          </li>
+        ))}
+      </ul>
+    )}
+
+    {compraAbiertaId && compraDetalle && (
+      <div className="mt-6">
+        <DetalleCompra compra={compraDetalle} loading={loadingDetalle} />
+      </div>
+    )}
+  </div>
+)}
+
 
               {activeTab === "envios" && (
                 <DireccionesPanel />

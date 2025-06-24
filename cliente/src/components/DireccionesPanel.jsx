@@ -171,12 +171,15 @@ const DireccionesPanel = () => {
               {dir.telefonoContacto && (
                 <p><strong>Teléfono:</strong> {dir.telefonoContacto}</p>
               )}
-              <button
-                className="ml-4 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                onClick={() => handleBorrar(dir.id)}
-              >
-                Borrar
-              </button>
+              <div className="flex justify-end mt-2">
+  <button
+    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm shadow"
+    onClick={() => handleBorrar(dir.id)}
+  >
+    Borrar
+  </button>
+</div>
+
             </li>
           ))}
         </ul>
