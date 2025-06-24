@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCategories, getCategoryById } from '../../store/slices/categoriesSlice';
+import { fetchDescuentos, createDescuento, updateDescuento, deleteDescuento, activarDescuento, desactivarDescuento } from '../../store/slices/descuentosSlice';
 
 const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.users);
   const categorias = useSelector((state) => state.categories.items);
-  const [descuentos, setDescuentos] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const descuentos = useSelector((state) => state.descuentos.items);
+  const loading = useSelector((state) => state.descuentos.loading);
+  const error = useSelector((state) => state.descuentos.error);
   const [editId, setEditId] = useState(null);
   const [editData, setEditData] = useState({
     codigo: '',
@@ -29,8 +30,8 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
     montoMinimo: '',
     categoriaId: ''
   });
-  const [creating, setCreating] = useState(false);
   const [categoriaPorId, setCategoriaPorId] = useState({});
+  const [formError, setFormError] = useState(null);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -53,58 +54,22 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
 
   useEffect(() => {
     if (visible && isAuthenticated && user?.token) {
-      setLoading(true);
-      Promise.all([
-        fetch('http://localhost:8080/descuentos', {
-          headers: { 'Authorization': `Bearer ${user.token}` }
-        }).then(res => res.ok ? res.json() : Promise.reject('Error al cargar descuentos')),
-        dispatch(fetchCategories()).unwrap()
-      ])
-        .then(([descuentosData, categoriasData]) => {
-          setDescuentos(Array.isArray(descuentosData) ? descuentosData : []);
-        })
-        .catch((e) => {
-          setError('Error al cargar datos');
-        })
-        .finally(() => setLoading(false));
+      dispatch(fetchDescuentos(user.token));
+      dispatch(fetchCategories());
     }
   }, [visible, user, isAuthenticated, dispatch]);
 
   const handleActivar = (id) => {
-    fetch(`http://localhost:8080/descuentos/${id}/activar`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${user.token}` }
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Error al activar descuento');
-        setDescuentos(descs => descs.map(d => d.id === id ? { ...d, activo: true } : d));
-      })
-      .catch(e => setError(e.message));
+    dispatch(activarDescuento({ token: user.token, id }));
   };
 
   const handleDesactivar = (id) => {
-    fetch(`http://localhost:8080/descuentos/${id}/desactivar`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${user.token}` }
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Error al desactivar descuento');
-        setDescuentos(descs => descs.map(d => d.id === id ? { ...d, activo: false } : d));
-      })
-      .catch(e => setError(e.message));
+    dispatch(desactivarDescuento({ token: user.token, id }));
   };
 
   const handleEliminar = (id) => {
     if (!window.confirm('¿Eliminar este descuento?')) return;
-    fetch(`http://localhost:8080/descuentos/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${user.token}` }
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Error al eliminar descuento');
-        setDescuentos(descs => descs.filter(d => d.id !== id));
-      })
-      .catch(e => setError(e.message));
+    dispatch(deleteDescuento({ token: user.token, id }));
   };
 
   const handleEditClick = (d) => {
@@ -124,14 +89,14 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
     // Validaciones
     const porcentajeNum = Number(editData.porcentaje);
     if (porcentajeNum < 1 || porcentajeNum > 100) {
-      setError('El porcentaje debe estar entre 1 y 100');
+      setFormError('El porcentaje debe estar entre 1 y 100');
       return;
     }
     if (editData.fechaFin && editData.fechaInicio && editData.fechaFin < editData.fechaInicio) {
-      setError('La fecha fin no puede ser menor a la fecha inicio');
+      setFormError('La fecha fin no puede ser menor a la fecha inicio');
       return;
     }
-    setError(null);
+    setFormError(null);
 
     // Formatear fechas agregando "T00:00:00" si corresponde
     let fechaInicioFormateada = editData.fechaInicio && editData.fechaInicio !== '' ? `${editData.fechaInicio}T00:00:00` : undefined;
@@ -148,65 +113,32 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
     };
     if (editData.categoriaId) bodyEditar.categoriaId = Number(editData.categoriaId);
 
-    fetch(`http://localhost:8080/descuentos/${editId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}`
-      },
-      body: JSON.stringify(bodyEditar)
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Error al editar descuento');
-        setDescuentos(descs => descs.map(d => d.id === editId ? {
-          ...d,
-          porcentaje: Number(editData.porcentaje),
-          descripcion: editData.descripcion,
-          fechaInicio: editData.fechaInicio || null,
-          fechaFin: editData.fechaFin || null,
-          montoMinimo: editData.montoMinimo ? Number(editData.montoMinimo) : 0,
-          categoriaId: editData.categoriaId || null
-        } : d));
-        setEditId(null);
-        // Reset editData para evitar residuos en el formulario
-        setEditData({
-          codigo: '',
-          porcentaje: '',
-          descripcion: '',
-          fechaInicio: '',
-          fechaFin: '',
-          montoMinimo: '',
-          categoriaId: ''
-        });
-      })
-      .catch(e => {
-        // Si el error incluye que el código ya existe
-        if (
-          typeof e.message === 'string' &&
-          (e.message.includes('Ya existe un descuento') ||
-            e.message.toLowerCase().includes('codigo ya existe') ||
-            e.message.toLowerCase().includes('código ya existe'))
-        ) {
-          setError('Ese código ya está en uso. Elegí otro código único.');
-        } else {
-          setError(e.message);
-        }
-      });
+    dispatch(updateDescuento({ token: user.token, id: editId, data: bodyEditar }));
+    setEditId(null);
+    // Reset editData para evitar residuos en el formulario
+    setEditData({
+      codigo: '',
+      porcentaje: '',
+      descripcion: '',
+      fechaInicio: '',
+      fechaFin: '',
+      montoMinimo: '',
+      categoriaId: ''
+    });
   };
 
   const handleCrear = (e) => {
     e.preventDefault();
-    // Validaciones
     const porcentajeNum = Number(nuevo.porcentaje);
     if (porcentajeNum < 1 || porcentajeNum > 100) {
-      setError('El porcentaje debe estar entre 1 y 100');
+      setFormError('El porcentaje debe estar entre 1 y 100');
       return;
     }
     if (nuevo.fechaFin && nuevo.fechaInicio && nuevo.fechaFin < nuevo.fechaInicio) {
-      setError('La fecha fin no puede ser menor a la fecha inicio');
+      setFormError('La fecha fin no puede ser menor a la fecha inicio');
       return;
     }
-    setError(null);
+    setFormError(null);
 
     // Formatear fechas agregando "T00:00:00" si corresponde
     let fechaInicioFormateada = nuevo.fechaInicio && nuevo.fechaInicio !== '' ? `${nuevo.fechaInicio}T00:00:00` : undefined;
@@ -223,56 +155,26 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
     if (fechaFinFormateada) bodyCrear.fechaFin = fechaFinFormateada;
     if (nuevo.categoriaId && nuevo.categoriaId !== '') bodyCrear.categoriaId = Number(nuevo.categoriaId);
 
-    setCreating(true);
-    fetch('http://localhost:8080/descuentos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}`
-      },
-      body: JSON.stringify(bodyCrear)
-    })
-      .then(res => {
-        if (!res.ok) {
-          return res.text().then(err => {
-            throw new Error('Error al crear descuento: ' + err);
-          });
-        }
-        return res.json();
-      })
-      .then(creado => {
-        setDescuentos(descs => [creado, ...descs]);
-        setNuevo({
-          codigo: '',
-          porcentaje: '',
-          descripcion: '',
-          fechaInicio: '',
-          fechaFin: '',
-          montoMinimo: '',
-          categoriaId: ''
-        });
-      })
-      .catch(e => {
-        // Si el error incluye que el código ya existe
-        if (
-          typeof e.message === 'string' &&
-          (e.message.includes('Ya existe un descuento') ||
-            e.message.toLowerCase().includes('codigo ya existe') ||
-            e.message.toLowerCase().includes('código ya existe'))
-        ) {
-          setError('Ese código ya está en uso. Elegí otro código único.');
-        } else {
-          setError(e.message);
-        }
-      })
-      .finally(() => setCreating(false));
+    dispatch(createDescuento({ token: user.token, data: bodyCrear }));
+    setNuevo({
+      codigo: '',
+      porcentaje: '',
+      descripcion: '',
+      fechaInicio: '',
+      fechaFin: '',
+      montoMinimo: '',
+      categoriaId: ''
+    });
   };
 
   const isVigente = (d) => {
     if (!d.activo) return false;
-    const hoy = new Date().toISOString().slice(0,10);
-    if (d.fechaInicio && hoy < d.fechaInicio) return false;
-    if (d.fechaFin && hoy > d.fechaFin) return false;
+    const hoy = new Date();
+    const inicio = d.fechaInicio ? new Date(d.fechaInicio) : null;
+    const fin = d.fechaFin ? new Date(d.fechaFin) : null;
+
+    if (inicio && hoy < inicio) return false;
+    if (fin && hoy > fin) return false;
     return true;
   };
 
@@ -333,13 +235,17 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
               </select>
             </div>
             <div className="md:col-span-3">
-              <button type="submit" disabled={creating} className="bg-leather-800 text-white px-3 py-1 rounded hover:bg-leather-900 text-sm font-medium disabled:opacity-50">
-                {creating ? 'Creando...' : 'Crear'}
+              <button
+                type="submit"
+                className="bg-leather-800 text-white px-3 py-1 rounded hover:bg-leather-900 text-sm font-medium disabled:opacity-50"
+                disabled={loading}
+              >
+                {loading ? "Creando..." : "Crear"}
               </button>
             </div>
           </form>
           {loading ? <p className="text-leather-600">Cargando...</p> : null}
-          {error ? <p className="text-red-600 text-sm mb-2">{error}</p> : null}
+          {formError && <div className="text-red-500 mb-2">{formError}</div>}
           <ul className="divide-y divide-leather-100 bg-white rounded-lg border border-leather-200 mb-8">
             {descuentos.length === 0 && !loading && (
               <li className="py-4 text-leather-600 text-center">No hay descuentos registrados.</li>
@@ -402,8 +308,15 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
                         <span className="font-mono text-leather-800 bg-leather-100 px-2 py-1 rounded mb-1">{d.codigo}</span>
                         <span className="text-leather-700 text-sm mb-1">{d.descripcion}</span>
                         <div className="flex flex-wrap gap-2 text-xs mb-1">
-                          <span className={`px-2 py-1 rounded w-fit ${d.activo ? 'bg-green-100 text-green-700' : 'bg-leather-200 text-leather-700'}`}>{d.activo ? 'Activo' : 'Inactivo'}</span>
-                          <span className={`px-2 py-1 rounded w-fit ${vigente ? 'bg-blue-100 text-blue-700' : 'bg-leather-200 text-leather-700'}`}>{vigente ? 'Vigente' : 'No vigente'}</span>
+                          {!d.activo && (
+                            <span className="px-2 py-1 rounded w-fit bg-leather-200 text-leather-700">Inactivo</span>
+                          )}
+                          {d.activo && isVigente(d) && (
+                            <span className="px-2 py-1 rounded w-fit bg-green-100 text-green-700">Vigente</span>
+                          )}
+                          {d.activo && !isVigente(d) && (
+                            <span className="px-2 py-1 rounded w-fit bg-leather-200 text-leather-700">No vigente</span>
+                          )}
                         </div>
                         <span className="text-leather-700 text-sm">Porcentaje: {d.porcentaje}%</span>
                         <span className="text-leather-700 text-sm">Fecha Inicio: {d.fechaInicio ? d.fechaInicio.slice(0,10) : '-'}</span>
@@ -484,17 +397,17 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
           </select>
         </div>
         <div className="md:col-span-3">
-          <button type="submit" disabled={creating} className="bg-leather-800 text-white px-3 py-1 rounded hover:bg-leather-900 text-sm font-medium disabled:opacity-50">
-            {creating ? 'Creando...' : 'Crear'}
+          <button
+            type="submit"
+            className="bg-leather-800 text-white px-3 py-1 rounded hover:bg-leather-900 text-sm font-medium disabled:opacity-50"
+            disabled={loading}
+          >
+            {loading ? "Creando..." : "Crear"}
           </button>
         </div>
       </form>
       {loading ? <p className="text-leather-600">Cargando...</p> : null}
-      {error ? (
-        <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-2 rounded mb-2 font-semibold">
-          {error}
-        </div>
-      ) : null}
+      {formError && <div className="text-red-500 mb-2">{formError}</div>}
       <ul className="divide-y divide-leather-100 bg-white rounded-lg border border-leather-200 mb-8">
         {descuentos.length === 0 && !loading && (
           <li className="py-4 text-leather-600 text-center">No hay descuentos registrados.</li>
@@ -560,8 +473,15 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
                     <span className="font-mono text-leather-800 bg-leather-100 px-2 py-1 rounded mb-1">{d.codigo}</span>
                     <span className="text-leather-700 text-sm mb-1">{d.descripcion}</span>
                     <div className="flex flex-wrap gap-2 text-xs mb-1">
-                      <span className={`px-2 py-1 rounded w-fit ${d.activo ? 'bg-green-100 text-green-700' : 'bg-leather-200 text-leather-700'}`}>{d.activo ? 'Activo' : 'Inactivo'}</span>
-                      <span className={`px-2 py-1 rounded w-fit ${vigente ? 'bg-blue-100 text-blue-700' : 'bg-leather-200 text-leather-700'}`}>{vigente ? 'Vigente' : 'No vigente'}</span>
+                      {!d.activo && (
+                        <span className="px-2 py-1 rounded w-fit bg-leather-200 text-leather-700">Inactivo</span>
+                      )}
+                      {d.activo && isVigente(d) && (
+                        <span className="px-2 py-1 rounded w-fit bg-green-100 text-green-700">Vigente</span>
+                      )}
+                      {d.activo && !isVigente(d) && (
+                        <span className="px-2 py-1 rounded w-fit bg-leather-200 text-leather-700">No vigente</span>
+                      )}
                     </div>
                     <span className="text-leather-700 text-sm">Porcentaje: {d.porcentaje}%</span>
                     <span className="text-leather-700 text-sm">Fecha Inicio: {d.fechaInicio ? d.fechaInicio.slice(0,10) : '-'}</span>

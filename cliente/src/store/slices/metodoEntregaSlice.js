@@ -12,6 +12,15 @@ export const fetchMetodoEntrega = createAsyncThunk('metodoEntrega/fetchMetodoEnt
   }
 });
 
+export const fetchMetodoEntregaActivos = createAsyncThunk('metodoEntrega/fetchMetodoEntregaActivos', async (_, { rejectWithValue }) => {
+  try {
+    const res = await axios.get(`${API_URL}/entregas/metodos/activos`);
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data || err.message);
+  }
+});
+
 const initialState = {
   items: [],
   loading: false,
@@ -34,6 +43,19 @@ const metodoEntregaSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchMetodoEntrega.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchMetodoEntregaActivos.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMetodoEntregaActivos.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchMetodoEntregaActivos.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

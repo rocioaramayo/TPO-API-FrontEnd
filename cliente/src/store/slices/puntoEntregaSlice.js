@@ -12,6 +12,15 @@ export const fetchPuntoEntrega = createAsyncThunk('puntoEntrega/fetchPuntoEntreg
   }
 });
 
+export const fetchPuntoEntregaActivos = createAsyncThunk('puntoEntrega/fetchPuntoEntregaActivos', async (_, { rejectWithValue }) => {
+  try {
+    const res = await axios.get(`${API_URL}/entregas/puntos/activos`);
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data || err.message);
+  }
+});
+
 const initialState = {
   items: [],
   loading: false,
@@ -34,6 +43,19 @@ const puntoEntregaSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchPuntoEntrega.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchPuntoEntregaActivos.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPuntoEntregaActivos.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchPuntoEntregaActivos.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

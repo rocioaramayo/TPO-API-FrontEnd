@@ -5,6 +5,9 @@ import { clearCart } from '../store/slices/cartSlice';
 import PaymentSection from "./PaymentSection";
 import DeliverySection from "./DeliverySection";
 import CheckoutSummary from "./CheckoutSummary";
+import { validarCupon, limpiarCupon } from '../store/slices/descuentosSlice';
+import { fetchMetodoEntregaActivos } from '../store/slices/metodoEntregaSlice';
+import { fetchPuntoEntregaActivos } from '../store/slices/puntoEntregaSlice';
 
 const CheckoutForm = ({ cartItems }) => {
   const navigate = useNavigate();
@@ -26,7 +29,6 @@ const CheckoutForm = ({ cartItems }) => {
 
   // Estados de usuario y checkout
   const [userInfo, setUserInfo] = React.useState(null);
-  const [metodosEntrega, setMetodosEntrega] = React.useState([]);
   const [metodoEntrega, setMetodoEntrega] = React.useState("");
   const [metodoPago, setMetodoPago] = React.useState("");
   const [numeroTarjeta, setNumeroTarjeta] = React.useState("");
@@ -51,7 +53,6 @@ const CheckoutForm = ({ cartItems }) => {
   });
   
   const [puntoRetiroId, setPuntoRetiroId] = React.useState("");
-  const [puntosRetiro, setPuntosRetiro] = React.useState([]);
   const [costoEnvio, setCostoEnvio] = React.useState(null);
   const [cotizando, setCotizando] = React.useState(false);
 
@@ -60,6 +61,12 @@ const CheckoutForm = ({ cartItems }) => {
   const [loadingDirecciones, setLoadingDirecciones] = React.useState(false);
   const [errorDirecciones, setErrorDirecciones] = React.useState("");
   const [procesandoCompra, setProcesandoCompra] = React.useState(false);
+
+  const cuponRedux = useSelector((state) => state.descuentos.cupon);
+  const metodosEntrega = useSelector((state) => state.metodoEntrega.items);
+  const metodosEntregaLoading = useSelector((state) => state.metodoEntrega.loading);
+  const puntosRetiro = useSelector((state) => state.puntoEntrega.items);
+  const puntosRetiroLoading = useSelector((state) => state.puntoEntrega.loading);
 
   // Calcular subtotal
   const subtotal = cartItems.reduce((acc, item) => acc + item.precio * item.quantity, 0);
@@ -95,12 +102,9 @@ const CheckoutForm = ({ cartItems }) => {
         .finally(() => setLoadingDirecciones(false));
     }
 
-    // Cargar métodos de entrega
-    fetch(`${API_BASE}/entregas/metodos/activos`)
-      .then(res => res.ok ? res.json() : Promise.reject())
-      .then(setMetodosEntrega)
-      .catch(() => setErrorCheckout("Error al cargar métodos de entrega"));
-  }, [user, isAuthenticated]);
+    // Cargar métodos de entrega activos desde Redux
+    dispatch(fetchMetodoEntregaActivos());
+  }, [user, isAuthenticated, dispatch]);
 
   // useEffect para cotización de envío
   React.useEffect(() => {
@@ -131,53 +135,17 @@ const CheckoutForm = ({ cartItems }) => {
     }
   }, [direccionSeleccionada, direcciones, metodoSeleccionado, user]);
 
-  // useEffect para puntos de retiro
+  // useEffect para puntos de retiro activos desde Redux cuando corresponde
   React.useEffect(() => {
     if (metodoSeleccionado?.requierePuntoRetiro && metodoEntrega) {
-      fetch(`${API_BASE}/entregas/puntos/metodo/${metodoEntrega}`)
-        .then(res => res.ok ? res.json() : Promise.reject())
-        .then(setPuntosRetiro)
-        .catch(() => setPuntosRetiro([]));
+      dispatch(fetchPuntoEntregaActivos());
     }
-  }, [metodoSeleccionado, metodoEntrega]);
+  }, [metodoSeleccionado, metodoEntrega, dispatch]);
 
-  // Nueva función corregida para aplicar cupón con manejo de validación y errores y control de categoría
-  const handleAplicarCupon = () => {
-    const codigo = cupon.trim();
-    if (!codigo) {
-      setCuponMsg("Por favor, ingresa un código de descuento");
-      return;
-    }
-    if (!isAuthenticated) {
-      setCuponMsg("Debes estar autenticado para usar cupones");
-      return;
-    }
-
-    const items = cartItems.map(item => ({
-      productoId: item.id || item.productoId,
-      cantidad: item.quantity
-    }));
-
-    fetch(`${API_BASE}/descuentos/validar`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${user.token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        codigoDescuento: codigo,
-        items
-      })
-    })
-    .then(res => {
-      if (!res.ok) {
-        return res.json().then(data => {
-          throw new Error(data.message || "Error al validar el cupón");
-        });
-      }
-      return res.json();
-    })
-    .then(data => {
+  // useEffect para actualizar el estado local según el resultado de Redux
+  React.useEffect(() => {
+    if (cuponRedux.resultado) {
+      const data = cuponRedux.resultado;
       if (data.descuentoAplicado) {
         if (data.montoDescuento > 0) {
           setDescuento(data.porcentajeDescuento);
@@ -187,7 +155,7 @@ const CheckoutForm = ({ cartItems }) => {
           setMontoDescuento(data.montoDescuento);
           setTotalBD(data.totalConDescuento);
         } else {
-          setCuponMsg("El cupón pertenece a otra categoría");
+          setCuponMsg('El cupón pertenece a otra categoría');
           setDescuento(0);
           setAplicado(false);
           setSubtotalBD(null);
@@ -202,15 +170,42 @@ const CheckoutForm = ({ cartItems }) => {
         setMontoDescuento(null);
         setTotalBD(null);
       }
-    })
-    .catch(err => {
+    } else if (cuponRedux.error) {
       setDescuento(0);
       setAplicado(false);
-      setCuponMsg(err.message || 'Error al validar el cupón');
+      setCuponMsg(cuponRedux.error || 'Error al validar el cupón');
       setSubtotalBD(null);
       setMontoDescuento(null);
       setTotalBD(null);
-    });
+    }
+  }, [cuponRedux]);
+
+  React.useEffect(() => {
+    setCupon("");
+    setDescuento(0);
+    setAplicado(false);
+    setCuponMsg("");
+    setSubtotalBD(null);
+    setMontoDescuento(null);
+    setTotalBD(null);
+    dispatch(limpiarCupon());
+  }, [cartItems, dispatch]);
+
+  const handleAplicarCupon = () => {
+    const codigo = cupon.trim();
+    if (!codigo) {
+      setCuponMsg('Por favor, ingresa un código de descuento');
+      return;
+    }
+    if (!isAuthenticated) {
+      setCuponMsg('Debes estar autenticado para usar cupones');
+      return;
+    }
+    const items = cartItems.map(item => ({
+      productoId: item.id || item.productoId,
+      cantidad: item.quantity
+    }));
+    dispatch(validarCupon({ token: user.token, codigoDescuento: codigo, items }));
   };
 
   const handleCrearNuevaDireccion = () => {
@@ -392,6 +387,13 @@ const CheckoutForm = ({ cartItems }) => {
       })
       .then((data) => {
         dispatch(clearCart());
+        dispatch(limpiarCupon());
+        setDescuento(0);
+        setAplicado(false);
+        setCuponMsg("");
+        setSubtotalBD(null);
+        setMontoDescuento(null);
+        setTotalBD(null);
         navigate(`/confirmacion-pedido/${data.id}`);
       })
       .catch(err => {
@@ -498,7 +500,6 @@ const CheckoutForm = ({ cartItems }) => {
             setCuponMsg={setCuponMsg}
             handleAplicarCupon={handleAplicarCupon}
             cuponMsg={cuponMsg}
-            errorCategoria={errorCategoria}
             subtotal={subtotal}
             subtotalBD={subtotalBD}
             descuento={descuento}
@@ -509,6 +510,7 @@ const CheckoutForm = ({ cartItems }) => {
             costoEnvio={costoEnvio}
             handleProcederPago={handleProcederPago}
             procesandoCompra={procesandoCompra}
+            errorCategoria={errorCategoria}
           />
         </div>
       </div>
