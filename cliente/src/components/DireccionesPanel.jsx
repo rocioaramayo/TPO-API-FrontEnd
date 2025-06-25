@@ -35,18 +35,18 @@ const DireccionesPanel = () => {
 
     useEffect(() => {
         if (success) {
-            setMensaje({ tipo: "success", texto: "Dirección guardada correctamente" });
-            setNuevaDireccion({
-                calle: "",
-                numero: "",
-                piso: "",
-                departamento: "",
-                localidad: "",
-                provincia: "",
-                codigoPostal: "",
-                telefonoContacto: "",
-            });
-            setSubmitIntentado(false);
+                setMensaje({ tipo: "success", texto: "Dirección guardada correctamente" });
+                setNuevaDireccion({
+                    calle: "",
+                    numero: "",
+                    piso: "",
+                    departamento: "",
+                    localidad: "",
+                    provincia: "",
+                    codigoPostal: "",
+                    telefonoContacto: "",
+                });
+                setSubmitIntentado(false);
             dispatch(fetchDirecciones(token));
             dispatch(limpiarEstadoDireccion());
         }
@@ -75,50 +75,50 @@ const DireccionesPanel = () => {
             .catch((err) => setMensaje({ tipo: "error", texto: err }));
     };
 
-  if (loading) {
-    return (
-      <div className="bg-white p-8 rounded shadow">
-        <div className="flex items-center justify-center">
-          <span className="animate-spin border-4 border-leather-300 border-t-leather-700 rounded-full w-8 h-8 mr-2"></span>
-          <span>Cargando direcciones...</span>
-        </div>
-      </div>
-    );
-  }
+    if (loading) {
+        return (
+            <div className="bg-white p-8 rounded shadow">
+                <div className="flex items-center justify-center">
+                    <span className="animate-spin border-4 border-leather-300 border-t-leather-700 rounded-full w-8 h-8 mr-2"></span>
+                    <span>Cargando direcciones...</span>
+                </div>
+            </div>
+        );
+    }
 
-  return (
+    return (
     <div className="bg-white p-6 rounded-lg shadow-lg border border-leather-200 max-w-2xl mx-auto">
       <h2 className="text-xl font-extrabold text-leather-800 mb-4 tracking-tight">Mis Direcciones</h2>
 
-      {mensaje && (
-        <div
+            {mensaje && (
+                <div
           className={`mt-2 p-2 rounded-lg border-l-4 shadow ${
-            mensaje.tipo === "error"
-              ? "bg-red-100 border-red-500 text-red-700"
-              : "bg-green-100 border-green-500 text-green-700"
+                        mensaje.tipo === "error"
+                            ? "bg-red-100 border-red-500 text-red-700"
+                            : "bg-green-100 border-green-500 text-green-700"
           } flex justify-between items-center text-sm`}
-        >
+                >
           <span className="font-medium">{mensaje.texto}</span>
-          <button
-            className="text-xs text-gray-600 hover:underline ml-4"
-            onClick={() => setMensaje(null)}
-          >
-            Cerrar
-          </button>
-        </div>
-      )}
+                    <button
+                        className="text-xs text-gray-600 hover:underline ml-4"
+                        onClick={() => setMensaje(null)}
+                    >
+                        Cerrar
+                    </button>
+                </div>
+            )}
 
-      {error && (
+            {error && (
         <div className="mt-2 p-2 bg-red-100 border border-red-400 text-red-700 rounded-lg font-medium text-sm">
-          Error: {error}
-        </div>
-      )}
+                    Error: {error}
+                </div>
+            )}
 
-      {direcciones.length === 0 ? (
+            {direcciones.length === 0 ? (
         <p className="mt-4 text-leather-400 italic text-sm">No tenés direcciones guardadas.</p>
-      ) : (
-        <ul className="mt-4 space-y-4">
-          {direcciones.map((dir) => (
+            ) : (
+                <ul className="mt-4 space-y-4">
+                    {direcciones.map((dir) => (
             <li key={dir.id} className="border-0 p-0">
               <div className="flex flex-row items-start justify-between bg-leather-50 rounded-lg shadow px-4 py-3 gap-2 text-sm">
                 <div className="text-leather-900 leading-relaxed">
@@ -126,72 +126,72 @@ const DireccionesPanel = () => {
                   <p><span className="font-semibold">Localidad:</span> {dir.localidad}</p>
                   <p><span className="font-semibold">Provincia:</span> {dir.provincia}</p>
                   <p><span className="font-semibold">Código Postal:</span> {dir.codigoPostal}</p>
-                  {dir.telefonoContacto && (
+                            {dir.telefonoContacto && (
                     <p><span className="font-semibold">Teléfono:</span> {dir.telefonoContacto}</p>
-                  )}
+                            )}
                 </div>
-                <button
+                            <button
                   className="flex items-center gap-1 px-2 py-1 bg-leather-800 text-white rounded hover:bg-leather-900 text-xs shadow transition-all duration-200 font-semibold ml-2"
-                  onClick={() => handleBorrar(dir.id)}
+                                onClick={() => handleBorrar(dir.id)}
                   title="Borrar dirección"
-                >
+                            >
                   <FaTrash className="text-xs" />
-                  Borrar
-                </button>
+                                Borrar
+                            </button>
               </div>
-            </li>
-          ))}
-        </ul>
-      )}
+                        </li>
+                    ))}
+                </ul>
+            )}
 
       <div className="mt-8">
         <h3 className="text-base font-bold mb-2 text-leather-800">Agregar nueva dirección</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {["calle", "numero", "localidad", "provincia", "codigoPostal"].map((campo) => (
-            <input
+                    <input
               key={campo}
               placeholder={`${campo.charAt(0).toUpperCase() + campo.slice(1)} *`}
               value={nuevaDireccion[campo]}
               onChange={(e) =>
                 setNuevaDireccion({ ...nuevaDireccion, [campo]: e.target.value })
-              }
+                        }
               className={`border border-leather-200 bg-leather-50 p-2 rounded-md focus:ring-2 focus:ring-leather-400 placeholder-gray-400 text-leather-900 font-medium text-sm ${submitIntentado && !nuevaDireccion[campo] ? "border-red-500" : ""}`}
-            />
+                    />
           ))}
-          <input
-            placeholder="Piso (opcional)"
-            value={nuevaDireccion.piso}
-            inputMode="numeric"
+                    <input
+                        placeholder="Piso (opcional)"
+                        value={nuevaDireccion.piso}
+                        inputMode="numeric"
             onChange={(e) =>
-              setNuevaDireccion({ ...nuevaDireccion, piso: e.target.value.replace(/\D/g, "") })
-            }
+                            setNuevaDireccion({ ...nuevaDireccion, piso: e.target.value.replace(/\D/g, "") })
+                        }
             className="border border-leather-200 bg-leather-50 p-2 rounded-md focus:ring-2 focus:ring-leather-400 placeholder-gray-400 text-leather-900 font-medium text-sm"
-          />
-          <input
-            placeholder="Departamento (opcional)"
-            value={nuevaDireccion.departamento}
+                    />
+                    <input
+                        placeholder="Departamento (opcional)"
+                        value={nuevaDireccion.departamento}
             onChange={(e) =>
-              setNuevaDireccion({ ...nuevaDireccion, departamento: e.target.value })
-            }
+                            setNuevaDireccion({ ...nuevaDireccion, departamento: e.target.value })
+                        }
             className="border border-leather-200 bg-leather-50 p-2 rounded-md focus:ring-2 focus:ring-leather-400 placeholder-gray-400 text-leather-900 font-medium text-sm"
-          />
-          <input
-            placeholder="Teléfono (opcional)"
-            value={nuevaDireccion.telefonoContacto}
-            inputMode="numeric"
+                    />
+                    <input
+                        placeholder="Teléfono (opcional)"
+                        value={nuevaDireccion.telefonoContacto}
+                        inputMode="numeric"
             onChange={(e) =>
-              setNuevaDireccion({ ...nuevaDireccion, telefonoContacto: e.target.value.replace(/\D/g, "") })
-            }
+                            setNuevaDireccion({ ...nuevaDireccion, telefonoContacto: e.target.value.replace(/\D/g, "") })
+                        }
             className="border border-leather-200 bg-leather-50 p-2 rounded-md focus:ring-2 focus:ring-leather-400 placeholder-gray-400 text-leather-900 font-medium text-sm"
-          />
-        </div>
+                    />
+                </div>
 
-        <button
+                <button
           className="mt-6 w-full px-4 py-2 bg-leather-800 text-white rounded-md hover:bg-leather-900 font-bold shadow text-base transition-all duration-200"
-          onClick={handleGuardar}
-        >
-          Guardar dirección
-        </button>
+                    onClick={handleGuardar}
+                >
+                    Guardar dirección
+                </button>
       </div>
 
       {/* Modal de confirmación de borrado */}
@@ -215,11 +215,11 @@ const DireccionesPanel = () => {
                 Cancelar
               </button>
             </div>
-          </div>
+            </div>
         </div>
       )}
-    </div>
-  );
+        </div>
+    );
 };
 
 export default DireccionesPanel;

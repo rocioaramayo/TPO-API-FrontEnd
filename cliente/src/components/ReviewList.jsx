@@ -1,40 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchReviewsByProduct } from '../store/slices/reviewSlice';
 import ReviewCard from './ReviewCard';
 
 const ReviewList = ({ productoId }) => {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { items: reviews, loading, error } = useSelector(state => state.reviews);
 
   useEffect(() => {
     if (productoId) {
-      cargarReviews();
+      dispatch(fetchReviewsByProduct(productoId));
     }
-  }, [productoId]);
-
-  const cargarReviews = () => {
-    setLoading(true);
-    setError(null);
-    const url = `http://localhost:8080/reviews/${productoId}`;
-    fetch(url)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Reviews cargadas:', data); // Para debug
-        setReviews(data);
-      })
-      .catch(error => {
-        console.error('Error al cargar reviews:', error);
-        setError(`No se pudieron cargar las reseñas: ${error.message}`);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
+  }, [productoId, dispatch]);
 
   const calcularPromedioRating = () => {
     if (reviews.length === 0) return 0;
@@ -70,7 +47,7 @@ const ReviewList = ({ productoId }) => {
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <button 
-            onClick={cargarReviews}
+            onClick={() => dispatch(fetchReviewsByProduct(productoId))}
             className="px-6 py-3 bg-orange-950 text-white rounded-md hover:bg-orange-900 transition-colors font-light"
           >
             Reintentar
