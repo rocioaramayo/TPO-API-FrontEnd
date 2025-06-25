@@ -9,8 +9,10 @@ const GestionCategorias = () => {
   const categorias = useSelector((state) => state.categories.items);
   const selectedCategory = useSelector((state) => state.categories.selectedCategory);
   const loading = useSelector((state) => state.categories.loading);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const createError = useSelector((state) => state.categories.createError);
+  const createSuccess = useSelector((state) => state.categories.createSuccess);
+  const detailError = useSelector((state) => state.categories.detailError);
+  const error = useSelector((state) => state.categories.error);
   const [showCreateForm, setShowCreateForm] = useState(false);
   
   // Estados para el formulario
@@ -26,6 +28,14 @@ const GestionCategorias = () => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
+  // useEffect para limpiar formulario y mostrar éxito
+  useEffect(() => {
+    if (createSuccess && showCreateForm) {
+      setShowCreateForm(false);
+      setFormData({ nombre: '', descripcion: '' });
+    }
+  }, [createSuccess, showCreateForm]);
+
   // Manejar cambios en el formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,33 +45,18 @@ const GestionCategorias = () => {
     }));
   };
 
-  // Crear nueva categoría
-  const handleCrearCategoria = async (e) => {
+  // Crear nueva categoría sin unwrap ni try/catch
+  const handleCrearCategoria = (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
-  
-    try {
-      await dispatch(createCategory({
-        nombre: formData.nombre,
-        descripcion: formData.descripcion
-      })).unwrap();
-  
-      setSuccess('Categoría creada exitosamente');
-      setFormData({ nombre: '', descripcion: '' });
-      setShowCreateForm(false);
-      dispatch(fetchCategories()); // Recargar la lista
-    } catch (err) {
-      setError(typeof err === 'string' ? err : err?.message || 'Error al crear la categoría');
-    }
+    dispatch(createCategory({
+      nombre: formData.nombre,
+      descripcion: formData.descripcion
+    }));
   };
-  // Ver detalles de una categoría
+
+  // Ver detalles de categoría sin unwrap ni catch
   const verDetalleCategoria = (id) => {
-    dispatch(getCategoryById(id))
-      .unwrap()
-      .catch(error => {
-        setError(error.message || 'Error al cargar la categoría');
-      });
+    dispatch(getCategoryById(id));
   };
 
   return (
@@ -89,15 +84,15 @@ const GestionCategorias = () => {
       </div>
 
       {/* Mensajes */}
-      {error && (
+      {(error || createError || detailError) && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+          {error || createError || detailError}
         </div>
       )}
       
-      {success && (
+      {createSuccess && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
-          {success}
+          {createSuccess}
         </div>
       )}
 
@@ -106,6 +101,12 @@ const GestionCategorias = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">   
           <h3 className="text-lg font-semibold text-leather-800 mb-4">Crear Nueva Categoría</h3>
+          {/* Mensaje de error de creación dentro del modal */}
+          {createError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+              {typeof createError === 'string' ? createError : (createError?.message || 'Error al crear la categoría')}
+            </div>
+          )}
           <form onSubmit={handleCrearCategoria} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>

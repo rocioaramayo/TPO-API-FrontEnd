@@ -40,6 +40,8 @@ const initialState = {
   selectedCategory: null,
   loading: false,
   error: null,
+  createError: null,
+  createSuccess: null,
 };
 
 const categoriesSlice = createSlice({
@@ -78,15 +80,19 @@ const categoriesSlice = createSlice({
       })
       .addCase(createCategory.pending, (state) => {
         state.loading = true;
-        state.error = null;
+        state.createError = null;
+        state.createSuccess = null;
       })
       .addCase(createCategory.fulfilled, (state, action) => {
         state.loading = false;
         state.items.push(action.payload);
+        state.createSuccess = 'Categoría creada exitosamente';
+        state.createError = null;
       })
       .addCase(createCategory.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.createError = action.payload?.message || action.payload || 'Error al crear la categoría';
+        state.createSuccess = null;
       });
   },
 });
