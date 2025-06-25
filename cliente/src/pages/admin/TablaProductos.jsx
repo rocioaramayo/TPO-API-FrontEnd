@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchAdminProducts } from "../../store/slices/productsSlice";
 import FormEditarProducto from "./FormEditarProducto";
 
-export default function TablaProductos({ mostrarCrearProducto, onEditar }) {
+export default function TablaProductos({ mostrarCrearProducto,mostrarEditarProducto, onEditar }) {
   const dispatch = useDispatch();
   const productos = useSelector((state) => state.products.adminProducts) || [];
   const user = useSelector((state) => state.users.user);
@@ -17,7 +17,7 @@ export default function TablaProductos({ mostrarCrearProducto, onEditar }) {
 
   useEffect(() => {
     dispatch(fetchAdminProducts(user.token));
-  }, [dispatch,mostrarCrearProducto]);
+  }, [dispatch, mostrarCrearProducto, mostrarEditarProducto ]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const startIndex = (currentPage - 1) * itemsPerPage;

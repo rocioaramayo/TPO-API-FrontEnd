@@ -56,7 +56,7 @@ const GestionProductos = () => {
         />
       )}
 
-      <TablaProductos mostrarCrearProducto={mostrarCrearProducto} onEditar={handleEditar}/>
+      <TablaProductos mostrarCrearProducto={mostrarCrearProducto} mostrarEditarProducto={mostrarEditarProducto} onEditar={handleEditar}/>
     </div>
   );
 };
