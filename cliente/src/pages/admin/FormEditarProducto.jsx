@@ -125,62 +125,9 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
     } catch (error) {
       console.error('Error al crear producto:', error);
     }
+  };  
 
-    // fetch(`http://127.0.0.1:8080/productos/${id}`, {
-    //   method: 'PUT',
-    //   headers: {
-    //     'Authorization': `Bearer ${user.token}`
-    //   },
-    //   body: formData
-    // })
-    // .then(response =>{
-    //   return response.text().then(text =>{
-    //     let data = {};
-    //     try{data = JSON.parse(text);}
-    //     catch(e){ data = {message: text}; }
-    //     if (!response.ok) {
-    //       let errorMessage = 'Error al editar producto';
-    //       switch (response.status) {
-    //         case 404:
-    //           if (text.includes('ProductoNoEncontradoException')) errorMessage = 'Producto no encontrado.';
-    //           else errorMessage = 'No encontrado';
-    //           break;
-    //         case 400:
-    //           if (text.includes('CategoriaNoEncontradaException')) errorMessage = 'Categoría no encontrada.';
-    //           else if (text.includes('ImagenRequeridaException')) errorMessage = 'El producto debe tener al menos una imagen.';
-    //           else if (text.includes('ImagenDemasiadoGrandeException')) errorMessage = 'La imagen es demasiado grande. El límite es de 2MB.';
-    //           else if (data.message) errorMessage = data.message;
-    //           else errorMessage = 'Datos del producto inválidos';
-    //           break;
-    //         case 403:
-    //           errorMessage = 'No tienes permisos para crear productos';
-    //           break;
-    //         default:
-    //           if (data.message) errorMessage = data.message;
-    //           else if (response.statusText && response.statusText !== 'OK') errorMessage = response.statusText;
-    //       }
-    //       throw new Error(errorMessage);
-    //     }
-    //     return data;
-    //   })
-    // })
-    // .then(data => {
-    //   console.log('Producto creado con éxito:', data);
-    //   setSuccess(true);
-    //   setError(null);
-    //   setTimeout(() => {
-    //     setMostrarEditarProducto(false)
-    //   },2000);
-    // })
-    // .catch (error => {
-    //   console.error('Error al crear producto:', error);
-    //   setError(error.message);
-    //   setSuccess(false);
-    // })
-    // .finally(() => {
-    // });
-  };
-return (
+  return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         {/* Card minimalista */}
@@ -205,7 +152,7 @@ return (
                 <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                ¡Producto creado exitosamente! Redirigiendo...
+                ¡Producto editado exitosamente! Redirigiendo...
               </div>
             </div>
           )}
