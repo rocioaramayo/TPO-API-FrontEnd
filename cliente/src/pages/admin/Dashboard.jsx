@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchUsers } from "../../store/slices/usersSlice";
-import { fetchProducts } from "../../store/slices/productsSlice";
+import { fetchAdminProducts, fetchProducts } from "../../store/slices/productsSlice";
 import { fetchOrders } from "../../store/slices/ordersSlice";
 
 const Dashboard = () => {
@@ -35,7 +35,7 @@ const Dashboard = () => {
 
   // Cargar productos
   useEffect(() => {
-    dispatch(fetchProducts(user.token))
+    dispatch(fetchAdminProducts(user.token))
   }, [dispatch]);
 
   useEffect(() => {
@@ -130,7 +130,7 @@ const Dashboard = () => {
     setProductosPocoStock(pocoStock);
     setProductosActivos(activos);
     setProductosInactivos(inactivos);
-  }, [user, productos]);
+  }, [dispatch]);
 
   const navigate = useNavigate();
 

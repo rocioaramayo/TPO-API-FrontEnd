@@ -92,18 +92,19 @@ export const fetchColores = createAsyncThunk(
   }
 );
 
-export const createProduct = createAsyncThunk('products/createProduct', async(token,data,{rejectWithValue}) =>{
+export const createProduct = createAsyncThunk('products/createProduct', async({token,formData},{rejectWithValue}) =>{
   try{
-    const response = await axios.post(`${API_URL}/productos/upload`,data,{
+    const response = await axios.post(`${API_URL}/productos/upload`,formData,{
       headers:{
         Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
       },
     })
     return response.data;
   } catch (error){
-    return rejectWithValue(err.response?.data || err.message);
-  }
-})
+    const mensaje = error.response?.data?.message || error.message;
+    return rejectWithValue(mensaje);
+  }})
 
 const initialState = {
   items: [],
@@ -112,6 +113,7 @@ const initialState = {
   selectedProduct: null, // Nuevo estado para el producto seleccionado
   tiposCuero: [], // Nuevo estado
   colores: [],      // Nuevo estado
+  success: false,
 };
 
 const productsSlice = createSlice({
@@ -123,11 +125,13 @@ const productsSlice = createSlice({
       .addCase(fetchProducts.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.success = null
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload;
         state.error = null;
+        state.success = null
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
@@ -142,6 +146,8 @@ const productsSlice = createSlice({
         state.items = Array.isArray(action.payload.productos)
           ? action.payload.productos
           : [];
+        state.success = null
+        state.error = null;
       })
       .addCase(fetchAdminProducts.rejected, (state, action) => {
         state.loading = false;
@@ -152,10 +158,12 @@ const productsSlice = createSlice({
         state.loading = true;
         state.selectedProduct = null;
         state.error = null;
+        state.success = null
       })
       .addCase(fetchProductById.fulfilled, (state, action) => {
         state.loading = false;
         state.selectedProduct = action.payload;
+        state.error = null;
       })
       .addCase(fetchProductById.rejected, (state, action) => {
         state.loading = false;
@@ -164,23 +172,28 @@ const productsSlice = createSlice({
       // Reducers para fetchTiposCuero
       .addCase(fetchTiposCuero.fulfilled, (state, action) => {
         state.tiposCuero = action.payload;
+        state.error = null;
       })
       // Reducers para fetchColores
       .addCase(fetchColores.fulfilled, (state, action) => {
         state.colores = action.payload;
+        state.error = null;
       })
+      //reducers para createProduct
       .addCase(createProduct.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.success = null
       })
       .addCase(createProduct.rejected, (state, action) =>{
         state.error = action.payload;
         state.loading = false;
+        state.success = null
       })
       .addCase(createProduct.fulfilled, (state, action) => {
         state.loading = false;
         state.error = null;
-        state.items.push(action.payload); 
+        state.success = true;
       })
   },
 });

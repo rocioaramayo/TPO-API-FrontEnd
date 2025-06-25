@@ -1,18 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAdminProducts } from '../../store/slices/productsSlice';
+import { createProduct, fetchAdminProducts } from '../../store/slices/productsSlice';
 import { fetchCategories } from '../../store/slices/categoriesSlice';
 
 const FormCrearProducto = ({ setMostrarCrearProducto }) => {
   const dispatch = useDispatch();
   const categorias = useSelector((state) => state.categories.items);
   const { user } = useSelector((state) => state.users);
+  const { error } = useSelector((state) => state.products);
+  const { success } = useSelector((state) => state.products);
+  const { loading } = useSelector((state) => state.products);
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
-  
   const [imagenes, setImagenes] = useState([]);
 
   const [producto, setProducto] = useState({
@@ -30,10 +29,7 @@ const FormCrearProducto = ({ setMostrarCrearProducto }) => {
     imagenes:[]
   })
 
-  useEffect(() => {
-    dispatch(fetchCategories());
-  }, [dispatch]);
-
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProducto(prev => ({
@@ -41,24 +37,22 @@ const FormCrearProducto = ({ setMostrarCrearProducto }) => {
       [name]: value
     }));
   };
+  
+  const handleChangeImagenes = (e) => {
+    const archivos = Array.from(e.target.files);
+    setImagenes(archivos); // Sobreescribe el array de imágenes
+  };
+  
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
-const handleChangeImagenes = (e) => {
-  const archivos = Array.from(e.target.files);
-  setImagenes(archivos); // Sobreescribe el array de imágenes
-};
-
-
-  const handleCrearProducto = (e) => {
+  const handleCrearProducto = async (e) => {
     e.preventDefault();
     // Validación rápida en frontend: Debe haber al menos una imagen
     if (imagenes.length === 0) {
-      setError("El producto debe tener al menos una imagen.");
-      setLoading(false);
-      return;
+      return alert("El producto debe tener al menos una imagen.");
     }
-    setLoading(true);
-    setError(null);
-    setSuccess(false);
     
     const categoria = categorias.find(cat => cat.nombre == producto.categoria)
     
@@ -79,51 +73,9 @@ const handleChangeImagenes = (e) => {
     imagenes.forEach((imagen) => {
       formData.append('files', imagen);
     });
-    
-    fetch('http://localhost:8080/productos/upload', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${user.token}`,
-      },
-      body: formData
-    })
-    .then(response => {
-      return response.text().then(text => {
-        let data = {};
-        try { data = JSON.parse(text); } catch (e) { data = { message: text }; }
-        if (!response.ok) {
-          let errorMessage = 'Error al crear producto';
-          switch (response.status) {
-            case 404:
-              if (text.includes('ProductoNoEncontradoException')) errorMessage = 'Producto no encontrado.';
-              else errorMessage = 'No encontrado';
-              break;
-            case 400:
-              if (text.includes('CategoriaNoEncontradaException')) errorMessage = 'Categoría no encontrada.';
-              else if (text.includes('ProductoYaExisteException')) errorMessage = 'Ya existe un producto con ese nombre en la misma categoría.';
-              else if (text.includes('ImagenRequeridaException')) errorMessage = 'El producto debe tener al menos una imagen.';
-              else if (text.includes('ImagenDemasiadoGrandeException')) errorMessage = 'La imagen es demasiado grande. El límite es de 2MB.';
-              else if (text.includes('StockInsuficienteException')) errorMessage = 'Stock insuficiente.';
-              else if (data.message) errorMessage = data.message;
-              else errorMessage = 'Datos del producto inválidos';
-              break;
-            case 403:
-              errorMessage = 'No tienes permisos para crear productos';
-              break;
-            default:
-              if (data.message) errorMessage = data.message;
-              else if (response.statusText && response.statusText !== 'OK') errorMessage = response.statusText;
-          }
-          throw new Error(errorMessage);
-        }
-        return data;
-      });
-    })
-    .then(data => {
-      console.log('Producto creado con éxito:', data);
-      setSuccess(true);
-      setError(null);
-      
+    try {
+      const resultAction = await dispatch(createProduct({token: user.token,formData})).unwrap();
+      console.log(resultAction)
       // Limpiar formulario
       setProducto({
         nombre:"",
@@ -141,21 +93,14 @@ const handleChangeImagenes = (e) => {
       });
       setImagenes([]);
       
-      // Opcional: redirigir después de unos segundos
       setTimeout(() => {
-        setMostrarCrearProducto(false)
+        setMostrarCrearProducto(false);
+        dispatch(fetchAdminProducts(user.token));
       }, 2000);
 
-      dispatch(fetchAdminProducts());
-    })
-    .catch(error => {
-      console.error('Error al crear producto:', error);
-      setError(error.message);
-      setSuccess(false);
-    })
-    .finally(() => {
-      setLoading(false);
-    });
+    } catch(err){
+      console.error('Error al crear producto:', err);
+    }
   };
 
   // Permite eliminar imágenes seleccionadas antes de enviar el formulario
