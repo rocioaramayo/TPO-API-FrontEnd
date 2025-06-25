@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../store/slices/usersSlice';
 import { clearFavoritos, fetchFavoritos } from '../store/slices/favoritosSlice';
 import { fetchCategories } from '../store/slices/categoriesSlice';
+import { fetchAdminProducts } from '../store/slices/productsSlice';
 
 
 const Navigation = ({ onCartClick }) => {
@@ -40,6 +41,7 @@ const Navigation = ({ onCartClick }) => {
     if (isAuthenticated) {
       dispatch(fetchFavoritos());
     }
+    if(user?.role?.toLowerCase() === 'admin') dispatch(fetchAdminProducts(user.token))
     dispatch(fetchCategories());
   }, [isAuthenticated, dispatch]);
 

@@ -9,7 +9,7 @@ const Dashboard = () => {
   const dispatch = useDispatch()
   const usuarios = useSelector((state) => state.users.items);
   const user = useSelector((state)=> state.users.user);
-  const productos = useSelector((state) => state.products.items);
+  const productos = useSelector((state) => state.products.adminProducts);
   const stats = useSelector((state) => state.orders.items)
   const [ingresosDiarios, setIngresosDiarios] = useState(0);
   const [ingresosMensuales, setIngresosMensuales] = useState(0);
@@ -36,6 +36,7 @@ const Dashboard = () => {
   // Cargar productos
   useEffect(() => {
     dispatch(fetchAdminProducts(user.token))
+    console.log(productos)
   }, [dispatch]);
 
   useEffect(() => {

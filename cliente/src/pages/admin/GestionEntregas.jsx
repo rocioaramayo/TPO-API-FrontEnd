@@ -10,8 +10,8 @@ export default function GestionEntregas() {
   const user = useSelector((state) => state.users.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const metodosEntrega = useSelector(state => state.metodoEntrega.items);
-  const puntosEntrega = useSelector(state => state.puntoEntrega.items);
+  const metodosEntrega = useSelector(state => state.metodoEntrega.itemsAdmin);
+  const puntosEntrega = useSelector(state => state.puntoEntrega.itemsAdmin);
   const [mostrarAlertaDesactivarMetodo, setMostrarAlertaDesactivarMetodo] = useState(false);
   const [mostrarAlertaDesactivarPunto, setMostrarAlertaDesactivarPunto] = useState(false);
   const [mostrarAlertaActivarMetodo, setMostrarAlertaActivarMetodo] = useState(false);
@@ -323,7 +323,6 @@ export default function GestionEntregas() {
         )}
         {mostrarCrearMetodo && (
    <FormCrearMetodoEntrega
-     user={user}
      setMostrarCrearMetodo={(valor) => {
        setMostrarCrearMetodo(valor);
        if (!valor) {

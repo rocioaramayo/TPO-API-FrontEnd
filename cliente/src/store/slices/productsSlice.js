@@ -40,7 +40,7 @@ export const fetchAdminProducts = createAsyncThunk('products/fetchAdminProducts'
         Authorization: `Bearer ${token}`,
       },
     });
-    // console.log('Respuesta cruda de /productos/admin:', res.data);
+    console.log('Respuesta cruda de /productos/admin:', res.data);
     return res.data;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || err.message);
@@ -108,6 +108,7 @@ export const createProduct = createAsyncThunk('products/createProduct', async({t
 
 const initialState = {
   items: [],
+  adminProducts: [],
   loading: false,
   error: null,
   selectedProduct: null, // Nuevo estado para el producto seleccionado
@@ -143,9 +144,7 @@ const productsSlice = createSlice({
       })
       .addCase(fetchAdminProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = Array.isArray(action.payload.productos)
-          ? action.payload.productos
-          : [];
+        state.adminProducts = action.payload.productos
         state.success = null
         state.error = null;
       })

@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { createPunto, fetchPuntoEntrega } from '../../store/slices/puntoEntregaSlice';
+import { fetchMetodoEntrega } from '../../store/slices/metodoEntregaSlice';
 
 const FormCrearPuntoEntrega = ({user, setMostrarCrearPunto}) => {
+    const dispatch = useDispatch();
     const navigate = useNavigate();
-    const [metodosEntrega,setMetodosEntrega] = useState({});
+    const metodosEntrega = useSelector((state) => state.metodoEntrega.itemsAdmin);
     const [metodoEntrega,setMetodoEntrega] = useState({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -24,14 +28,14 @@ const FormCrearPuntoEntrega = ({user, setMostrarCrearPunto}) => {
     });
 
     useEffect(() => {
-        fetch("http://localhost:8080/entregas/metodos")
-        .then(res => res.json())
-        .then(data => {
-            setMetodosEntrega(data);
-            const metodo = data.find(m => m.requierePuntoRetiro);
-            if (metodo) setMetodoEntrega(metodo);
-        })
-    },[])
+        dispatch(fetchMetodoEntrega())
+    }, [dispatch])
+
+    useEffect(() => {
+        const metodo = metodosEntrega.find(m => m.requierePuntoRetiro);
+        if (metodo) setMetodoEntrega(metodo);
+    },[metodosEntrega]);
+
     useEffect(() => {
         if (metodoEntrega?.id) {
             setPunto(prev => ({ ...prev, metodoEntregaId: metodoEntrega.id }));
@@ -49,85 +53,48 @@ const FormCrearPuntoEntrega = ({user, setMostrarCrearPunto}) => {
     };
 
 
-    const handleCrearPunto = (e) => {
-    e.preventDefault();
-    // Validación rápida en frontend: Debe haber al menos una imagen
-    setLoading(true);
-    setError(null);
-    setSuccess(false);
-    
-    // const categoria = categorias.find(cat => cat.nombre == producto.categoria) VER ESTO COMO HACERLO
-    if (!user?.token || user.token.split('.').length !== 3) {
-            alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
-            return;
-    }
-    
-    fetch('http://127.0.0.1:8080/entregas/puntos', {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-        'Authorization': `Bearer ${user.token}`,
-      },
-      body:  JSON.stringify(punto)
-    })
-    .then(response => {
-      return response.text().then(text => {
-        let data = {};
-        try { data = JSON.parse(text); } catch (e) { data = { message: text }; }
-        if (!response.ok) {
-          let errorMessage = 'Error al crear punto de entrega';
-          switch (response.status) {
-            case 404:
-              errorMessage = 'No encontrado';
-              break;
-            case 400:
-              errorMessage = 'Datos del punto de entrega inválidos';
-              break;
-            case 403:
-              errorMessage = 'No tienes permisos para crear productos';
-              break;
-            default:
-              if (data.message) errorMessage = data.message;
-              else if (response.statusText && response.statusText !== 'OK') errorMessage = response.statusText;
-          }
-          throw new Error(errorMessage);
+    const handleCrearPunto = async (e) => {
+        e.preventDefault();
+        // Validación rápida en frontend: Debe haber al menos una imagen
+        setLoading(true);
+        setError(null);
+        setSuccess(false);
+        
+        // const categoria = categorias.find(cat => cat.nombre == producto.categoria) VER ESTO COMO HACERLO
+        if (!user?.token || user.token.split('.').length !== 3) {
+                alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
+                return;
         }
-        return data;
-      });
-    })
-    .then(data => {
-      console.log('Punto de entrega creado con éxito:', data);
-      setSuccess(true);
-      setError(null);
-      
-      // Limpiar formulario
-      setPunto({
-        nombre:"",
-        descripcion:"",
-        direccion:"",
-        localidad:"",
-        provincia:"",
-        codigoPostal:"",
-        horarioAtencion:"",
-        telefono:"",
-        email:"",
-        metodoEntregaId:"", //esto ver
-      });
-      
-      // Opcional: redirigir después de unos segundos
-      setTimeout(() => {
-        setMostrarCrearPunto(false)
-      }, 3000);
-    })
-    .catch(error => {
-      console.error('Error al crear producto:', error);
-      setError(error.message);
-      setSuccess(false);
-    })
-    .finally(() => {
-      setLoading(false);
-    });
-  };
+        
+        try {
+            await dispatch(createPunto({data: punto, token: user.token}))
+            setLoading(false);
+            setSuccess(true);
+            setError(null);
+            
+            // Opcional: redirigir después de unos segundos
+            setTimeout(() => {
+                setPunto({
+                    nombre:"",
+                    descripcion:"",
+                    direccion:"",
+                    localidad:"",
+                    provincia:"",
+                    codigoPostal:"",
+                    horarioAtencion:"",
+                    telefono:"",
+                    email:"",
+                    metodoEntregaId:"", //esto ver
+                });
+                dispatch(fetchPuntoEntrega())
+                setMostrarCrearPunto(false)
+        }, 3000);
+        } catch (error) {
+            setError(error)
+            setSuccess(false);
+            setLoading(false);
+        }
+    };
   return(
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
         <div className="w-full max-w-4xl">

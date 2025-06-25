@@ -75,7 +75,6 @@ const FormCrearProducto = ({ setMostrarCrearProducto }) => {
     });
     try {
       const resultAction = await dispatch(createProduct({token: user.token,formData})).unwrap();
-      console.log(resultAction)
       // Limpiar formulario
       setProducto({
         nombre:"",

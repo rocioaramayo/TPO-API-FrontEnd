@@ -35,10 +35,26 @@ export const cotizarEnvio = createAsyncThunk('metodoEntrega/cotizarEnvio', async
   }
 });
 
+export const createMetodo = createAsyncThunk('metodoEntrega/createMetodo', async ({token, data}, {rejectWithValue}) =>{
+  try {
+    const res = await axios.post(`${API_URL}/entregas/metodos`, data, {
+      headers:{
+        Authorization : token? `Bearer ${token}` : '',
+        "Content-Type": 'application/json',
+      },
+    });
+    return res.data;
+  } catch (error) {
+    const mensaje = error.response?.data?.message || error.message;
+    return rejectWithValue(mensaje);
+  }
+} )
+
 export const limpiarCotizacion = createAction('metodoEntrega/limpiarCotizacion');
 
 const initialState = {
   items: [],
+  itemsAdmin: [],
   loading: false,
   error: null,
   cotizacion: null,
@@ -58,7 +74,7 @@ const metodoEntregaSlice = createSlice({
       })
       .addCase(fetchMetodoEntrega.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        state.itemsAdmin = action.payload;
         state.error = null;
       })
       .addCase(fetchMetodoEntrega.rejected, (state, action) => {
@@ -97,7 +113,20 @@ const metodoEntregaSlice = createSlice({
         state.cotizacion = null;
         state.cotizando = false;
         state.errorCotizacion = null;
-      });
+      })
+      //crear metodo
+      .addCase(createMetodo.pending, (state) =>{
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createMetodo.fulfilled, (state) =>{
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(createMetodo.rejected, (state,action) =>{
+        state.loading = false;
+        state.error = action.payload;
+      })
   },
 });
 

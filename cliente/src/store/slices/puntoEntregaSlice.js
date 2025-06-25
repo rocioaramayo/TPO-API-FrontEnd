@@ -21,8 +21,24 @@ export const fetchPuntoEntregaActivos = createAsyncThunk('puntoEntrega/fetchPunt
   }
 });
 
+export const createPunto = createAsyncThunk('puntoEntrega/createPunto', async ({token, data}, {rejectWithValue}) =>{
+  try {
+    const res = await axios.post(`${API_URL}/entregas/puntos`, data, {
+      headers:{
+        Authorization : token? `Bearer ${token}` : '',
+        "Content-Type": 'application/json',
+      },
+    });
+    return res.data;
+  } catch (error) {
+    const mensaje = error.response?.data?.message || error.message;
+    return rejectWithValue(mensaje);
+  }
+});
+
 const initialState = {
   items: [],
+  itemsAdmin: [],
   loading: false,
   error: null,
 };
@@ -39,7 +55,7 @@ const puntoEntregaSlice = createSlice({
       })
       .addCase(fetchPuntoEntrega.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        state.itemsAdmin = action.payload;
         state.error = null;
       })
       .addCase(fetchPuntoEntrega.rejected, (state, action) => {
@@ -56,6 +72,18 @@ const puntoEntregaSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchPuntoEntregaActivos.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(createPunto.fulfilled, (state) =>{
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(createPunto.pending, (state) =>{
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createPunto.rejected, (state, action) =>{
         state.loading = false;
         state.error = action.payload;
       })

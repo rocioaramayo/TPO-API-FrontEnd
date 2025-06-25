@@ -5,7 +5,7 @@ import FormEditarProducto from "./FormEditarProducto";
 
 export default function TablaProductos({ mostrarCrearProducto, onEditar }) {
   const dispatch = useDispatch();
-  const productos = useSelector((state) => state.products.items) || [];
+  const productos = useSelector((state) => state.products.adminProducts) || [];
   const user = useSelector((state) => state.users.user);
   const loading = useSelector((state) => state.products.loading);
   const [mostrarAlertaDesactivar, setMostrarAlertaDesactivar] = useState(false);
