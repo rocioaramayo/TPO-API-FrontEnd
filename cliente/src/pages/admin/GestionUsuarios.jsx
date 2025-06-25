@@ -1,131 +1,149 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers, adminChangeUserPassword } from "../../store/slices/usersSlice";
+import { fetchUsers, enableUser, disableUser, adminChangeUserPassword, clearEnableDisableUserStatus, clearChangePasswordStatus } from '../../store/slices/usersSlice';
 import AdminAlertaInfo from './AdminAlertaInfo';
 
 const GestionUsuarios = () => {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.users);
     const usuarios = useSelector((state) => state.users.items);
-    const { error } = useSelector((state) => state.users);
+    const { error, enableUserLoading, enableUserError, enableUserSuccess, disableUserLoading, disableUserError, disableUserSuccess, changePasswordLoading, changePasswordError, changePasswordSuccess } = useSelector((state) => state.users);
     const navigate = useNavigate();
     const [alerta, setAlerta] = useState(null);
     const [modalAbierto, setModalAbierto] = useState(false);
     const [emailTarget, setEmailTarget] = useState('');
     const [nuevaPassword, setNuevaPassword] = useState('');
+    const [modalConfirmarDeshabilitar, setModalConfirmarDeshabilitar] = useState({ abierto: false, userId: null, email: '' });
+    const [modalConfirmarPassword, setModalConfirmarPassword] = useState({ abierto: false, email: '' });
 
     useEffect(() => {
         if (!user || !user.token) return;
         dispatch(fetchUsers(user.token));
     }, [dispatch, user]);
 
-    const deshabilitarUsuario = (id) => {
-        fetch(`http://localhost:8080/api/v1/users/${id}/deshabilitar`, {
-            method: "PUT",
-            headers: {
-                Authorization: `Bearer ${user.token}`,
-                "Content-Type": "application/json",
-            },
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                setAlerta({ tipo: 'success', mensaje: data.mensaje });
-                dispatch(fetchUsers(user.token));
-            })
-            .catch((err) => setAlerta({ tipo: 'error', mensaje: "Error al deshabilitar usuario: " + err.message }));
-    };
+    useEffect(() => {
+        if (enableUserSuccess || disableUserSuccess) {
+            dispatch(fetchUsers(user.token));
+            setTimeout(() => {
+                dispatch(clearEnableDisableUserStatus());
+            }, 2000);
+        }
+    }, [enableUserSuccess, disableUserSuccess, dispatch, user]);
 
-    const habilitarUsuario = (id) => {
-        fetch(`http://localhost:8080/api/v1/users/${id}/habilitar`, {
-            method: "PUT",
-            headers: {
-                Authorization: `Bearer ${user.token}`,
-                "Content-Type": "application/json",
-            },
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                setAlerta({ tipo: 'success', mensaje: data.mensaje });
-                dispatch(fetchUsers(user.token));
-            })
-            .catch((err) => setAlerta({ tipo: 'error', mensaje: "Error al habilitar usuario: " + err.message }));
+    useEffect(() => {
+        if (changePasswordSuccess) {
+            setModalAbierto(false);
+            setNuevaPassword('');
+            setTimeout(() => {
+                dispatch(clearChangePasswordStatus());
+            }, 2000);
+        }
+    }, [changePasswordSuccess, dispatch]);
+
+    const handleDisableUser = (id, email) => {
+        setModalConfirmarDeshabilitar({ abierto: true, userId: id, email });
+    };
+    const handleEnableUser = (id) => {
+        dispatch(enableUser({ token: user.token, id }));
+    };
+    const confirmarDeshabilitar = () => {
+        dispatch(disableUser({ token: user.token, id: modalConfirmarDeshabilitar.userId }));
+        setModalConfirmarDeshabilitar({ abierto: false, userId: null, email: '' });
+    };
+    const cancelarDeshabilitar = () => {
+        setModalConfirmarDeshabilitar({ abierto: false, userId: null, email: '' });
     };
 
     const cambiarPasswordUsuario = (email) => {
-        setEmailTarget(email);
-        setModalAbierto(true);
+        setModalConfirmarPassword({ abierto: true, email });
     };
-
+    const confirmarAbrirModalPassword = () => {
+        setEmailTarget(modalConfirmarPassword.email);
+        setModalAbierto(true);
+        setModalConfirmarPassword({ abierto: false, email: '' });
+    };
+    const cancelarAbrirModalPassword = () => {
+        setModalConfirmarPassword({ abierto: false, email: '' });
+    };
     const confirmarCambioPassword = () => {
         dispatch(adminChangeUserPassword({
             token: user.token,
             email: emailTarget,
             newPassword: nuevaPassword
-        }))
-        .unwrap()
-        .then(() => {
-            setAlerta({ tipo: 'success', mensaje: 'Contraseña actualizada correctamente.' });
-        })
-        .catch((err) => {
-            console.error("ERROR RESPUESTA:", err);
-            setAlerta({ tipo: 'error', mensaje: 'Error al cambiar contraseña: ' + (err?.response?.data?.message || err) });
-        })
-        .finally(() => {
-            setModalAbierto(false);
-            setNuevaPassword('');
-        });
+        }));
     };
 
     return (
         <div className="px-6 py-4 font-sans">
-            {alerta && (
-                <AdminAlertaInfo
-                    tipo={alerta.tipo}
-                    mensaje={alerta.mensaje}
-                    onClose={() => setAlerta(null)}
-                />
-            )}
+            {/* Feedback global */}
+            {error && <p className="text-red-500 mb-4">{error}</p>}
+            {enableUserError && <p className="text-red-500 mb-4">{enableUserError}</p>}
+            {enableUserSuccess && <p className="text-green-600 mb-4">{typeof enableUserSuccess === 'string' ? enableUserSuccess : 'Usuario habilitado correctamente.'}</p>}
+            {disableUserError && <p className="text-red-500 mb-4">{disableUserError}</p>}
+            {disableUserSuccess && <p className="text-green-600 mb-4">{typeof disableUserSuccess === 'string' ? disableUserSuccess : 'Usuario deshabilitado correctamente.'}</p>}
+            {changePasswordError && <p className="text-red-500 mb-4">{changePasswordError}</p>}
+            {changePasswordSuccess && <p className="text-green-600 mb-4">Contraseña actualizada correctamente.</p>}
 
+            {/* Modal cambio de contraseña */}
             {modalAbierto && (
-                <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-2" onClick={() => setModalAbierto(false)}>
+                <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-2" onClick={() => { setModalAbierto(false); setNuevaPassword(''); dispatch(clearChangePasswordStatus()); }}>
                     <div
                         className="bg-white rounded-lg shadow-2xl w-full max-w-sm p-6"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h2 className="text-lg font-semibold text-gray-800 mb-4">Cambiar contraseña</h2>
                         <p className="text-sm text-gray-600 mb-2">Usuario: <strong>{emailTarget}</strong></p>
-
                         <input
-  type="password"
-  placeholder="Nueva contraseña"
-  className="w-full px-4 py-2 border border-gray-300 rounded-md mb-4 focus:ring focus:ring-[rgb(146_107_64)] focus:ring-opacity-40 focus:border-[rgb(146_107_64)] focus:outline-none"
-  value={nuevaPassword}
-  onChange={(e) => setNuevaPassword(e.target.value)}
-/>
-
-
+                            type="password"
+                            placeholder="Nueva contraseña"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md mb-4 focus:ring focus:ring-[rgb(146_107_64)] focus:ring-opacity-40 focus:border-[rgb(146_107_64)] focus:outline-none"
+                            value={nuevaPassword}
+                            onChange={(e) => setNuevaPassword(e.target.value)}
+                        />
                         <div className="flex justify-end gap-2">
                             <button
-                                onClick={() => {
-                                    setModalAbierto(false);
-                                    setNuevaPassword('');
-                                }}
+                                onClick={() => { setModalAbierto(false); setNuevaPassword(''); dispatch(clearChangePasswordStatus()); }}
                                 className="text-sm text-gray-500 hover:text-gray-700"
                             >
                                 Cancelar
                             </button>
                             <button
-  onClick={confirmarCambioPassword}
-  className="text-white text-sm px-4 py-2 rounded"
-  style={{
-    backgroundColor: 'rgb(146 107 64)',
-    transition: 'background-color 0.2s',
-  }}
->
-  Confirmar
-</button>
+                                onClick={confirmarCambioPassword}
+                                className="text-white text-sm px-4 py-2 rounded"
+                                style={{ backgroundColor: 'rgb(146 107 64)', transition: 'background-color 0.2s' }}
+                                disabled={changePasswordLoading}
+                            >
+                                {changePasswordLoading ? 'Cambiando...' : 'Confirmar'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
+            {/* Modal confirmar deshabilitar usuario */}
+            {modalConfirmarDeshabilitar.abierto && (
+                <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-2" onClick={cancelarDeshabilitar}>
+                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+                        <h2 className="text-lg font-semibold text-gray-800 mb-4">¿Deshabilitar usuario?</h2>
+                        <p className="text-sm text-gray-600 mb-4">¿Está seguro que quiere deshabilitar al usuario <strong>{modalConfirmarDeshabilitar.email}</strong>?</p>
+                        <div className="flex justify-end gap-2">
+                            <button onClick={cancelarDeshabilitar} className="text-sm text-gray-500 hover:text-gray-700">Cancelar</button>
+                            <button onClick={confirmarDeshabilitar} className="text-white text-sm px-4 py-2 rounded bg-red-700 hover:bg-red-800 transition-colors">Deshabilitar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal confirmar cambio de contraseña */}
+            {modalConfirmarPassword.abierto && (
+                <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-2" onClick={cancelarAbrirModalPassword}>
+                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+                        <h2 className="text-lg font-semibold text-gray-800 mb-4">¿Cambiar contraseña?</h2>
+                        <p className="text-sm text-gray-600 mb-4">¿Está seguro que quiere cambiar la contraseña del usuario <strong>{modalConfirmarPassword.email}</strong>?</p>
+                        <div className="flex justify-end gap-2">
+                            <button onClick={cancelarAbrirModalPassword} className="text-sm text-gray-500 hover:text-gray-700">Cancelar</button>
+                            <button onClick={confirmarAbrirModalPassword} className="text-white text-sm px-4 py-2 rounded bg-leather-800 hover:bg-leather-900 transition-colors">Cambiar</button>
                         </div>
                     </div>
                 </div>
@@ -145,8 +163,6 @@ const GestionUsuarios = () => {
                     </button>
                 </div>
             </div>
-
-            {error && <p className="text-red-500 mb-4">{error}</p>}
 
             <div className="overflow-x-auto rounded-lg shadow">
                 <table className="min-w-full bg-white border text-sm text-left text-gray-700">
@@ -176,16 +192,18 @@ const GestionUsuarios = () => {
                                     {u.role !== "ADMIN" && user?.role === "ADMIN" && (
                                         <>
                                             <button
-                                                className={`px-3 py-1 rounded text-white transition ${u.activo ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}`}
+                                                className={`px-3 py-1 rounded font-medium transition-colors ${u.activo ? "bg-red-100 text-red-700 hover:bg-red-200" : "bg-green-100 text-green-800 hover:bg-green-200"}`}
                                                 onClick={() =>
-                                                    u.activo ? deshabilitarUsuario(u.id) : habilitarUsuario(u.id)
+                                                    u.activo ? handleDisableUser(u.id, u.email) : handleEnableUser(u.id)
                                                 }
+                                                disabled={enableUserLoading || disableUserLoading}
                                             >
                                                 {u.activo ? "Deshabilitar" : "Habilitar"}
                                             </button>
                                             <button
-                                                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                                                className="px-3 py-1 rounded bg-leather-100 text-leather-800 font-medium hover:bg-leather-200 transition-colors"
                                                 onClick={() => cambiarPasswordUsuario(u.email)}
+                                                disabled={changePasswordLoading}
                                             >
                                                 Cambiar Contraseña
                                             </button>

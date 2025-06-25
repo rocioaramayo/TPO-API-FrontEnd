@@ -133,6 +133,29 @@ export const adminChangeUserPassword = createAsyncThunk(
   }
 );
 
+// Habilitar usuario
+export const enableUser = createAsyncThunk('users/enableUser', async ({ token, id }, { rejectWithValue }) => {
+  try {
+    const res = await axios.put(`${API_URL}/api/v1/users/${id}/habilitar`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.message || err.message);
+  }
+});
+
+// Deshabilitar usuario
+export const disableUser = createAsyncThunk('users/disableUser', async ({ token, id }, { rejectWithValue }) => {
+  try {
+    const res = await axios.put(`${API_URL}/api/v1/users/${id}/deshabilitar`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.message || err.message);
+  }
+});
 
 const initialState = {
   // Estado para gestión de usuarios (admin)
@@ -154,14 +177,18 @@ const initialState = {
   changePasswordLoading: false,
   changePasswordError: null,
   changePasswordSuccess: false,
+  enableUserLoading: false,
+  enableUserError: null,
+  enableUserSuccess: false,
+  disableUserLoading: false,
+  disableUserError: null,
+  disableUserSuccess: false,
 };
 
 const usersSlice = createSlice({
   name: 'users',
   initialState,
   reducers: {
-
-    
     clearAuthError: (state) => {
       state.authError = null;
     },
@@ -195,7 +222,14 @@ const usersSlice = createSlice({
       state.changePasswordError = null;
       state.changePasswordSuccess = false;
     },
-
+    clearEnableDisableUserStatus: (state) => {
+      state.enableUserLoading = false;
+      state.enableUserError = null;
+      state.enableUserSuccess = false;
+      state.disableUserLoading = false;
+      state.disableUserError = null;
+      state.disableUserSuccess = false;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -212,8 +246,6 @@ const usersSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
-
       
       // Autenticación - Login
       .addCase(loginUser.pending, (state) => {
@@ -296,7 +328,7 @@ const usersSlice = createSlice({
         state.changePasswordLoading = false;
         state.changePasswordError = action.payload;
       })
-            .addCase(adminChangeUserPassword.pending, (state) => {
+      .addCase(adminChangeUserPassword.pending, (state) => {
         state.changePasswordLoading = true;
         state.changePasswordError = null;
         state.changePasswordSuccess = false;
@@ -308,10 +340,37 @@ const usersSlice = createSlice({
       .addCase(adminChangeUserPassword.rejected, (state, action) => {
         state.changePasswordLoading = false;
         state.changePasswordError = action.payload;
+      })
+      .addCase(enableUser.pending, (state) => {
+        state.enableUserLoading = true;
+        state.enableUserError = null;
+        state.enableUserSuccess = false;
+      })
+      .addCase(enableUser.fulfilled, (state, action) => {
+        state.enableUserLoading = false;
+        state.enableUserSuccess = action.payload?.mensaje || true;
+      })
+      .addCase(enableUser.rejected, (state, action) => {
+        state.enableUserLoading = false;
+        state.enableUserError = action.payload;
+        state.enableUserSuccess = false;
+      })
+      .addCase(disableUser.pending, (state) => {
+        state.disableUserLoading = true;
+        state.disableUserError = null;
+        state.disableUserSuccess = false;
+      })
+      .addCase(disableUser.fulfilled, (state, action) => {
+        state.disableUserLoading = false;
+        state.disableUserSuccess = action.payload?.mensaje || true;
+      })
+      .addCase(disableUser.rejected, (state, action) => {
+        state.disableUserLoading = false;
+        state.disableUserError = action.payload;
+        state.disableUserSuccess = false;
       });
-
   },
 });
 
-export const { clearAuthError, clearError, updateUser, setUser, clearUser, logout, clearUpdateProfileStatus, clearChangePasswordStatus } = usersSlice.actions;
+export const { clearAuthError, clearError, updateUser, setUser, clearUser, logout, clearUpdateProfileStatus, clearChangePasswordStatus, clearEnableDisableUserStatus } = usersSlice.actions;
 export default usersSlice.reducer; 
