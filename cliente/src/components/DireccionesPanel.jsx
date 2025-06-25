@@ -53,10 +53,20 @@ const DireccionesPanel = () => {
     }, [success, dispatch, token]);
 
     const handleBorrar = (id) => {
-        dispatch(desactivarDireccion({ token, id }))
-            .unwrap()
-            .then(() => setMensaje({ tipo: "success", texto: "Dirección borrada correctamente" }))
-            .catch((err) => setMensaje({ tipo: "error", texto: "Error al borrar dirección: " + err }));
+        setDireccionAEliminar(id);
+        setMostrarModalBorrar(true);
+        console.log("ABRO MODAL", { id });
+    };
+
+    const confirmarBorrado = () => {
+        dispatch(desactivarDireccion({ token, id: direccionAEliminar }));
+        setMostrarModalBorrar(false);
+        setDireccionAEliminar(null);
+    };
+
+    const cancelarBorrado = () => {
+        setMostrarModalBorrar(false);
+        setDireccionAEliminar(null);
     };
 
     const handleGuardar = () => {
@@ -70,9 +80,7 @@ const DireccionesPanel = () => {
             });
             return;
         }
-        dispatch(crearDireccion({ token, data: nuevaDireccion }))
-            .unwrap()
-            .catch((err) => setMensaje({ tipo: "error", texto: err }));
+        dispatch(crearDireccion({ token, data: nuevaDireccion }));
     };
 
     if (loading) {
@@ -85,6 +93,9 @@ const DireccionesPanel = () => {
             </div>
         );
     }
+
+    // DEBUG: log de estado antes del return
+    console.log({ mostrarModalBorrar, direccionAEliminar });
 
     return (
     <div className="bg-white p-6 rounded-lg shadow-lg border border-leather-200 max-w-2xl mx-auto">
