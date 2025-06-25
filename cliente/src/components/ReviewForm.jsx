@@ -1,21 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { createReview, clearCreateReviewStatus } from '../store/slices/reviewSlice';
 
 const ReviewForm = ({ productoId, onReviewSubmitted }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
-  
-  const { user, isAuthenticated } = useSelector(state => state.users);
-
   const [reviewData, setReviewData] = useState({
     rating: 0,
     titulo: '',
     comentario: ''
   });
 
+  const { user, isAuthenticated } = useSelector(state => state.users);
+  const { createLoading, createError, createSuccess } = useSelector(state => state.reviews);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
@@ -35,109 +33,40 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     if (!user || !user.token) {
-      setError('Debes iniciar sesión para escribir una reseña');
+      // No debería llegar aquí, pero por si acaso
       return;
     }
-
-    if (reviewData.rating === 0) {
-      setError('Por favor selecciona una calificación');
+    if (reviewData.rating === 0 || !reviewData.comentario.trim()) {
+      // Validación simple
       return;
     }
-
-    if (!reviewData.comentario.trim()) {
-      setError('Por favor escribe un comentario');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
     const requestBody = {
       productoId: parseInt(productoId),
       estrellas: reviewData.rating,
-      titulo: reviewData.titulo.trim() || null, // Enviar título o null si está vacío
+      titulo: reviewData.titulo.trim() || null,
       comentario: reviewData.comentario
     };
-
-    fetch('http://localhost:8080/reviews', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${user.token}`
-      },
-      body: JSON.stringify(requestBody)
-    })
-    .then(response => {
-      return response.text().then(text => {
-        let data = {};
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          data = { message: text };
-        }
-        
-        if (!response.ok) {
-          let errorMessage = 'Error al enviar la reseña';
-          
-          switch (response.status) {
-            case 403:
-              errorMessage = 'No estás autorizado para dejar una reseña. Solo pueden opinar quienes compraron este producto.';
-              break;
-            case 404:
-              if (text.includes('Usuario no encontrado')) {
-                errorMessage = 'Usuario no encontrado';
-              } else if (text.includes('Producto no encontrado')) {
-                errorMessage = 'Producto no encontrado';
-              } else {
-                errorMessage = 'Recurso no encontrado';
-              }
-              break;
-            case 400:
-              errorMessage = data.message || text || 'Datos de la reseña inválidos';
-              break;
-            case 409:
-              // Conflict - Ya dejó una reseña (usar el mensaje del servidor)
-              errorMessage = data.message || text || 'Ya has dejado una reseña para este producto';
-              break;
-            default:
-              if (data.message) {
-                errorMessage = data.message;
-              } else if (text) {
-                errorMessage = text;
-              } else if (response.statusText && response.statusText !== 'OK') {
-                errorMessage = response.statusText;
-              }
-          }
-          
-          throw new Error(errorMessage);
-        }
-        
-        return data;
+    dispatch(createReview({ token: user.token, data: requestBody }))
+      .unwrap()
+      .then(() => {
+        setReviewData({ rating: 0, titulo: '', comentario: '' });
+        if (onReviewSubmitted) onReviewSubmitted();
+        setTimeout(() => {
+          setIsOpen(false);
+          dispatch(clearCreateReviewStatus());
+        }, 2000);
       });
-    })
-    .then(() => {
-      setSuccess(true);
-      setError(null);
-      setReviewData({ rating: 0, titulo: '', comentario: '' });
-      
-      if (onReviewSubmitted) {
-        onReviewSubmitted();
-      }
-      
-      setTimeout(() => {
-        setIsOpen(false);
-        setSuccess(false);
-      }, 2000);
-    })
-    .catch(error => {
-      console.error('Error al enviar reseña:', error);
-      setError(error.message);
-    })
-    .finally(() => {
-      setLoading(false);
-    });
+  };
+
+  const handleOpen = () => {
+    setIsOpen(true);
+    dispatch(clearCreateReviewStatus());
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    dispatch(clearCreateReviewStatus());
   };
 
   const renderStars = (interactive = false) => {
@@ -208,7 +137,7 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
             Comparte tu experiencia con otros clientes
           </p>
           <button
-            onClick={() => setIsOpen(true)}
+            onClick={handleOpen}
             className="bg-orange-950 text-white px-8 py-3 rounded-md hover:bg-orange-900 transition-colors font-light"
           >
             Escribir Reseña
@@ -222,7 +151,7 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
                 Escribir Reseña
               </h4>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,7 +161,7 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
             </div>
 
             {/* Mensaje de éxito */}
-            {success && (
+            {createSuccess && (
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
                 <div className="flex items-center">
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,13 +173,13 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
             )}
 
             {/* Mensaje de error específico del backend */}
-            {error && (
+            {createError && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
                 <div className="flex items-center">
                   <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {error}
+                  {createError}
                 </div>
               </div>
             )}
@@ -319,10 +248,10 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
               <div className="flex flex-col sm:flex-row gap-4 pt-6">
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={createLoading}
                   className="bg-orange-950 text-white px-8 py-3 rounded-md hover:bg-orange-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-light"
                 >
-                  {loading ? (
+                  {createLoading ? (
                     <div className="flex items-center justify-center">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                       Enviando...
@@ -333,7 +262,7 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleClose}
                   className="border border-gray-300 text-gray-700 px-8 py-3 rounded-md hover:bg-gray-50 transition-colors font-light"
                 >
                   Cancelar

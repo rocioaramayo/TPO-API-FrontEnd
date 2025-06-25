@@ -9,6 +9,7 @@ import metodoEntregaReducer from './slices/metodoEntregaSlice';
 import puntoEntregaReducer from './slices/puntoEntregaSlice';
 import descuentosReducer from './slices/descuentosSlice';
 import direccionReducer from './slices/direccionSlice';
+import reviewReducer from './slices/reviewSlice';
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
     puntoEntrega: puntoEntregaReducer,
     descuentos: descuentosReducer,
     direccion: direccionReducer,
+    reviews: reviewReducer,
   },
   devTools: process.env.NODE_ENV !== 'production',
 }); 

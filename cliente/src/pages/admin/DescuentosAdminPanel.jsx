@@ -114,17 +114,17 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
     if (editData.categoriaId) bodyEditar.categoriaId = Number(editData.categoriaId);
 
     dispatch(updateDescuento({ token: user.token, id: editId, data: bodyEditar }));
-    setEditId(null);
-    // Reset editData para evitar residuos en el formulario
-    setEditData({
-      codigo: '',
-      porcentaje: '',
-      descripcion: '',
-      fechaInicio: '',
-      fechaFin: '',
-      montoMinimo: '',
-      categoriaId: ''
-    });
+        setEditId(null);
+        // Reset editData para evitar residuos en el formulario
+        setEditData({
+          codigo: '',
+          porcentaje: '',
+          descripcion: '',
+          fechaInicio: '',
+          fechaFin: '',
+          montoMinimo: '',
+          categoriaId: ''
+      });
   };
 
   const handleCrear = (e) => {
@@ -156,15 +156,15 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
     if (nuevo.categoriaId && nuevo.categoriaId !== '') bodyCrear.categoriaId = Number(nuevo.categoriaId);
 
     dispatch(createDescuento({ token: user.token, data: bodyCrear }));
-    setNuevo({
-      codigo: '',
-      porcentaje: '',
-      descripcion: '',
-      fechaInicio: '',
-      fechaFin: '',
-      montoMinimo: '',
-      categoriaId: ''
-    });
+        setNuevo({
+          codigo: '',
+          porcentaje: '',
+          descripcion: '',
+          fechaInicio: '',
+          fechaFin: '',
+          montoMinimo: '',
+          categoriaId: ''
+        });
   };
 
   const isVigente = (d) => {
