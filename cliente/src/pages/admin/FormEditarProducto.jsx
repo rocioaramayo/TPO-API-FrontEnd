@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { data, Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCategories } from '../../store/slices/categoriesSlice';
-import { fetchProductById, updateProduct } from '../../store/slices/productsSlice';
+import { fetchAdminProducts, fetchProductById, updateProduct } from '../../store/slices/productsSlice';
 
 // Deducir tipo mime a partir del nombre del archivo (si existe)
 function guessMimeType(foto) {
@@ -120,6 +120,7 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
       setSuccess(true);
       setTimeout(() => {
         setMostrarEditarProducto(false)
+        dispatch(fetchAdminProducts(user.token))
         setSuccess(false)
       },3000);
     } catch (error) {
