@@ -114,6 +114,8 @@ const initialState = {
   items: [],
   loading: false,
   error: null,
+  createError: null,
+  createSuccess: null,
   cupon: {
     loading: false,
     error: null,
@@ -127,6 +129,9 @@ const descuentosSlice = createSlice({
   reducers: {
     limpiarCupon: (state) => {
       state.cupon = { loading: false, error: null, resultado: null };
+    },
+    limpiarCreateSuccess: (state) => {
+      state.createSuccess = null;
     },
   },
   extraReducers: (builder) => {
@@ -147,15 +152,19 @@ const descuentosSlice = createSlice({
       // Crear descuento
       .addCase(createDescuento.pending, (state) => {
         state.loading = true;
-        state.error = null;
+        state.createError = null;
+        state.createSuccess = null;
       })
       .addCase(createDescuento.fulfilled, (state, action) => {
         state.loading = false;
         state.items.unshift(action.payload);
+        state.createSuccess = 'Descuento creado exitosamente';
+        state.createError = null;
       })
       .addCase(createDescuento.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.createError = action.payload;
+        state.createSuccess = null;
       })
       // Editar descuento
       .addCase(updateDescuento.pending, (state) => {
@@ -208,5 +217,5 @@ const descuentosSlice = createSlice({
   },
 });
 
-export const { limpiarCupon } = descuentosSlice.actions;
+export const { limpiarCupon, limpiarCreateSuccess } = descuentosSlice.actions;
 export default descuentosSlice.reducer; 
