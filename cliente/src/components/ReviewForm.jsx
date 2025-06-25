@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { createReview, clearCreateReviewStatus } from '../store/slices/reviewSlice';
@@ -10,6 +10,7 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
     titulo: '',
     comentario: ''
   });
+  const [localError, setLocalError] = useState({ rating: '', comentario: '' });
 
   const { user, isAuthenticated } = useSelector(state => state.users);
   const { createLoading, createError, createSuccess } = useSelector(state => state.reviews);
@@ -22,6 +23,9 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
       ...prev,
       [name]: value
     }));
+    if (name === 'comentario' && value.trim()) {
+      setLocalError(prev => ({ ...prev, comentario: '' }));
+    }
   };
 
   const handleRatingClick = (rating) => {
@@ -29,16 +33,26 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
       ...prev,
       rating
     }));
+    if (rating > 0) {
+      setLocalError(prev => ({ ...prev, rating: '' }));
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!user || !user.token) {
-      // No debería llegar aquí, pero por si acaso
-      return;
+    let hasError = false;
+    let newError = { rating: '', comentario: '' };
+    if (reviewData.rating === 0) {
+      newError.rating = 'Por favor, seleccioná una calificación.';
+      hasError = true;
     }
-    if (reviewData.rating === 0 || !reviewData.comentario.trim()) {
-      // Validación simple
+    if (!reviewData.comentario.trim()) {
+      newError.comentario = 'Por favor, escribí tu reseña.';
+      hasError = true;
+    }
+    setLocalError(newError);
+    if (hasError) return;
+    if (!user || !user.token) {
       return;
     }
     const requestBody = {
@@ -47,25 +61,33 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
       titulo: reviewData.titulo.trim() || null,
       comentario: reviewData.comentario
     };
-    dispatch(createReview({ token: user.token, data: requestBody }))
-      .unwrap()
-      .then(() => {
-        setReviewData({ rating: 0, titulo: '', comentario: '' });
-        if (onReviewSubmitted) onReviewSubmitted();
-        setTimeout(() => {
-          setIsOpen(false);
-          dispatch(clearCreateReviewStatus());
-        }, 2000);
-      });
+    dispatch(createReview({ token: user.token, data: requestBody }));
   };
+
+  // Limpiar y cerrar modal cuando la review se crea con éxito
+  useEffect(() => {
+    if (createSuccess) {
+      setReviewData({ rating: 0, titulo: '', comentario: '' });
+      if (onReviewSubmitted) onReviewSubmitted();
+      const timeout = setTimeout(() => {
+        setIsOpen(false);
+        dispatch(clearCreateReviewStatus());
+      }, 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [createSuccess, dispatch, onReviewSubmitted]);
 
   const handleOpen = () => {
     setIsOpen(true);
+    setReviewData({ rating: 0, titulo: '', comentario: '' });
+    setLocalError({ rating: '', comentario: '' });
     dispatch(clearCreateReviewStatus());
   };
 
   const handleClose = () => {
     setIsOpen(false);
+    setReviewData({ rating: 0, titulo: '', comentario: '' });
+    setLocalError({ rating: '', comentario: '' });
     dispatch(clearCreateReviewStatus());
   };
 
@@ -198,6 +220,9 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
                     </span>
                   )}
                 </div>
+                {localError.rating && (
+                  <p className="text-xs text-red-600 mt-1">{localError.rating}</p>
+                )}
               </div>
 
               {/* Título (opcional) */}
@@ -237,11 +262,16 @@ const ReviewForm = ({ productoId, onReviewSubmitted }) => {
                   rows={5}
                   className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors resize-none font-light"
                   maxLength="1000"
-                  required
                 />
-                <p className="text-xs text-gray-500 mt-2 font-light">
-                  {reviewData.comentario.length}/1000 caracteres
-                </p>
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-xs text-gray-500 font-light">Máximo 1000 caracteres</p>
+                  <p className="text-xs text-gray-400">
+                    {reviewData.comentario.length}/1000
+                  </p>
+                </div>
+                {localError.comentario && (
+                  <p className="text-xs text-red-600 mt-1">{localError.comentario}</p>
+                )}
               </div>
 
               {/* Botones */}

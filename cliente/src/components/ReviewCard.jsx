@@ -61,25 +61,6 @@ const ReviewCard = ({ review }) => {
       <p className="text-orange-800 leading-relaxed mb-6 font-light">
         {review.comentario}
       </p>
-      <div className="border-t border-gray-100 pt-4">
-        <div className="flex items-center justify-between text-sm text-orange-700">
-          <span className="font-light">¿Te resultó útil esta reseña?</span>
-          <div className="flex items-center space-x-6">
-            <button className="flex items-center space-x-2 hover:text-orange-900 transition-colors font-light">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V9a2 2 0 00-2-2V5a2 2 0 00-2-2H4a2 2 0 00-2 2v7a2 2 0 002 2h3.5l3.5 1z" />
-              </svg>
-              <span>Sí</span>
-            </button>
-            <button className="flex items-center space-x-2 hover:text-orange-900 transition-colors font-light">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.737 3h4.018c.163 0 .326-.02.485-.06L17 4m-7 10v2a2 2 0 002 2v2a2 2 0 002 2h5a2 2 0 002-2v-7a2 2 0 00-2-2h-3.5l-3.5-1z" />
-              </svg>
-              <span>No</span>
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
