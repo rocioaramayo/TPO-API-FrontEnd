@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchAdminProducts } from "../../store/slices/productsSlice";
+import { fetchAdminProducts, deleteProduct, updateProductStock, activateProduct } from "../../store/slices/productsSlice";
 import FormEditarProducto from "./FormEditarProducto";
 
 export default function TablaProductos({ onEditar }) {
@@ -30,17 +30,11 @@ export default function TablaProductos({ onEditar }) {
 
   const handleDesactivar = (e) => {
     e.preventDefault();
-    const id = productoSeleccionado.id;
-    fetch(`http://localhost:8080/productos/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
-    }).then(() => {
-      setMostrarAlertaDesactivar(false);
-      setProductoSeleccionado({});
-      dispatch(fetchAdminProducts());
-    });
+    dispatch(deleteProduct({ id: productoSeleccionado.id, token: user.token }))
+      .then(() => {
+        setMostrarAlertaDesactivar(false);
+        setProductoSeleccionado({});
+      });
   };
   const handleChangeStock = (e) => {
     setStock(e.target.value);
@@ -50,37 +44,22 @@ export default function TablaProductos({ onEditar }) {
     if (productoSeleccionado.stock + parseInt(stock) < 0) {
       setErrorStock(true);
     } else {
-      const id = productoSeleccionado.id;
-      fetch(`http://127.0.0.1:8080/productos/stock/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({ stock: parseInt(stock) }),
-      }).then(() => {
-        setMostrarAgregarStock(false);
-        setErrorStock(false);
-        setProductoSeleccionado({});
-        setStock(0);
-        dispatch(fetchAdminProducts());
-      });
+      dispatch(updateProductStock({ id: productoSeleccionado.id, stock: parseInt(stock), token: user.token }))
+        .then(() => {
+          setMostrarAgregarStock(false);
+          setErrorStock(false);
+          setProductoSeleccionado({});
+          setStock(0);
+        });
     }
   };
   const handleActivarProducto = (e) => {
     e.preventDefault();
-    const id = productoSeleccionado.id;
-    fetch(`http://localhost:8080/productos/activar/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-    }).then(() => {
-      setMostrarAlertaActivar(false);
-      setProductoSeleccionado({});
-      dispatch(fetchAdminProducts());
-    });
+    dispatch(activateProduct({ id: productoSeleccionado.id, token: user.token }))
+      .then(() => {
+        setMostrarAlertaActivar(false);
+        setProductoSeleccionado({});
+      });
   };
   return (
     <>

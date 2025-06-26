@@ -106,19 +106,95 @@ export const createProduct = createAsyncThunk('products/createProduct', async({t
     return rejectWithValue(mensaje);
   }})
 
-export const updateProduct = createAsyncThunk('products/updateProduct', async({token,formData, id},{rejectWithValue}) =>{
-  try{
-    const response = await axios.put(`${API_URL}/productos/${id}`,formData,{
-      headers:{
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data'
-      },
-    })
-    return response.data;
-  } catch (error){
-    const mensaje = error.response?.data?.message || error.message;
-    return rejectWithValue(mensaje);
-}})
+// Eliminar producto
+export const deleteProduct = createAsyncThunk(
+  'products/deleteProduct',
+  async ({ id, token }, { dispatch, rejectWithValue }) => {
+    try {
+      await axios.delete(`${API_URL}/productos/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Refrescar lista admin
+      dispatch(fetchAdminProducts(token));
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Actualizar stock de producto
+export const updateProductStock = createAsyncThunk(
+  'products/updateProductStock',
+  async ({ id, stock, token }, { dispatch, rejectWithValue }) => {
+    try {
+      await axios.put(`${API_URL}/productos/stock/${id}`, { stock }, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      dispatch(fetchAdminProducts(token));
+      return { id, stock };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Activar producto
+export const activateProduct = createAsyncThunk(
+  'products/activateProduct',
+  async ({ id, token }, { dispatch, rejectWithValue }) => {
+    try {
+      await axios.put(`${API_URL}/productos/activar/${id}`, {}, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      dispatch(fetchAdminProducts(token));
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Eliminar foto de producto
+export const deleteProductPhoto = createAsyncThunk(
+  'products/deleteProductPhoto',
+  async ({ id, fotoId, token }, { dispatch, rejectWithValue }) => {
+    try {
+      await axios.delete(`${API_URL}/productos/${id}/fotos/${fotoId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch(fetchAdminProducts(token));
+      return { id, fotoId };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Editar producto
+export const updateProduct = createAsyncThunk(
+  'products/updateProduct',
+  async ({ token, formData, id }, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await axios.put(`${API_URL}/productos/${id}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      dispatch(fetchAdminProducts(token));
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
 
 const initialState = {
   items: [],
@@ -208,20 +284,85 @@ const productsSlice = createSlice({
         state.error = null;
         state.success = true;
       })
-      .addCase(updateProduct.pending, (state) => {
+      // reducers para deleteProduct
+      .addCase(deleteProduct.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.success = null
+        state.success = null;
       })
-      .addCase(updateProduct.rejected, (state, action) =>{
-        state.error = action.payload;
-        state.loading = false;
-        state.success = null
-      })
-      .addCase(updateProduct.fulfilled, (state, action) => {
+      .addCase(deleteProduct.fulfilled, (state) => {
         state.loading = false;
         state.error = null;
         state.success = true;
+      })
+      .addCase(deleteProduct.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.success = null;
+      })
+      // reducers para updateProductStock
+      .addCase(updateProductStock.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = null;
+      })
+      .addCase(updateProductStock.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+        state.success = true;
+      })
+      .addCase(updateProductStock.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.success = null;
+      })
+      // reducers para activateProduct
+      .addCase(activateProduct.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = null;
+      })
+      .addCase(activateProduct.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+        state.success = true;
+      })
+      .addCase(activateProduct.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.success = null;
+      })
+      // reducers para deleteProductPhoto
+      .addCase(deleteProductPhoto.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = null;
+      })
+      .addCase(deleteProductPhoto.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+        state.success = true;
+      })
+      .addCase(deleteProductPhoto.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.success = null;
+      })
+      // reducers para updateProduct
+      .addCase(updateProduct.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = null;
+      })
+      .addCase(updateProduct.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+        state.success = true;
+      })
+      .addCase(updateProduct.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.success = null;
       })
   },
 });
