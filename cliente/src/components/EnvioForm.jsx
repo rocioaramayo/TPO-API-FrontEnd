@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { cotizarEnvio, limpiarCotizacion } from "../store/slices/metodoEntregaSlice";
 
 const zonasEnvio = [
     { id: "local", name: "Local" },
@@ -7,33 +9,21 @@ const zonasEnvio = [
 ];
 
 export default function EnvioForm({ productPrice }) {
+    const dispatch = useDispatch();
     const [selectedZona, setSelectedZona] = useState("");
-    const [shippingCost, setShippingCost] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const { cotizacion, cotizando, errorCotizacion } = useSelector((state) => state.metodoEntrega);
 
-    const handleChange = async (e) => {
+    const handleChange = (e) => {
         const zona = e.target.value;
         setSelectedZona(zona);
-        setShippingCost(null);
-        setError(null);
-
+        dispatch(limpiarCotizacion());
         if (!zona) return;
-
-        setLoading(true);
-        try {
-            const response = await fetch(`/api/envio?zona=${zona}`);
-            if (!response.ok) throw new Error("Error al calcular envío");
-            const data = await response.json();
-            setShippingCost(data.costo);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
+        // Simulamos una dirección mínima para cotizar (ajusta según tu backend)
+        dispatch(cotizarEnvio({ direccion: { zona }, token: null }));
     };
 
-    const totalPrice = productPrice + (shippingCost || 0);
+    const shippingCost = cotizacion?.costo || 0;
+    const totalPrice = productPrice + shippingCost;
 
     return (
         <div className="mt-4 space-y-3">
@@ -53,10 +43,10 @@ export default function EnvioForm({ productPrice }) {
                 ))}
             </select>
 
-            {loading && <p>Cargando costo de envío...</p>}
-            {error && <p className="text-red-500">{error}</p>}
+            {cotizando && <p>Cargando costo de envío...</p>}
+            {errorCotizacion && <p className="text-red-500">{errorCotizacion}</p>}
 
-            {shippingCost !== null && !loading && !error && (
+            {cotizacion && !cotizando && !errorCotizacion && (
                 <div>
                     <p className="text-gray-700">Costo de envío: ${shippingCost}</p>
                     <p className="font-bold text-lg text-gray-900">Total: ${totalPrice}</p>
