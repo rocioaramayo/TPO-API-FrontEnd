@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { FaUser } from "react-icons/fa";
 import { updateUser } from "../../store/slices/usersSlice";
+import { updateProfile, changePassword } from "../../store/slices/usersSlice";
 
 const AdminProfilePage = () => {
   const dispatch = useDispatch();
@@ -15,6 +16,10 @@ const AdminProfilePage = () => {
   });
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [profileMessage, setProfileMessage] = useState(null);
+  const [profileSuccess, setProfileSuccess] = useState(false);
 
   const API_BASE = "http://localhost:8080";
 
@@ -28,65 +33,61 @@ const AdminProfilePage = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!editMode) {
+      setProfileMessage(null);
+      setProfileSuccess(false);
+    }
+  }, [editMode]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = () => {
-    fetch(`${API_BASE}/api/v1/users/me`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al actualizar el perfil");
-        return res.json();
-      })
-      .then((data) => {
-        dispatch(updateUser(data));
+    dispatch(updateProfile({
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      token: user.token,
+    }))
+      .unwrap()
+      .then(() => {
         setEditMode(false);
-        alert("Perfil actualizado correctamente.");
+        setProfileMessage("Perfil actualizado correctamente.");
+        setProfileSuccess(true);
+        setTimeout(() => {
+          setProfileMessage(null);
+          setProfileSuccess(false);
+        }, 2000);
       })
       .catch(() => {
-        alert("Hubo un error al guardar los cambios.");
+        setProfileMessage("Hubo un error al guardar los cambios.");
+        setProfileSuccess(false);
       });
   };
 
   const handleChangePassword = () => {
-    fetch(`${API_BASE}/api/v1/auth/change-password`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({
-        oldPassword,
-        newPassword,
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((errData) => {
-            throw new Error(errData.message || "Error al cambiar contraseña");
-          });
-        }
-        return res;
-      })
+    dispatch(changePassword({
+      oldPassword,
+      newPassword,
+      token: user.token,
+    }))
+      .unwrap()
       .then(() => {
-        alert("¡Contraseña cambiada!");
-        setShowPasswordModal(false);
-        setOldPassword("");
-        setNewPassword("");
+        setPasswordMessage("¡Contraseña cambiada!");
+        setPasswordSuccess(true);
+        setTimeout(() => {
+          setShowPasswordModal(false);
+          setOldPassword("");
+          setNewPassword("");
+          setPasswordMessage(null);
+          setPasswordSuccess(false);
+        }, 2000);
       })
       .catch((e) => {
-        alert(e.message);
+        setPasswordMessage(e.message || "Error al cambiar contraseña");
+        setPasswordSuccess(false);
       });
   };
 
@@ -174,12 +175,19 @@ const AdminProfilePage = () => {
                       </button>
                     </>
                   ) : (
-                    <button
-                      onClick={handleSave}
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 shadow"
-                    >
-                      Guardar
-                    </button>
+                    <>
+                      <button
+                        onClick={handleSave}
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all duration-300 shadow"
+                      >
+                        Guardar
+                      </button>
+                      {profileMessage && (
+                        <div className={`ml-4 inline-block text-sm ${profileSuccess ? "text-green-600" : "text-red-600"}`}>
+                          {profileMessage}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -193,8 +201,17 @@ const AdminProfilePage = () => {
               <h3 className="text-lg font-light text-leather-900 mb-4">Cambiar Contraseña</h3>
               <input type="password" placeholder="Contraseña actual" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className="w-full border border-gray-300 px-4 py-2 mb-3 rounded focus:ring focus:ring-[rgb(146_107_64)] focus:ring-opacity-40 focus:border-[rgb(146_107_64)] focus:outline-none" />
               <input type="password" placeholder="Nueva contraseña" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full border border-gray-300 px-4 py-2 mb-4 rounded focus:ring focus:ring-[rgb(146_107_64)] focus:ring-opacity-40 focus:border-[rgb(146_107_64)] focus:outline-none" />
+              {passwordMessage && (
+                <div className={`mb-2 text-sm ${passwordSuccess ? "text-green-600" : "text-red-600"}`}>
+                  {passwordMessage}
+                </div>
+              )}
               <div className="flex justify-end gap-2">
-                <button onClick={() => setShowPasswordModal(false)} className="text-sm text-leather-700">Cancelar</button>
+                <button onClick={() => {
+                  setShowPasswordModal(false);
+                  setPasswordMessage(null);
+                  setPasswordSuccess(false);
+                }} className="text-sm text-leather-700">Cancelar</button>
                 <button onClick={handleChangePassword} className="px-3 py-1 bg-[#2C1810] text-[#F7F3E9] rounded hover:bg-[#3d2417] text-sm">Guardar</button>
               </div>
             </div>
