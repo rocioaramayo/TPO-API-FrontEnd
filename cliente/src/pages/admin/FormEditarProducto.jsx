@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { data, Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCategories } from '../../store/slices/categoriesSlice';
-import { fetchAdminProducts, fetchProductById, updateProduct } from '../../store/slices/productsSlice';
+import { fetchAdminProducts, fetchProductById, updateProduct, deleteProductPhoto } from '../../store/slices/productsSlice';
 
 // Deducir tipo mime a partir del nombre del archivo (si existe)
 function guessMimeType(foto) {
@@ -28,9 +28,14 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
   const { selectedProduct, loading, error } = useSelector((state) => state.products);
 
   const [producto, setProducto] = useState(null);
-  const [imagenes, setImagenes] = useState([]);
+  const [fotosActuales, setFotosActuales] = useState([]);
+  const [imagenesNuevas, setImagenesNuevas] = useState([]);
   const [success, setSuccess] = useState(false);
   const [internalError, setInternalError] = useState(null);
+  const [deletePhotoMessage, setDeletePhotoMessage] = useState(null);
+  const [deletePhotoSuccess, setDeletePhotoSuccess] = useState(false);
+  const [fotoAEliminar, setFotoAEliminar] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Cargar datos del producto desde Redux
   useEffect(() => {
@@ -43,6 +48,8 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
   useEffect(() => {
     if (selectedProduct) {
       setProducto(selectedProduct);
+      setFotosActuales(selectedProduct.fotos || []);
+      setImagenesNuevas([]);
     }
   }, [selectedProduct]);
 
@@ -53,25 +60,34 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
 
   // Handler para eliminar una foto actual del producto
   const handleEliminarFoto = (fotoId) => {
-    if (!window.confirm("¿Seguro que querés eliminar esta foto?")) return;
-    fetch(`http://localhost:8080/productos/${id}/fotos/${fotoId}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${user.token}` }
-    })
-    .then(response => {
-      if (response.ok) {
-        // Optimista: actualiza la UI localmente
-        setProducto(prev => ({
-          ...prev,
-          fotos: prev.fotos.filter(f => f.id !== fotoId)
-        }));
-      } else {
-        alert("No se pudo eliminar la foto");
-      }
-    })
-    .catch(() => alert("No se pudo eliminar la foto (error de red)"));
+    dispatch(deleteProductPhoto({ id, fotoId, token: user.token }))
+      .unwrap()
+      .then(() => {
+        setDeletePhotoMessage("Foto eliminada correctamente.");
+        setDeletePhotoSuccess(true);
+        setFotosActuales(prev => prev.filter(f => f.id !== fotoId));
+        setTimeout(() => {
+          setDeletePhotoMessage(null);
+          setDeletePhotoSuccess(false);
+        }, 2000);
+      })
+      .catch(() => {
+        setDeletePhotoMessage("No se pudo eliminar la foto");
+        setDeletePhotoSuccess(false);
+      });
   };
-  
+
+  // Handler para eliminar una imagen nueva antes de enviar
+  const handleEliminarImagenNueva = (idx) => {
+    setImagenesNuevas(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  // Handler para agregar nuevas imágenes
+  const handleChangeImagenes = (e) => {
+    const archivos = Array.from(e.target.files);
+    setImagenesNuevas(prev => [...prev, ...archivos]);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProducto(prev => ({
@@ -80,17 +96,14 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
     }));
     console.log(producto)
   };
-  const handleChangeImagenes = (e) => {
-    const archivos = Array.from(e.target.files);
-    setImagenes(archivos); // Reemplaza completamente las imágenes
-  };
+
   const handleEditarProducto = (e) => {
     e.preventDefault();
     setSuccess(false);
 
     if (!user?.token || user.token.split('.').length !== 3) {
-            alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
-            return;
+      alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
+      return;
     }
 
     const categoria = categorias.find(cat => cat.nombre == producto.categoria)
@@ -107,14 +120,25 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
     formData.append('tipoCuero', producto.tipoCuero);
     formData.append('instruccionesCuidado', producto.instrucciones)
     formData.append('categoryId', categoria.id);
-    // Solo agregar imágenes si se seleccionaron nuevas
-    if (imagenes.length > 0) {
-      imagenes.forEach((imagen) => {
+    // Agregar las fotos actuales (no eliminadas) como Blob
+    fotosActuales.forEach(foto => {
+      // foto.file es base64, convertir a Blob
+      const byteString = atob(foto.file);
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const mimeType = guessMimeType(foto);
+      const blob = new Blob([ab], { type: mimeType });
+      formData.append('files', blob, foto.nombre || `foto-actual-${foto.id}.jpg`);
+    });
+    // Agregar imágenes nuevas
+    if (imagenesNuevas.length > 0) {
+      imagenesNuevas.forEach((imagen) => {
         formData.append('files', imagen);
       });
     }
-    // Si no se seleccionan nuevas imágenes, el backend mantendrá las existentes
-    
     try {
       dispatch(updateProduct({token: user.token, formData, id}))
       setSuccess(true);
@@ -128,369 +152,411 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
     }
   };  
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Card minimalista */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <div className='flex'>
-            <button 
-                type="button"
-                onClick={()=> setMostrarEditarProducto(false)}
-                className="w-sm bg-gray-100 text-gray-700 py-2.5 px-4 rounded font-medium hover:bg-gray-200 transition-colors">
-                Volver
-            </button>
-          </div>
-          {/* Header simple */}
-          <div className="text-center mb-8 flex justify-center">
-            <h1 className="text-3xl font-serif font-semibold text-leather-800 mb-2">
-              Editar Producto
-            </h1>
-          </div>
-          {success && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6 text-sm">
-              <div className="flex items-center">
-                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                ¡Producto editado exitosamente! Redirigiendo...
-              </div>
-            </div>
-          )}
+  // Toast flotante para feedback de eliminación de foto
+  const deletePhotoToast = deletePhotoMessage ? (
+    <div
+      className={`fixed top-8 right-8 z-50 px-4 py-2 rounded shadow-lg transition-all duration-300 ${
+        deletePhotoSuccess ? "bg-green-600 text-white" : "bg-red-600 text-white"
+      }`}
+      style={{ minWidth: 200, textAlign: "center" }}
+    >
+      {deletePhotoMessage}
+    </div>
+  ) : null;
 
-          {/* Mensaje de error específico del backend */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 text-sm">
-              <div className="flex items-center">
-                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {error}
-              </div>
+  // Modal visual de confirmación para eliminar foto
+  const confirmDeleteModal = showConfirmModal && (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-[9999]">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+        <h2 className="text-lg font-bold mb-4">¿Seguro que querés eliminar esta foto?</h2>
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={() => setShowConfirmModal(false)}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => {
+              handleEliminarFoto(fotoAEliminar);
+              setShowConfirmModal(false);
+            }}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {deletePhotoToast}
+      {confirmDeleteModal}
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          {/* Card minimalista */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <div className='flex'>
+              <button 
+                  type="button"
+                  onClick={()=> setMostrarEditarProducto(false)}
+                  className="w-sm bg-gray-100 text-gray-700 py-2.5 px-4 rounded font-medium hover:bg-gray-200 transition-colors">
+                  Volver
+              </button>
             </div>
-          )}
-        
+            {/* Header simple */}
+            <div className="text-center mb-8 flex justify-center">
+              <h1 className="text-3xl font-serif font-semibold text-leather-800 mb-2">
+                Editar Producto
+              </h1>
+            </div>
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6 text-sm">
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  ¡Producto editado exitosamente! Redirigiendo...
+                </div>
+              </div>
+            )}
+
+            {/* Mensaje de error específico del backend */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 text-sm">
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {error}
+                </div>
+              </div>
+            )}
           
-        
-          {/* Formulario limpio */}
-          <form onSubmit={handleEditarProducto} className="space-y-5">
-            {/* Nombre producto */}
-            <div className="grid grid-cols-3 gap-4">
+          
+          
+            {/* Formulario limpio */}
+            <form onSubmit={handleEditarProducto} className="space-y-5">
+              {/* Nombre producto */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label 
+                    htmlFor="nombreProducto" 
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Nombre de Producto
+                  </label>
+                  <input
+                    type="text"
+                    id="nombre"
+                    name="nombre"
+                    value={producto?.nombre} 
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
+                    placeholder="Nombre de tu producto"
+                    required
+                  />
+                </div>
+               {/* Precio y stock */}
+              
+                <div>
+                  <label 
+                    htmlFor="precio" 
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Precio
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    id="precio"
+                    name="precio"
+                    value={producto?.precio}  
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
+                    placeholder="10000"
+                    required
+                  />
+                </div>
+              </div>
+            
+            
+              {/* Descripcion */}
               <div>
-                <label 
-                  htmlFor="nombreProducto" 
+                <label
+                  htmlFor="descripcion" 
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Nombre de Producto
+                  Descripcion
                 </label>
                 <input
                   type="text"
-                  id="nombre"
-                  name="nombre"
-                  value={producto?.nombre} 
-                  onChange={handleChange}
+                  id="descripcion"
+                  name="descripcion"
+                  value={producto?.descripcion} 
+                  onChange={handleChange} 
                   className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
-                  placeholder="Nombre de tu producto"
+                  placeholder="Tu descripcion..."
                   required
                 />
               </div>
-             {/* Precio y stock */}
             
-              <div>
-                <label 
-                  htmlFor="precio" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Precio
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  id="precio"
-                  name="precio"
-                  value={producto?.precio}  
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
-                  placeholder="10000"
-                  required
-                />
+              
+              {/* Categoria */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label 
+                    htmlFor="categoria" 
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Categoria
+                  </label>
+                  <select
+                    id="categoria"
+                    name="categoria"
+                    value={producto?.categoria}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 pr-10 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
+                    required
+                  >
+                    <option value="">{producto?.categoria}</option>
+                    {categorias?.map(categoria =>(
+                      <option value={categoria.nombre}>{categoria.nombre}</option>
+                    ))}
+                  </select>
+                  
+                </div>
+              
+                {/* Tipo de cuero */}
+                <div>
+                  <label 
+                    htmlFor="tipoCuero" 
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Tipo de cuero
+                  </label>
+                  <input
+                      type="text"
+                      id="tipoCuero"
+                      name="tipoCuero"
+                      value={producto?.tipoCuero}
+                      onChange={handleChange}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
+                      placeholder="Nobuck"
+                      required
+                    />
+                </div>
+              {/* Grosor */}
+                <div>
+                  <label 
+                    htmlFor="grosor" 
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Grosor
+                  </label>
+                  <input
+                      type="text"
+                      id="grosor"
+                      name="grosor"
+                      value={producto?.grosor}
+                      onChange={handleChange}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
+                      placeholder="Fino"
+                      required
+                    />
+                </div>
               </div>
-            </div>
-          
-          
-            {/* Descripcion */}
-            <div>
-              <label
-                htmlFor="descripcion" 
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Descripcion
+              {/* Acabado */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label 
+                    htmlFor="acabado" 
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Acabado
+                  </label>
+                  <input
+                      type="text"
+                      id="acabado"
+                      name="acabado"
+                      value={producto?.acabado}
+                      onChange={handleChange}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
+                      placeholder="Vintage"
+                      required
+                    />
+                </div>
+              {/**Color y textura */}
+              
+                {/*  Color */}
+                <div>
+                  <label 
+                    htmlFor="color" 
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Color
+                  </label>
+                  <input
+                      type="text"
+                      id="color"
+                      name="color"
+                      value={producto?.color}
+                      onChange={handleChange}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors`}
+                      placeholder="Negro"
+                      required
+                    />
+                </div>
+              {/* Textura */}
+                <div>
+                  <label 
+                    htmlFor="textura" 
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Textura
+                  </label>
+                  <input
+                      type="text"
+                      id="textura"
+                      name="textura"
+                      value={producto?.textura}
+                      onChange={handleChange}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
+                      placeholder="Trenzado"
+                      required
+                    />
+                </div>
+              </div>
+              {/**Instrucciones */}
+              <div>
+                  <label 
+                    htmlFor="instruccionesCuidado" 
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Instrucciones de cuidado
+                  </label>
+                  <input
+                      type="text"
+                      id="instruccionesCuidado"
+                      name="instruccionesCuidado"
+                      value={producto?.instruccionesCuidado}
+                      onChange={handleChange}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
+                      placeholder="Mantener en lugar..."
+                      required
+                    />
+                </div>
+              {/* Imágenes actuales */}
+              {fotosActuales.length > 0 && (
+                <div className="mb-3">
+                  <div className="font-semibold mb-1">Imágenes actuales:</div>
+                  <div className="flex gap-3 flex-wrap">
+                    {fotosActuales.map((foto, idx) => {
+                      const mimeType = guessMimeType(foto);
+                      return (
+                        <div key={foto.id || idx} className="relative">
+                          <button
+                            type="button"
+                            onClick={() => { setFotoAEliminar(foto.id); setShowConfirmModal(true); }}
+                            className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full p-1 text-red-500 hover:bg-red-100 shadow-sm z-10"
+                            aria-label="Eliminar imagen actual"
+                            tabIndex={0}
+                            title="Eliminar imagen"
+                          >
+                            ×
+                          </button>
+                          <img
+                            src={`data:${mimeType};base64,${foto.file}`}
+                            alt={`img-actual-${idx}`}
+                            className="h-20 w-20 object-cover rounded shadow border"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <span className="block text-xs text-gray-500 mt-1">
+                    Si no eliminás una imagen, se mantendrá. Podés sumar nuevas abajo.
+                  </span>
+                </div>
+              )}
+
+              <label htmlFor="imagenes" className="block text-sm font-medium text-gray-700 mb-2">
+                Imágenes nuevas
               </label>
-              <input
-                type="text"
-                id="descripcion"
-                name="descripcion"
-                value={producto?.descripcion} 
-                onChange={handleChange} 
-                className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
-                placeholder="Tu descripcion..."
-                required
-              />
-            </div>
-          
-            
-            {/* Categoria */}
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label 
-                  htmlFor="categoria" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
+              <div className="flex flex-col items-start gap-2">
+                <label
+                  htmlFor="imagenes"
+                  className="inline-block px-6 py-2 bg-white border border-leather-400 rounded cursor-pointer font-medium text-leather-800 hover:bg-cream-100 transition-colors"
+                  tabIndex={0}
                 >
-                  Categoria
-                </label>
-                <select
-                  id="categoria"
-                  name="categoria"
-                  value={producto?.categoria}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 pr-10 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
-                  required
-                >
-                  <option value="">{producto?.categoria}</option>
-                  {categorias?.map(categoria =>(
-                    <option value={categoria.nombre}>{categoria.nombre}</option>
-                  ))}
-                </select>
-                
-              </div>
-            
-              {/* Tipo de cuero */}
-              <div>
-                <label 
-                  htmlFor="tipoCuero" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Tipo de cuero
-                </label>
-                <input
-                    type="text"
-                    id="tipoCuero"
-                    name="tipoCuero"
-                    value={producto?.tipoCuero}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
-                    placeholder="Nobuck"
-                    required
+                  Elegir archivos
+                  <input
+                    id="imagenes"
+                    name="imagenes"
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp"
+                    multiple
+                    onChange={handleChangeImagenes}
+                    className="hidden"
                   />
-              </div>
-            {/* Grosor */}
-              <div>
-                <label 
-                  htmlFor="grosor" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Grosor
                 </label>
-                <input
-                    type="text"
-                    id="grosor"
-                    name="grosor"
-                    value={producto?.grosor}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
-                    placeholder="Fino"
-                    required
-                  />
-              </div>
-            </div>
-            {/* Acabado */}
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label 
-                  htmlFor="acabado" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Acabado
-                </label>
-                <input
-                    type="text"
-                    id="acabado"
-                    name="acabado"
-                    value={producto?.acabado}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
-                    placeholder="Vintage"
-                    required
-                  />
-              </div>
-            {/**Color y textura */}
-            
-              {/*  Color */}
-              <div>
-                <label 
-                  htmlFor="color" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Color
-                </label>
-                <input
-                    type="text"
-                    id="color"
-                    name="color"
-                    value={producto?.color}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors`}
-                    placeholder="Negro"
-                    required
-                  />
-              </div>
-            {/* Textura */}
-              <div>
-                <label 
-                  htmlFor="textura" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Textura
-                </label>
-                <input
-                    type="text"
-                    id="textura"
-                    name="textura"
-                    value={producto?.textura}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
-                    placeholder="Trenzado"
-                    required
-                  />
-              </div>
-            </div>
-            {/**Instrucciones */}
-            <div>
-                <label 
-                  htmlFor="instruccionesCuidado" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Instrucciones de cuidado
-                </label>
-                <input
-                    type="text"
-                    id="instruccionesCuidado"
-                    name="instruccionesCuidado"
-                    value={producto?.instruccionesCuidado}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
-                    placeholder="Mantener en lugar..."
-                    required
-                  />
-              </div>
-            {/* Imágenes actuales */}
-            {producto?.fotos?.length > 0 && imagenes.length === 0 && (
-              <div className="mb-3">
-                <div className="font-semibold mb-1">Imágenes actuales:</div>
-                <div className="flex gap-3 flex-wrap">
-                  {producto.fotos.map((foto, idx) => {
-                    const mimeType = guessMimeType(foto);
-                    return (
-                      <div key={foto.id || idx} className="relative">
+                <span className="text-sm font-medium text-gray-700 ml-1 select-none">
+                  {imagenesNuevas.length === 0
+                    ? 'No seleccionaste nuevas imágenes. Se mantendrán las actuales.'
+                    : `Vas a subir ${imagenesNuevas.length} nueva${imagenesNuevas.length > 1 ? 's' : ''} imagen${imagenesNuevas.length > 1 ? 'es' : ''}. Se sumarán a las actuales.`}
+                </span>
+                {/* Previsualización de nuevas imágenes seleccionadas */}
+                {imagenesNuevas.length > 0 && (
+                  <div className="flex flex-wrap gap-4 mt-4">
+                    {imagenesNuevas.map((imagen, idx) => (
+                      <div key={idx} className="relative flex flex-col items-center">
                         <button
                           type="button"
-                          onClick={() => handleEliminarFoto(foto.id)}
+                          onClick={() => handleEliminarImagenNueva(idx)}
                           className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full p-1 text-red-500 hover:bg-red-100 shadow-sm z-10"
-                          aria-label="Eliminar imagen actual"
+                          aria-label="Eliminar imagen"
                           tabIndex={0}
-                          title="Eliminar imagen"
                         >
                           ×
                         </button>
                         <img
-                          src={`data:${mimeType};base64,${foto.file}`}
-                          alt={`img-actual-${idx}`}
-                          className="h-20 w-20 object-cover rounded shadow border"
+                          src={URL.createObjectURL(imagen)}
+                          alt={`preview-${idx}`}
+                          className="h-24 w-24 object-cover rounded shadow border"
                         />
+                        <span className="text-xs mt-1">{imagen.name}</span>
                       </div>
-                    );
-                  })}
-                </div>
-                <span className="block text-xs text-gray-500 mt-1">
-                  Si no seleccionás nuevas imágenes, se mantendrán las actuales.
-                </span>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
 
-            <label htmlFor="imagenes" className="block text-sm font-medium text-gray-700 mb-2">
-              Imágenes nuevas
-            </label>
-            <div className="flex flex-col items-start gap-2">
-              <label
-                htmlFor="imagenes"
-                className="inline-block px-6 py-2 bg-white border border-leather-400 rounded cursor-pointer font-medium text-leather-800 hover:bg-cream-100 transition-colors"
-                tabIndex={0}
+              {/* Submit Button */}
+            <div className="pt-4">
+              <button
+                type="submit"
+                // disabled={loading}
+                className="w-full bg-leather-800 text-white py-2.5 px-4 rounded font-medium hover:bg-leather-900 focus:outline-none focus:ring-2 focus:ring-leather-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Elegir archivos
-                <input
-                  id="imagenes"
-                  name="imagenes"
-                  type="file"
-                  accept="image/png, image/jpeg, image/webp"
-                  multiple
-                  onChange={handleChangeImagenes}
-                  className="hidden"
-                />
-              </label>
-              <span className="text-sm font-medium text-gray-700 ml-1 select-none">
-                {imagenes.length === 0
-                  ? 'No seleccionaste nuevas imágenes. Se mantendrán las actuales.'
-                  : `Vas a subir ${imagenes.length} nueva${imagenes.length > 1 ? 's' : ''} imagen${imagenes.length > 1 ? 'es' : ''}. Esto reemplazará las actuales.`}
-              </span>
-              {/* Previsualización de nuevas imágenes seleccionadas */}
-              {imagenes.length > 0 && (
-                <div className="flex flex-wrap gap-4 mt-4">
-                  {imagenes.map((imagen, idx) => (
-                    <div key={idx} className="relative flex flex-col items-center">
-                      <button
-                        type="button"
-                        onClick={() => setImagenes(prev => prev.filter((_, i) => i !== idx))}
-                        className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full p-1 text-red-500 hover:bg-red-100 shadow-sm z-10"
-                        aria-label="Eliminar imagen"
-                        tabIndex={0}
-                      >
-                        ×
-                      </button>
-                      <img
-                        src={URL.createObjectURL(imagen)}
-                        alt={`preview-${idx}`}
-                        className="h-24 w-24 object-cover rounded shadow border"
-                      />
-                      <span className="text-xs mt-1">{imagen.name}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Editando producto...
+                  </div>
+                ) : (
+                  'Editar Producto'
+                )}
+              </button>
             </div>
-
-            {/* Submit Button */}
-          <div className="pt-4">
-            <button
-              type="submit"
-              // disabled={loading}
-              className="w-full bg-leather-800 text-white py-2.5 px-4 rounded font-medium hover:bg-leather-900 focus:outline-none focus:ring-2 focus:ring-leather-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Editando producto...
-                </div>
-              ) : (
-                'Editar Producto'
-              )}
-            </button>
+            </form>
           </div>
-          </form>
-        </div>
 
-        
+          
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
