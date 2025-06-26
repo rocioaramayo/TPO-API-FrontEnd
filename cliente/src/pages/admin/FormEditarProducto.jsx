@@ -60,21 +60,8 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
 
   // Handler para eliminar una foto actual del producto
   const handleEliminarFoto = (fotoId) => {
-    dispatch(deleteProductPhoto({ id, fotoId, token: user.token }))
-      .unwrap()
-      .then(() => {
-        setDeletePhotoMessage("Foto eliminada correctamente.");
-        setDeletePhotoSuccess(true);
-        setFotosActuales(prev => prev.filter(f => f.id !== fotoId));
-        setTimeout(() => {
-          setDeletePhotoMessage(null);
-          setDeletePhotoSuccess(false);
-        }, 2000);
-      })
-      .catch(() => {
-        setDeletePhotoMessage("No se pudo eliminar la foto");
-        setDeletePhotoSuccess(false);
-      });
+    dispatch(deleteProductPhoto({ id, fotoId, token: user.token }));
+    // El feedback se maneja en useEffect observando el estado global
   };
 
   // Handler para eliminar una imagen nueva antes de enviar
@@ -151,6 +138,29 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
       console.error('Error al crear producto:', error);
     }
   };  
+
+  // Feedback visual para eliminar foto usando el estado global de Redux
+  const { loading: productsLoading, error: productsError, success: productsSuccess } = useSelector((state) => state.products);
+
+  useEffect(() => {
+    if (productsSuccess) {
+      setDeletePhotoMessage("Foto eliminada correctamente.");
+      setDeletePhotoSuccess(true);
+      setFotosActuales(prev => prev.filter(f => f.id !== fotoAEliminar));
+      setTimeout(() => {
+        setDeletePhotoMessage(null);
+        setDeletePhotoSuccess(false);
+      }, 2000);
+    } else if (productsError) {
+      setDeletePhotoMessage("No se pudo eliminar la foto");
+      setDeletePhotoSuccess(false);
+      setTimeout(() => {
+        setDeletePhotoMessage(null);
+        setDeletePhotoSuccess(false);
+      }, 2000);
+    }
+    // eslint-disable-next-line
+  }, [productsSuccess, productsError]);
 
   // Toast flotante para feedback de eliminación de foto
   const deletePhotoToast = deletePhotoMessage ? (

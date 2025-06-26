@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { FaUser } from "react-icons/fa";
-import { updateUser } from "../../store/slices/usersSlice";
-import { updateProfile, changePassword } from "../../store/slices/usersSlice";
+import { updateUser, updateProfile, changePassword, clearUpdateProfileStatus, clearChangePasswordStatus } from "../../store/slices/usersSlice";
 
 const AdminProfilePage = () => {
   const dispatch = useDispatch();
@@ -20,6 +19,12 @@ const AdminProfilePage = () => {
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [profileMessage, setProfileMessage] = useState(null);
   const [profileSuccess, setProfileSuccess] = useState(false);
+
+  // Redux selectors para feedback
+  const updateProfileSuccess = useSelector((state) => state.users.updateProfileSuccess);
+  const updateProfileError = useSelector((state) => state.users.updateProfileError);
+  const changePasswordSuccess = useSelector((state) => state.users.changePasswordSuccess);
+  const changePasswordError = useSelector((state) => state.users.changePasswordError);
 
   const API_BASE = "http://localhost:8080";
 
@@ -40,6 +45,28 @@ const AdminProfilePage = () => {
     }
   }, [editMode]);
 
+  useEffect(() => {
+    if (updateProfileSuccess) {
+      setEditMode(false);
+      setProfileMessage("Perfil actualizado correctamente.");
+      setProfileSuccess(true);
+      setTimeout(() => {
+        setProfileMessage(null);
+        setProfileSuccess(false);
+        dispatch(clearUpdateProfileStatus());
+      }, 2000);
+    } else if (updateProfileError) {
+      setProfileMessage("Hubo un error al guardar los cambios.");
+      setProfileSuccess(false);
+      setTimeout(() => {
+        setProfileMessage(null);
+        setProfileSuccess(false);
+        dispatch(clearUpdateProfileStatus());
+      }, 2000);
+    }
+    // eslint-disable-next-line
+  }, [updateProfileSuccess, updateProfileError]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -50,21 +77,8 @@ const AdminProfilePage = () => {
       firstName: formData.firstName,
       lastName: formData.lastName,
       token: user.token,
-    }))
-      .unwrap()
-      .then(() => {
-        setEditMode(false);
-        setProfileMessage("Perfil actualizado correctamente.");
-        setProfileSuccess(true);
-        setTimeout(() => {
-          setProfileMessage(null);
-          setProfileSuccess(false);
-        }, 2000);
-      })
-      .catch(() => {
-        setProfileMessage("Hubo un error al guardar los cambios.");
-        setProfileSuccess(false);
-      });
+    }));
+    // El feedback se maneja en useEffect
   };
 
   const handleChangePassword = () => {
@@ -72,24 +86,40 @@ const AdminProfilePage = () => {
       oldPassword,
       newPassword,
       token: user.token,
-    }))
-      .unwrap()
-      .then(() => {
-        setPasswordMessage("¡Contraseña cambiada!");
-        setPasswordSuccess(true);
-        setTimeout(() => {
-          setShowPasswordModal(false);
-          setOldPassword("");
-          setNewPassword("");
-          setPasswordMessage(null);
-          setPasswordSuccess(false);
-        }, 2000);
-      })
-      .catch((e) => {
-        setPasswordMessage(e.message || "Error al cambiar contraseña");
-        setPasswordSuccess(false);
-      });
+    }));
+    // El feedback se maneja en useEffect
   };
+
+  useEffect(() => {
+    if (changePasswordSuccess) {
+      setPasswordMessage("¡Contraseña cambiada!");
+      setPasswordSuccess(true);
+      setTimeout(() => {
+        setShowPasswordModal(false);
+        setOldPassword("");
+        setNewPassword("");
+        setPasswordMessage(null);
+        setPasswordSuccess(false);
+        dispatch(clearChangePasswordStatus());
+      }, 2000);
+    } else if (changePasswordError) {
+      let msg = changePasswordError;
+      if (
+        msg === "Request failed with status code 400" ||
+        msg?.toString().includes("400")
+      ) {
+        msg = "La contraseña actual es incorrecta.";
+      }
+      setPasswordMessage(msg || "Error al cambiar contraseña");
+      setPasswordSuccess(false);
+      setTimeout(() => {
+        setPasswordMessage(null);
+        setPasswordSuccess(false);
+        dispatch(clearChangePasswordStatus());
+      }, 2000);
+    }
+    // eslint-disable-next-line
+  }, [changePasswordSuccess, changePasswordError]);
 
   if (!user) {
     return (
