@@ -24,7 +24,7 @@ const GestionUsuarios = () => {
 
     useEffect(() => {
         if (enableUserSuccess || disableUserSuccess) {
-            dispatch(fetchUsers(user.token));
+                dispatch(fetchUsers(user.token));
             setTimeout(() => {
                 dispatch(clearEnableDisableUserStatus());
             }, 2000);
@@ -95,12 +95,12 @@ const GestionUsuarios = () => {
                         <h2 className="text-lg font-semibold text-gray-800 mb-4">Cambiar contraseña</h2>
                         <p className="text-sm text-gray-600 mb-2">Usuario: <strong>{emailTarget}</strong></p>
                         <input
-                            type="password"
-                            placeholder="Nueva contraseña"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md mb-4 focus:ring focus:ring-[rgb(146_107_64)] focus:ring-opacity-40 focus:border-[rgb(146_107_64)] focus:outline-none"
-                            value={nuevaPassword}
-                            onChange={(e) => setNuevaPassword(e.target.value)}
-                        />
+  type="password"
+  placeholder="Nueva contraseña"
+  className="w-full px-4 py-2 border border-gray-300 rounded-md mb-4 focus:ring focus:ring-[rgb(146_107_64)] focus:ring-opacity-40 focus:border-[rgb(146_107_64)] focus:outline-none"
+  value={nuevaPassword}
+  onChange={(e) => setNuevaPassword(e.target.value)}
+/>
                         <div className="flex justify-end gap-2">
                             <button
                                 onClick={() => { setModalAbierto(false); setNuevaPassword(''); dispatch(clearChangePasswordStatus()); }}
@@ -109,13 +109,13 @@ const GestionUsuarios = () => {
                                 Cancelar
                             </button>
                             <button
-                                onClick={confirmarCambioPassword}
-                                className="text-white text-sm px-4 py-2 rounded"
+  onClick={confirmarCambioPassword}
+  className="text-white text-sm px-4 py-2 rounded"
                                 style={{ backgroundColor: 'rgb(146 107 64)', transition: 'background-color 0.2s' }}
                                 disabled={changePasswordLoading}
                             >
                                 {changePasswordLoading ? 'Cambiando...' : 'Confirmar'}
-                            </button>
+</button>
                         </div>
                     </div>
                 </div>

@@ -196,6 +196,29 @@ export const updateProduct = createAsyncThunk(
   }
 );
 
+// Thunk para obtener productos relacionados por categoría
+export const fetchRelatedProducts = createAsyncThunk(
+  'products/fetchRelatedProducts',
+  async ({ categoriaId, excludeProductId }, { rejectWithValue }) => {
+    try {
+      const params = new URLSearchParams();
+      params.append('categoriaId', categoriaId);
+      params.append('page', '0');
+      params.append('size', '4'); // Limitamos a 4 productos relacionados
+      
+      const response = await axios.get(`${API_URL}/productos/filtrar`, { params });
+      const productos = response.data.content || [];
+      
+      // Filtrar el producto actual en el frontend
+      const productosFiltrados = productos.filter(producto => producto.id !== excludeProductId);
+      
+      return productosFiltrados;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Error al cargar productos relacionados');
+    }
+  }
+);
+
 const initialState = {
   items: [],
   adminProducts: [],
@@ -205,6 +228,9 @@ const initialState = {
   tiposCuero: [], // Nuevo estado
   colores: [],      // Nuevo estado
   success: false,
+  relatedProducts: [], // Nuevo estado para productos relacionados
+  relatedProductsLoading: false,
+  relatedProductsError: null,
 };
 
 const productsSlice = createSlice({
@@ -363,6 +389,20 @@ const productsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
         state.success = null;
+      })
+      // reducers para fetchRelatedProducts
+      .addCase(fetchRelatedProducts.pending, (state) => {
+        state.relatedProductsLoading = true;
+        state.relatedProductsError = null;
+      })
+      .addCase(fetchRelatedProducts.fulfilled, (state, action) => {
+        state.relatedProductsLoading = false;
+        state.relatedProducts = action.payload;
+        state.relatedProductsError = null;
+      })
+      .addCase(fetchRelatedProducts.rejected, (state, action) => {
+        state.relatedProductsLoading = false;
+        state.relatedProductsError = action.payload;
       })
   },
 });

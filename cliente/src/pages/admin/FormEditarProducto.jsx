@@ -144,35 +144,11 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
 
   useEffect(() => {
     if (productsSuccess) {
-      setDeletePhotoMessage("Foto eliminada correctamente.");
-      setDeletePhotoSuccess(true);
       setFotosActuales(prev => prev.filter(f => f.id !== fotoAEliminar));
-      setTimeout(() => {
-        setDeletePhotoMessage(null);
-        setDeletePhotoSuccess(false);
-      }, 2000);
-    } else if (productsError) {
-      setDeletePhotoMessage("No se pudo eliminar la foto");
-      setDeletePhotoSuccess(false);
-      setTimeout(() => {
-        setDeletePhotoMessage(null);
-        setDeletePhotoSuccess(false);
-      }, 2000);
     }
+    // Si hay error, no mostrar nada
     // eslint-disable-next-line
   }, [productsSuccess, productsError]);
-
-  // Toast flotante para feedback de eliminación de foto
-  const deletePhotoToast = deletePhotoMessage ? (
-    <div
-      className={`fixed top-8 right-8 z-50 px-4 py-2 rounded shadow-lg transition-all duration-300 ${
-        deletePhotoSuccess ? "bg-green-600 text-white" : "bg-red-600 text-white"
-      }`}
-      style={{ minWidth: 200, textAlign: "center" }}
-    >
-      {deletePhotoMessage}
-    </div>
-  ) : null;
 
   // Modal visual de confirmación para eliminar foto
   const confirmDeleteModal = showConfirmModal && (
@@ -202,7 +178,6 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
 
   return (
     <>
-      {deletePhotoToast}
       {confirmDeleteModal}
       <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">

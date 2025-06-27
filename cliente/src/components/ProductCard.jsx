@@ -5,6 +5,7 @@ import { addToCart } from '../store/slices/cartSlice';
 import AuthMessage from './AuthMessage';
 import FavoriteNotification from './FavoriteNotification';
 
+// Definición de guessMimeType antes de cualquier uso
 const guessMimeType = (foto) => {
   if (foto?.nombre) {
     const ext = foto.nombre.split('.').pop().toLowerCase();
@@ -24,6 +25,10 @@ const ProductCard = ({
   onCartClick,
   onAuthRequired
 }) => {
+  // Log para debug de productos relacionados
+  // eslint-disable-next-line no-console
+  console.log('ProductCard: producto recibido', product);
+
   const { id, nombre, descripcion, precio, stock, categoria, fotos } = product;
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -153,7 +158,7 @@ const ProductCard = ({
               {nombre}
             </h3>
             <p className="font-serif italic text-sm text-amber-900 mb-3">
-              {categoria?.nombre || 'Sin categoría'}
+              {typeof categoria === 'string' ? categoria : categoria?.nombre || 'Sin categoría'}
             </p>
           </div>
           <div className="mt-auto">

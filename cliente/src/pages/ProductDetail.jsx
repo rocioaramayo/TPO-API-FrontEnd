@@ -23,6 +23,7 @@ import AuthMessage from '../components/AuthMessage';
 import ReviewList from '../components/ReviewList';
 import ReviewForm from '../components/ReviewForm';
 import FavoriteNotification from '../components/FavoriteNotification';
+import RelatedProducts from '../components/RelatedProducts';
 
 const AccordionItem = ({ title, children, isOpen, onClick }) => (
   <div className="border-b border-gray-200 py-6">
@@ -243,7 +244,7 @@ const ProductDetail = ({ onCartClick, onAuthRequired }) => {
                                 <ul className="list-disc pl-5 mt-4 space-y-1">
                                     <li>Tipo de Cuero: {producto.tipoCuero}</li>
                                     <li>Color: {producto.color}</li>
-                                    <li>Categoría: {producto.categoria?.nombre || producto.categoria}</li>
+                                    <li>Categoría: {producto.categoria}</li>
                                 </ul>
                             </AccordionItem>
                             <AccordionItem title="Envíos y Devoluciones" isOpen={openAccordion === 'envios'} onClick={() => setOpenAccordion('envios')}>
@@ -260,6 +261,16 @@ const ProductDetail = ({ onCartClick, onAuthRequired }) => {
                     <ReviewList key={producto.id} productoId={producto.id} />
                     {isAuthenticated && <ReviewForm productoId={producto.id} onReviewSubmitted={handleReviewSubmitted} />}
                 </section>
+
+                {/* Productos Relacionados */}
+                {producto.categoriaId && (
+                    <RelatedProducts 
+                        categoriaId={producto.categoriaId}
+                        excludeProductId={producto.id}
+                        onCartClick={onCartClick}
+                        onAuthRequired={onAuthRequired}
+                    />
+                )}
             </div>
             
             <AuthMessage isOpen={false} />
