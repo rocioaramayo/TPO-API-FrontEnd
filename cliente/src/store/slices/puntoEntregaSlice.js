@@ -36,6 +36,38 @@ export const createPunto = createAsyncThunk('puntoEntrega/createPunto', async ({
   }
 });
 
+// ✅ DELETE punto de entrega
+export const deletePuntoEntrega = createAsyncThunk(
+  'puntoEntrega/deletePuntoEntrega',
+  async ({ id, token }, { dispatch, rejectWithValue }) => {
+    try {
+      await axios.delete(`${API_URL}/entregas/puntos/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch(fetchPuntoEntrega(token));
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// ✅ ACTIVAR punto de entrega
+export const activatePuntoEntrega = createAsyncThunk(
+  'puntoEntrega/activatePuntoEntrega',
+  async ({ id, token }, { dispatch, rejectWithValue }) => {
+    try {
+      await axios.put(`${API_URL}/entregas/puntos/${id}/activar`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch(fetchPuntoEntrega(token));
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 const initialState = {
   items: [],
   itemsAdmin: [],
@@ -75,19 +107,43 @@ const puntoEntregaSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(createPunto.fulfilled, (state) =>{
-        state.loading = false;
-        state.error = null;
-      })
       .addCase(createPunto.pending, (state) =>{
         state.loading = true;
+        state.error = null;
+      })
+      .addCase(createPunto.fulfilled, (state) =>{
+        state.loading = false;
         state.error = null;
       })
       .addCase(createPunto.rejected, (state, action) =>{
         state.loading = false;
         state.error = action.payload;
       })
+      // ✅ deletePuntoEntrega
+      .addCase(deletePuntoEntrega.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deletePuntoEntrega.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(deletePuntoEntrega.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // ✅ activatePuntoEntrega
+      .addCase(activatePuntoEntrega.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(activatePuntoEntrega.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(activatePuntoEntrega.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
-export default puntoEntregaSlice.reducer; 
+export default puntoEntregaSlice.reducer;

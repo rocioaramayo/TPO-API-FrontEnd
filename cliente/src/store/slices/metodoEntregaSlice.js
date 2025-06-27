@@ -48,7 +48,39 @@ export const createMetodo = createAsyncThunk('metodoEntrega/createMetodo', async
     const mensaje = error.response?.data?.message || error.message;
     return rejectWithValue(mensaje);
   }
-} )
+});
+
+// ✅ DELETE método de entrega
+export const deleteMetodoEntrega = createAsyncThunk(
+  'metodoEntrega/deleteMetodoEntrega',
+  async ({ id, token }, { dispatch, rejectWithValue }) => {
+    try {
+      await axios.delete(`${API_URL}/entregas/metodos/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch(fetchMetodoEntrega(token));
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// ✅ ACTIVAR método de entrega
+export const activateMetodoEntrega = createAsyncThunk(
+  'metodoEntrega/activateMetodoEntrega',
+  async ({ id, token }, { dispatch, rejectWithValue }) => {
+    try {
+      await axios.put(`${API_URL}/entregas/metodos/${id}/activar`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch(fetchMetodoEntrega(token));
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
 
 export const limpiarCotizacion = createAction('metodoEntrega/limpiarCotizacion');
 
@@ -114,7 +146,6 @@ const metodoEntregaSlice = createSlice({
         state.cotizando = false;
         state.errorCotizacion = null;
       })
-      //crear metodo
       .addCase(createMetodo.pending, (state) =>{
         state.loading = true;
         state.error = null;
@@ -127,7 +158,31 @@ const metodoEntregaSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      // ✅ deleteMetodoEntrega
+      .addCase(deleteMetodoEntrega.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteMetodoEntrega.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(deleteMetodoEntrega.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // ✅ activateMetodoEntrega
+      .addCase(activateMetodoEntrega.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(activateMetodoEntrega.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(activateMetodoEntrega.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
   },
 });
 
-export default metodoEntregaSlice.reducer; 
+export default metodoEntregaSlice.reducer;

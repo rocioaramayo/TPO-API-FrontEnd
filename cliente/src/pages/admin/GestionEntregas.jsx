@@ -6,6 +6,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchMetodoEntrega } from "../../store/slices/metodoEntregaSlice";
 import { fetchPuntoEntrega } from "../../store/slices/puntoEntregaSlice";
 
+import {
+  deleteMetodoEntrega,
+  activateMetodoEntrega,
+} from "../../store/slices/metodoEntregaSlice";
+
+import {
+  deletePuntoEntrega,
+  activatePuntoEntrega,
+} from "../../store/slices/puntoEntregaSlice";
+
+
 export default function GestionEntregas() {
   const user = useSelector((state) => state.users.user);
   const dispatch = useDispatch();
