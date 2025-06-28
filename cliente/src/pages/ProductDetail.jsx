@@ -123,11 +123,6 @@ const ProductDetail = ({ onCartClick, onAuthRequired }) => {
         }
     };
 
-    // Callback para cuando se envía una nueva review
-    const handleReviewSubmitted = () => {
-        dispatch(fetchProductById(id));
-    };
-
     // función para formatear precio
     function formatPrice(price) {
         return new Intl.NumberFormat('es-AR', {
@@ -259,7 +254,7 @@ const ProductDetail = ({ onCartClick, onAuthRequired }) => {
                 
                 <section className="pb-24">
                     <ReviewList key={producto.id} productoId={producto.id} />
-                    {isAuthenticated && <ReviewForm productoId={producto.id} onReviewSubmitted={handleReviewSubmitted} />}
+                    {isAuthenticated && <ReviewForm productoId={producto.id} />}
                 </section>
 
                 {/* Productos Relacionados */}
