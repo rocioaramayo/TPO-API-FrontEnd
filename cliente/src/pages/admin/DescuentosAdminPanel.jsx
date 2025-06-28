@@ -37,28 +37,28 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
   const navigate = useNavigate();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [descuentoAEliminar, setDescuentoAEliminar] = useState(null);
+  const [filtroUnico, setFiltroUnico] = useState("todos");
   
   // LOG: Render principal
   console.log("RENDER PRINCIPAL", { showDeleteModal, descuentoAEliminar });
 
   useEffect(() => {
-    console.log("useEffect [descuentos, dispatch]");
+    console.log("useEffect [descuentos, categorias]");
+    // Crear un objeto que mapee categoría ID a nombre usando las categorías ya cargadas
+    const nuevoCategoriaPorId = {};
     descuentos.forEach(d => {
-      if (d.categoriaId && !categoriaPorId[d.categoriaId]) {
-        dispatch(getCategoryById(d.categoriaId))
-          .unwrap()
-          .then(cat => setCategoriaPorId(prev => ({
-            ...prev,
-            [d.categoriaId]: cat.nombre
-          })))
-          .catch(() => setCategoriaPorId(prev => ({
-            ...prev,
-            [d.categoriaId]: 'Sin categoría'
-          })));
+      if (d.categoriaId) {
+        // Buscar la categoría en el estado de categorías
+        const categoria = categorias.find(cat => cat.id === d.categoriaId);
+        if (categoria) {
+          nuevoCategoriaPorId[d.categoriaId] = categoria.nombre;
+        } else {
+          nuevoCategoriaPorId[d.categoriaId] = 'Sin categoría';
+        }
       }
     });
-    // eslint-disable-next-line
-  }, [descuentos, dispatch]);
+    setCategoriaPorId(nuevoCategoriaPorId);
+  }, [descuentos, categorias]);
 
   useEffect(() => {
     console.log("useEffect [visible, user, isAuthenticated, dispatch]");
@@ -215,6 +215,22 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
     return true;
   };
 
+  // Filtrado y orden
+  let descuentosFiltrados = descuentos;
+  if (filtroUnico === "vigentes") {
+    descuentosFiltrados = descuentos.filter(d => d.activo && isVigente(d)).sort((a, b) => a.codigo.localeCompare(b.codigo));
+  } else if (filtroUnico === "no_vigentes") {
+    descuentosFiltrados = descuentos.filter(d => d.activo && !isVigente(d)).sort((a, b) => a.codigo.localeCompare(b.codigo));
+  } else if (filtroUnico === "inactivos") {
+    descuentosFiltrados = descuentos.filter(d => !d.activo).sort((a, b) => a.codigo.localeCompare(b.codigo));
+  } else if (filtroUnico === "mas_recientes") {
+    descuentosFiltrados = [...descuentos].sort((a, b) => b.id - a.id);
+  } else if (filtroUnico === "mas_antiguos") {
+    descuentosFiltrados = [...descuentos].sort((a, b) => a.id - b.id);
+  } else {
+    descuentosFiltrados = [...descuentos].sort((a, b) => a.codigo.localeCompare(b.codigo));
+  }
+
   if (!visible && !fullPage) return null;
   if (!isAuthenticated || !user || user.role?.toLowerCase() !== 'admin') return null;
 
@@ -313,8 +329,25 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
                   >
                     <option value="">-- Seleccionar --</option>
                     {categorias.map(c => (
-                      <option key={c.id} value={c.id}>{c.nombre} (ID: {c.id})</option>
+                      <option key={c.id} value={c.id}>{c.nombre}</option>
                     ))}
+                  </select>
+                </div>
+              </div>
+              <div className="mb-4 flex flex-col md:flex-row md:items-center gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-leather-800 mb-1">Filtrar/Ordenar descuentos:</label>
+                  <select
+                    value={filtroUnico}
+                    onChange={e => setFiltroUnico(e.target.value)}
+                    className="border border-leather-200 rounded p-2 w-full md:w-80 focus:ring-2 focus:ring-leather-500 focus:border-leather-500"
+                  >
+                    <option value="todos">Todos</option>
+                    <option value="vigentes">Vigentes</option>
+                    <option value="no_vigentes">No vigentes</option>
+                    <option value="inactivos">Inactivos</option>
+                    <option value="mas_recientes">Más recientes primero</option>
+                    <option value="mas_antiguos">Más antiguos primero</option>
                   </select>
                 </div>
               </div>
@@ -328,6 +361,23 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
                 </button>
               </div>
             </form>
+            <div className="mb-6 flex justify-end">
+              <div>
+                <label className="block text-sm font-medium text-leather-800 mb-1 text-right">Filtrar/Ordenar descuentos:</label>
+                <select
+                  value={filtroUnico}
+                  onChange={e => setFiltroUnico(e.target.value)}
+                  className="border border-leather-200 rounded p-2 w-full md:w-80 focus:ring-2 focus:ring-leather-500 focus:border-leather-500"
+                >
+                  <option value="todos">Todos</option>
+                  <option value="vigentes">Vigentes</option>
+                  <option value="no_vigentes">No vigentes</option>
+                  <option value="inactivos">Inactivos</option>
+                  <option value="mas_recientes">Más recientes primero</option>
+                  <option value="mas_antiguos">Más antiguos primero</option>
+                </select>
+              </div>
+            </div>
             {loading ? <p className="text-leather-600">Cargando...</p> : null}
             {formError && <div className="text-red-500 mb-2">{formError}</div>}
             {createError && (
@@ -341,10 +391,10 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
               </div>
             )}
             <ul className="divide-y divide-leather-100 bg-white rounded-lg border border-leather-200 mb-8">
-              {descuentos.length === 0 && !loading && (
+              {descuentosFiltrados.length === 0 && !loading && (
                 <li className="py-4 text-leather-600 text-center">No hay descuentos registrados.</li>
               )}
-              {descuentos.map(d => {
+              {descuentosFiltrados.map(d => {
                 const vigente = isVigente(d);
                 const categoriaNombre =
                   d.categoria && d.categoria !== ''
@@ -352,6 +402,52 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
                     : d.categoriaId && categorias.length > 0
                     ? (categorias.find(cat => String(cat.id) === String(d.categoriaId))?.nombre ?? 'Sin categoría')
                     : 'Sin categoría';
+                if (editId === d.id) {
+                  return (
+                    <li key={d.id} className="py-4 px-4 bg-white border border-leather-200 rounded mb-2">
+                      <form onSubmit={e => { e.preventDefault(); handleEditSave(); }} className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
+                        <div>
+                          <label className="block text-sm font-medium text-leather-800 mb-1">Código</label>
+                          <input type="text" value={editData.codigo} onChange={e => setEditData(ed => ({ ...ed, codigo: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500" required />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-leather-800 mb-1">%</label>
+                          <input type="number" value={editData.porcentaje} onChange={e => setEditData(ed => ({ ...ed, porcentaje: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500" min="1" max="100" required />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-leather-800 mb-1">Descripción</label>
+                          <input type="text" value={editData.descripcion} onChange={e => setEditData(ed => ({ ...ed, descripcion: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-leather-800 mb-1">Fecha inicio</label>
+                          <input type="date" value={editData.fechaInicio} onChange={e => setEditData(ed => ({ ...ed, fechaInicio: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-leather-800 mb-1">Fecha fin</label>
+                          <input type="date" value={editData.fechaFin} onChange={e => setEditData(ed => ({ ...ed, fechaFin: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-leather-800 mb-1">Monto mínimo</label>
+                          <input type="number" value={editData.montoMinimo} onChange={e => setEditData(ed => ({ ...ed, montoMinimo: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500" min="0" />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-leather-800 mb-1">Categoría</label>
+                          <select value={editData.categoriaId} onChange={e => setEditData(ed => ({ ...ed, categoriaId: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500">
+                            <option value="">-- Seleccionar --</option>
+                            {categorias.map(c => (
+                              <option key={c.id} value={c.id}>{c.nombre}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="md:col-span-2 flex gap-3 justify-end">
+                          <button type="submit" className="text-green-700 font-bold hover:underline">Guardar</button>
+                          <button type="button" onClick={() => setEditId(null)} className="text-leather-700 font-bold hover:underline">Cancelar</button>
+                        </div>
+                      </form>
+                      {formError && <div className="text-red-500 mt-2">{formError}</div>}
+                    </li>
+                  );
+                }
                 return (
                   <li key={d.id} className="py-2 px-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex-1">
@@ -373,35 +469,18 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
                       <span className="text-leather-700 text-sm block">Fecha Fin: {d.fechaFin ? d.fechaFin.slice(0,10) : '-'}</span>
                       <span className="text-leather-700 text-sm block">Monto Mínimo: ${d.montoMinimo ?? 0}</span>
                       <span className="text-leather-700 text-sm block">
-                        Categoría: <strong>{d.categoria ? d.categoria : d.categoriaId ? (categoriaPorId[d.categoriaId] || `ID: ${d.categoriaId}`) : 'Sin categoría'}</strong>
+                        Categoría: <strong>{categoriaNombre}</strong>
                       </span>
                     </div>
                     <div className="flex flex-col items-end gap-2 min-w-[80px] md:self-center">
-                      <button
-                        onClick={() => handleEditClick(d)}
-                        className="text-blue-600 hover:underline"
-                      >
-                        Editar
-                      </button>
+                      <button onClick={() => handleEditClick(d)} className="text-blue-600 hover:underline">Editar</button>
                       {!d.activo && (
-                        <button className="text-green-700 hover:underline text-sm" onClick={() => handleActivar(d.id)}>
-                          Activar
-                        </button>
+                        <button className="text-green-700 hover:underline text-sm" onClick={() => handleActivar(d.id)}>Activar</button>
                       )}
                       {d.activo && (
-                        <button
-                          onClick={() => handleDesactivar(d.id)}
-                          className="text-yellow-700 hover:underline"
-                        >
-                          Desactivar
-                        </button>
+                        <button onClick={() => handleDesactivar(d.id)} className="text-yellow-700 hover:underline">Desactivar</button>
                       )}
-                      <button
-                        onClick={() => handleEliminar(d.id)}
-                        className="text-red-600 hover:underline"
-                      >
-                        Eliminar
-                      </button>
+                      <button onClick={() => handleEliminar(d.id)} className="text-red-600 hover:underline">Eliminar</button>
                     </div>
                   </li>
                 );
@@ -539,6 +618,23 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
           </button>
         </div>
       </form>
+      <div className="mb-6 flex justify-end">
+        <div>
+          <label className="block text-sm font-medium text-leather-800 mb-1 text-right">Filtrar/Ordenar descuentos:</label>
+          <select
+            value={filtroUnico}
+            onChange={e => setFiltroUnico(e.target.value)}
+            className="border border-leather-200 rounded p-2 w-full md:w-80 focus:ring-2 focus:ring-leather-500 focus:border-leather-500"
+          >
+            <option value="todos">Todos</option>
+            <option value="vigentes">Vigentes</option>
+            <option value="no_vigentes">No vigentes</option>
+            <option value="inactivos">Inactivos</option>
+            <option value="mas_recientes">Más recientes primero</option>
+            <option value="mas_antiguos">Más antiguos primero</option>
+          </select>
+        </div>
+      </div>
       {loading ? <p className="text-leather-600">Cargando...</p> : null}
       {formError && <div className="text-red-500 mb-2">{formError}</div>}
       {createError && (
@@ -552,10 +648,10 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
         </div>
       )}
       <ul className="divide-y divide-leather-100 bg-white rounded-lg border border-leather-200 mb-8">
-        {descuentos.length === 0 && !loading && (
+        {descuentosFiltrados.length === 0 && !loading && (
           <li className="py-4 text-leather-600 text-center">No hay descuentos registrados.</li>
         )}
-        {descuentos.map(d => {
+        {descuentosFiltrados.map(d => {
           const vigente = isVigente(d);
           const categoriaNombre =
             d.categoria && d.categoria !== ''
@@ -563,6 +659,52 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
               : d.categoriaId && categorias.length > 0
               ? (categorias.find(cat => String(cat.id) === String(d.categoriaId))?.nombre ?? 'Sin categoría')
               : 'Sin categoría';
+          if (editId === d.id) {
+            return (
+              <li key={d.id} className="py-4 px-4 bg-white border border-leather-200 rounded mb-2">
+                <form onSubmit={e => { e.preventDefault(); handleEditSave(); }} className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
+                  <div>
+                    <label className="block text-sm font-medium text-leather-800 mb-1">Código</label>
+                    <input type="text" value={editData.codigo} onChange={e => setEditData(ed => ({ ...ed, codigo: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-leather-800 mb-1">%</label>
+                    <input type="number" value={editData.porcentaje} onChange={e => setEditData(ed => ({ ...ed, porcentaje: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500" min="1" max="100" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-leather-800 mb-1">Descripción</label>
+                    <input type="text" value={editData.descripcion} onChange={e => setEditData(ed => ({ ...ed, descripcion: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-leather-800 mb-1">Fecha inicio</label>
+                    <input type="date" value={editData.fechaInicio} onChange={e => setEditData(ed => ({ ...ed, fechaInicio: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-leather-800 mb-1">Fecha fin</label>
+                    <input type="date" value={editData.fechaFin} onChange={e => setEditData(ed => ({ ...ed, fechaFin: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-leather-800 mb-1">Monto mínimo</label>
+                    <input type="number" value={editData.montoMinimo} onChange={e => setEditData(ed => ({ ...ed, montoMinimo: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500" min="0" />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-leather-800 mb-1">Categoría</label>
+                    <select value={editData.categoriaId} onChange={e => setEditData(ed => ({ ...ed, categoriaId: e.target.value }))} className="border border-leather-200 p-2 rounded w-full focus:ring-2 focus:ring-leather-500 focus:border-leather-500">
+                      <option value="">-- Seleccionar --</option>
+                      {categorias.map(c => (
+                        <option key={c.id} value={c.id}>{c.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="md:col-span-2 flex gap-3 justify-end">
+                    <button type="submit" className="text-green-700 font-bold hover:underline">Guardar</button>
+                    <button type="button" onClick={() => setEditId(null)} className="text-leather-700 font-bold hover:underline">Cancelar</button>
+                  </div>
+                </form>
+                {formError && <div className="text-red-500 mt-2">{formError}</div>}
+              </li>
+            );
+          }
           return (
             <li key={d.id} className="py-2 px-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex-1">
@@ -584,35 +726,18 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
                 <span className="text-leather-700 text-sm block">Fecha Fin: {d.fechaFin ? d.fechaFin.slice(0,10) : '-'}</span>
                 <span className="text-leather-700 text-sm block">Monto Mínimo: ${d.montoMinimo ?? 0}</span>
                 <span className="text-leather-700 text-sm block">
-                  Categoría: <strong>{d.categoria ? d.categoria : d.categoriaId ? (categoriaPorId[d.categoriaId] || `ID: ${d.categoriaId}`) : 'Sin categoría'}</strong>
+                  Categoría: <strong>{categoriaNombre}</strong>
                 </span>
               </div>
               <div className="flex flex-col items-end gap-2 min-w-[80px] md:self-center">
-                <button
-                  onClick={() => handleEditClick(d)}
-                  className="text-blue-600 hover:underline"
-                >
-                  Editar
-                </button>
+                <button onClick={() => handleEditClick(d)} className="text-blue-600 hover:underline">Editar</button>
                 {!d.activo && (
-                  <button className="text-green-700 hover:underline text-sm" onClick={() => handleActivar(d.id)}>
-                    Activar
-                  </button>
+                  <button className="text-green-700 hover:underline text-sm" onClick={() => handleActivar(d.id)}>Activar</button>
                 )}
                 {d.activo && (
-                  <button
-                    onClick={() => handleDesactivar(d.id)}
-                    className="text-yellow-700 hover:underline"
-                  >
-                    Desactivar
-                  </button>
+                  <button onClick={() => handleDesactivar(d.id)} className="text-yellow-700 hover:underline">Desactivar</button>
                 )}
-                <button
-                  onClick={() => handleEliminar(d.id)}
-                  className="text-red-600 hover:underline"
-                >
-                  Eliminar
-                </button>
+                <button onClick={() => handleEliminar(d.id)} className="text-red-600 hover:underline">Eliminar</button>
               </div>
             </li>
           );
