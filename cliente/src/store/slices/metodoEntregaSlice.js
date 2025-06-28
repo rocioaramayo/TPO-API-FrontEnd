@@ -50,32 +50,28 @@ export const createMetodo = createAsyncThunk('metodoEntrega/createMetodo', async
   }
 });
 
-// ✅ DELETE método de entrega
 export const deleteMetodoEntrega = createAsyncThunk(
   'metodoEntrega/deleteMetodoEntrega',
-  async ({ id, token }, { dispatch, rejectWithValue }) => {
+  async ({ id, token }, { rejectWithValue }) => {
     try {
-      await axios.delete(`${API_URL}/entregas/metodos/${id}`, {
+      const res = await axios.delete(`${API_URL}/entregas/metodos/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      dispatch(fetchMetodoEntrega(token));
-      return id;
+      return res.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
 
-// ✅ ACTIVAR método de entrega
 export const activateMetodoEntrega = createAsyncThunk(
   'metodoEntrega/activateMetodoEntrega',
-  async ({ id, token }, { dispatch, rejectWithValue }) => {
+  async ({ id, token }, { rejectWithValue }) => {
     try {
-      await axios.put(`${API_URL}/entregas/metodos/${id}/activar`, {}, {
+      const res = await axios.put(`${API_URL}/entregas/metodos/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      dispatch(fetchMetodoEntrega(token));
-      return id;
+      return res.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
     }
@@ -158,7 +154,6 @@ const metodoEntregaSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // ✅ deleteMetodoEntrega
       .addCase(deleteMetodoEntrega.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -170,7 +165,6 @@ const metodoEntregaSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // ✅ activateMetodoEntrega
       .addCase(activateMetodoEntrega.pending, (state) => {
         state.loading = true;
         state.error = null;

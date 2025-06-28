@@ -219,7 +219,7 @@ const Dashboard = () => {
               color: 'bg-leather-600 hover:bg-leather-700'
             },
             { 
-              label: 'Gestionar puntos de entrega', 
+              label: 'Gestion de entregas', 
               onClick: () => navigate('/admin/entregas', { state: { user } }),
               color: 'bg-leather-600 hover:bg-leather-700'
             },

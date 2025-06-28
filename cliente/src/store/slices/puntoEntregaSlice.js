@@ -36,32 +36,27 @@ export const createPunto = createAsyncThunk('puntoEntrega/createPunto', async ({
   }
 });
 
-// ✅ DELETE punto de entrega
+
 export const deletePuntoEntrega = createAsyncThunk(
   'puntoEntrega/deletePuntoEntrega',
-  async ({ id, token }, { dispatch, rejectWithValue }) => {
+  async ({ id, token }, { rejectWithValue }) => {
     try {
-      await axios.delete(`${API_URL}/entregas/puntos/${id}`, {
+      const res = await axios.delete(`${API_URL}/entregas/puntos/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      dispatch(fetchPuntoEntrega(token));
-      return id;
+      return res.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
 
-// ✅ ACTIVAR punto de entrega
-export const activatePuntoEntrega = createAsyncThunk(
-  'puntoEntrega/activatePuntoEntrega',
-  async ({ id, token }, { dispatch, rejectWithValue }) => {
+export const activatePuntoEntrega = createAsyncThunk( 'puntoEntrega/activatePuntoEntrega', async ({ id, token }, { rejectWithValue }) => {
     try {
-      await axios.put(`${API_URL}/entregas/puntos/${id}/activar`, {}, {
+      const res = await axios.put(`${API_URL}/entregas/puntos/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      dispatch(fetchPuntoEntrega(token));
-      return id;
+      return res.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
     }
@@ -119,7 +114,6 @@ const puntoEntregaSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // ✅ deletePuntoEntrega
       .addCase(deletePuntoEntrega.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -131,13 +125,13 @@ const puntoEntregaSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // ✅ activatePuntoEntrega
       .addCase(activatePuntoEntrega.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(activatePuntoEntrega.fulfilled, (state) => {
         state.loading = false;
+        state.error = null;
       })
       .addCase(activatePuntoEntrega.rejected, (state, action) => {
         state.loading = false;

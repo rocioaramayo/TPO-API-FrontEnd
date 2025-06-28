@@ -64,20 +64,20 @@ export default function GestionEntregas() {
       alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
       return;
     }
-    fetch(`http://localhost:8080/entregas/metodos/${id}` ,{
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${user.token}` },
-    })
-    .then(() => {
-      setMostrarAlertaDesactivarMetodo(false);
-      setMetodoSeleccionado({});
-      setSuccess("Método desactivado correctamente.");
-      setTimeout(() => setSuccess(null), 3000);
-    })
-    .catch(() => {
+    try {
+      dispatch(deleteMetodoEntrega({token: user.token,id}))
+      .then(()=>{
+        dispatch(fetchMetodoEntrega())
+        setMostrarAlertaDesactivarMetodo(false);
+        setMetodoSeleccionado({});
+        setSuccess("Método desactivado correctamente.");
+        setTimeout(() => setSuccess(null), 3000);
+      });
+      
+    } catch (error) {
       setError("Error al desactivar método.");
       setTimeout(() => setError(null), 3000);
-    });
+    }
   };
 
   const handleActivarMetodo = (e) => {
@@ -87,20 +87,20 @@ export default function GestionEntregas() {
       alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
       return;
     }
-    fetch(`http://localhost:8080/entregas/metodos/${id}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${user.token}` },
-    })
-    .then(() => {
-      setMostrarAlertaActivarMetodo(false);
-      setMetodoSeleccionado({});
-      setSuccess("Método activado correctamente.");
-      setTimeout(() => setSuccess(null), 3000);
-    })
-    .catch(() => {
+    try {
+      dispatch(activateMetodoEntrega({token: user.token, id}))
+      .then(()=>{
+        dispatch(fetchMetodoEntrega())
+        setMostrarAlertaActivarMetodo(false);
+        setMetodoSeleccionado({});
+        setSuccess("Método activado correctamente.");
+        setTimeout(() => setSuccess(null), 3000);
+      })
+      
+    } catch (error) {
       setError("Error al activar método.");
       setTimeout(() => setError(null), 3000);
-    });
+    }
   };
 
   const handleDesactivarPunto = (e) => {
@@ -110,43 +110,42 @@ export default function GestionEntregas() {
       alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
       return;
     }
-    fetch(`http://localhost:8080/entregas/puntos/${id}` ,{
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${user.token}` },
-    })
-    .then(() => {
-      setMostrarAlertaDesactivarPunto(false);
-      setPuntoSeleccionado({});
-      setSuccess("Punto desactivado correctamente.");
-      setTimeout(() => setSuccess(null), 3000);
-    })
-    .catch(() => {
+    try {
+      dispatch(deletePuntoEntrega({token:user.token, id}))
+      .then(()=>{
+        dispatch(fetchPuntoEntrega())
+        setMostrarAlertaDesactivarPunto(false);
+        setPuntoSeleccionado({});
+        setSuccess("Punto desactivado correctamente.");
+        setTimeout(() => setSuccess(null), 3000);
+      })
+    } catch (error) {
       setError("Error al desactivar punto.");
       setTimeout(() => setError(null), 3000);
-    });
+    }
   };
 
-  const handleActivarPunto = (e) => {
+  const handleActivarPunto = async (e) => {
     e.preventDefault();
     const id = puntoSeleccionado?.id;
     if (!user?.token || user.token.split('.').length !== 3) {
       alert("Token inválido o no disponible. Iniciá sesión de nuevo.");
       return;
     }
-    fetch(`http://localhost:8080/entregas/puntos/${id}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${user.token}` },
-    })
-    .then(() => {
-      setMostrarAlertaActivarPunto(false);
-      setMetodoSeleccionado({});
-      setSuccess("Punto activado correctamente.");
-      setTimeout(() => setSuccess(null), 3000);
-    })
-    .catch(() => {
+    try {
+      dispatch(activatePuntoEntrega({id,token: user.token}))
+      .then(() => {
+        dispatch(fetchPuntoEntrega())
+        setMostrarAlertaActivarPunto(false);
+        setPuntoSeleccionado({});
+        setSuccess("Punto activado correctamente.");
+        setTimeout(() => setSuccess(null), 3000);
+      })
+      
+    } catch (error) {
       setError("Error al activar punto.");
       setTimeout(() => setError(null), 3000);
-    });
+    }
   };
 
   return (
@@ -271,7 +270,10 @@ export default function GestionEntregas() {
                 
                 <div className="flex justify-between">
                     <button
-                    onClick={() => setMostrarAlertaDesactivarPunto(false)}
+                    onClick={() => {
+                      setMostrarAlertaDesactivarPunto(false);
+                      setPuntoSeleccionado({})
+                    }}
                     className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
                     >
                     Cancelar
