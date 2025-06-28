@@ -74,29 +74,31 @@ const FormCrearProducto = ({ setMostrarCrearProducto }) => {
       formData.append('files', imagen);
     });
     try {
-      const resultAction = await dispatch(createProduct({token: user.token,formData})).unwrap();
-      // Limpiar formulario
-      setProducto({
-        nombre:"",
-        descripcion:"",
-        precio:"",
-        stock:"",
-        categoria:"",
-        tipoCuero:"",
-        grosor:"",
-        acabado:"",
-        color:"",
-        textura:"",
-        instrucciones:"",
-        imagenes:[]
-      });
-      setImagenes([]);
+      await dispatch(createProduct({token: user.token,formData}))
+      .then(()=>{
+        // Limpiar formulario
+        setProducto({
+          nombre:"",
+          descripcion:"",
+          precio:"",
+          stock:"",
+          categoria:"",
+          tipoCuero:"",
+          grosor:"",
+          acabado:"",
+          color:"",
+          textura:"",
+          instrucciones:"",
+          imagenes:[]
+        });
+        setImagenes([]);
+        
+        setTimeout(() => {
+          setMostrarCrearProducto(false);
+          dispatch(fetchAdminProducts(user.token));
+        }, 2000);
+      })
       
-      setTimeout(() => {
-        setMostrarCrearProducto(false);
-        dispatch(fetchAdminProducts(user.token));
-      }, 2000);
-
     } catch(err){
       console.error('Error al crear producto:', err);
     }

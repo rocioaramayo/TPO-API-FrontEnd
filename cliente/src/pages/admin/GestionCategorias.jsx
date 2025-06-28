@@ -45,7 +45,6 @@ const GestionCategorias = () => {
     }));
   };
 
-  // Crear nueva categoría sin unwrap ni try/catch
   const handleCrearCategoria = (e) => {
     e.preventDefault();
     dispatch(createCategory({
@@ -54,7 +53,6 @@ const GestionCategorias = () => {
     }));
   };
 
-  // Ver detalles de categoría sin unwrap ni catch
   const verDetalleCategoria = (id) => {
     dispatch(getCategoryById(id));
   };
