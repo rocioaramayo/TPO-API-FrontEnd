@@ -82,6 +82,12 @@ const AdminProfilePage = () => {
   };
 
   const handleChangePassword = () => {
+
+    if (newPassword.length < 8) {
+      setPasswordMessage("La nueva contraseña debe tener al menos 8 caracteres.");
+      setPasswordSuccess(false);
+      return;
+    }
     dispatch(changePassword({
       oldPassword,
       newPassword,
