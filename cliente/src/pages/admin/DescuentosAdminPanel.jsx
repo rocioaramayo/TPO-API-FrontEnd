@@ -334,23 +334,7 @@ const DescuentosAdminPanel = ({ visible, onClose, fullPage }) => {
                   </select>
                 </div>
               </div>
-              <div className="mb-4 flex flex-col md:flex-row md:items-center gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-leather-800 mb-1">Filtrar/Ordenar descuentos:</label>
-                  <select
-                    value={filtroUnico}
-                    onChange={e => setFiltroUnico(e.target.value)}
-                    className="border border-leather-200 rounded p-2 w-full md:w-80 focus:ring-2 focus:ring-leather-500 focus:border-leather-500"
-                  >
-                    <option value="todos">Todos</option>
-                    <option value="vigentes">Vigentes</option>
-                    <option value="no_vigentes">No vigentes</option>
-                    <option value="inactivos">Inactivos</option>
-                    <option value="mas_recientes">Más recientes primero</option>
-                    <option value="mas_antiguos">Más antiguos primero</option>
-                  </select>
-                </div>
-              </div>
+              
               <div className="flex justify-end">
                 <button
                   type="submit"
