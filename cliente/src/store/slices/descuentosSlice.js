@@ -157,7 +157,7 @@ const descuentosSlice = createSlice({
       })
       .addCase(createDescuento.fulfilled, (state, action) => {
         state.loading = false;
-        state.items.unshift(action.payload);
+        state.items = [...state.items, action.payload];
         state.createSuccess = 'Descuento creado exitosamente';
         state.createError = null;
       })

@@ -84,7 +84,7 @@ const reviewSlice = createSlice({
       .addCase(createReview.fulfilled, (state, action) => {
         state.createLoading = false;
         state.createSuccess = true;
-        state.items.unshift(action.payload); // Agrega la nueva review al principio
+        state.items = [...state.items, action.payload]; // Agrega la nueva review al final de forma inmutable
       })
       .addCase(createReview.rejected, (state, action) => {
         state.createLoading = false;
