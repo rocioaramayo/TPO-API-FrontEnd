@@ -488,14 +488,7 @@ const CheckoutForm = () => {
             {orderError}
           </div>
         )}
-        <button
-          type="button"
-          className="w-full bg-leather-800 text-white py-3 rounded-lg font-bold text-lg mt-6 hover:bg-leather-900 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-          onClick={handleProcederPago}
-          disabled={orderLoading || procesandoCompra}
-        >
-          {orderLoading || procesandoCompra ? "Procesando..." : "Confirmar compra"}
-        </button>
+        
       </div>
     </div>
   );

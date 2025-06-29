@@ -292,7 +292,7 @@ const PuntosRetiroSection = ({ puntosRetiro, puntoRetiroId, setPuntoRetiroId }) 
       {puntoSeleccionado && (
         <div className="border rounded p-3 bg-gray-50">
           <div className="font-bold mb-1">{puntoSeleccionado.nombre}</div>
-          <div classNamuhe="text-sm"><span className="font-semibold">Dirección:</span> {puntoSeleccionado.direccion}</div>
+          <div className="text-sm"><span className="font-semibold">Dirección:</span> {puntoSeleccionado.direccion}</div>
           <div className="text-sm"><span className="font-semibold">Localidad:</span> {puntoSeleccionado.localidad}</div>
           <div className="text-sm"><span className="font-semibold">Provincia:</span> {puntoSeleccionado.provincia}</div>
           <div className="text-sm"><span className="font-semibold">Código postal:</span> {puntoSeleccionado.codigoPostal}</div>
