@@ -107,8 +107,15 @@ const ProfilePage = () => {
   }, [updateProfileSuccess, updateProfileError, dispatch]);
 
   const handleChangePassword = () => {
+    if (newPassword.length < 8) {
+      setPasswordMessage("La nueva contraseña debe tener al menos 8 caracteres.");
+      setPasswordSuccess(false);
+      return;
+    }
+
     dispatch(changePassword({ token: user.token, oldPassword, newPassword }));
   };
+
 
   useEffect(() => {
     if (changePasswordSuccess) {
