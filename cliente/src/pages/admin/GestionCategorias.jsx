@@ -6,7 +6,8 @@ import {
   getCategoryById,
   clearSelectedCategory,
   createCategory,
-  updateCategory // Asegurate que exista este thunk
+  updateCategory,
+  clearCreateSuccess
 } from '../../store/slices/categoriesSlice';
 
 const GestionCategorias = () => {
@@ -43,6 +44,15 @@ const GestionCategorias = () => {
       setCategoriaEnEdicion(null);
     }
   }, [createSuccess, showCreateForm]);
+
+  useEffect(() => {
+    if (createSuccess) {
+      const timeout = setTimeout(() => {
+        dispatch(clearCreateSuccess());
+      }, 3000);
+      return () => clearTimeout(timeout);
+    }
+  }, [createSuccess, dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

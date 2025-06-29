@@ -120,7 +120,7 @@ const favoritosSlice = createSlice({
             // Add Favorito
             .addCase(addFavorito.fulfilled, (state, action) => {
                 if (!state.ids.includes(action.payload)) {
-                    state.ids.push(action.payload);
+                    state.ids = [...state.ids, action.payload];
                 }
             })
             // Remove Favorito - ACTUALIZADO para que también quite de 'items'

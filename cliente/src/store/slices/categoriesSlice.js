@@ -69,6 +69,9 @@ const categoriesSlice = createSlice({
     clearSelectedCategory: (state) => {
       state.selectedCategory = null;
     },
+    clearCreateSuccess: (state) => {
+      state.createSuccess = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -108,7 +111,7 @@ const categoriesSlice = createSlice({
         })
         .addCase(createCategory.fulfilled, (state, action) => {
           state.loading = false;
-          state.items.push(action.payload);
+          state.items = [...state.items, action.payload];
           state.createSuccess = 'Categoría creada exitosamente';
           state.createError = null;
         })
@@ -141,5 +144,5 @@ const categoriesSlice = createSlice({
   },
 });
 
-export const { clearSelectedCategory } = categoriesSlice.actions;
+export const { clearSelectedCategory, clearCreateSuccess } = categoriesSlice.actions;
 export default categoriesSlice.reducer;
