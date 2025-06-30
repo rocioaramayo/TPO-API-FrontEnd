@@ -106,14 +106,13 @@ const ProfilePage = () => {
     }
   }, [updateProfileSuccess, updateProfileError, dispatch]);
 
-  const handleChangePassword = () => {
-    if (newPassword.length < 8) {
-      setPasswordMessage("La nueva contraseña debe tener al menos 8 caracteres.");
-      setPasswordSuccess(false);
-      return;
+  const handleChangePassword = async () => {
+    try {
+      const response = await dispatch(changePassword({ token: user.token, oldPassword, newPassword }));
+      console.log(response)
+    } catch (error) {
+      console.log(error)
     }
-
-    dispatch(changePassword({ token: user.token, oldPassword, newPassword }));
   };
 
 
@@ -131,12 +130,6 @@ const ProfilePage = () => {
       dispatch(clearChangePasswordStatus());
     } else if (changePasswordError) {
       let msg = changePasswordError;
-      if (
-        msg === "Request failed with status code 400" ||
-        msg?.toString().includes("400")
-      ) {
-        msg = "La contraseña actual es incorrecta.";
-      }
       setPasswordMessage(msg || "Error al cambiar contraseña");
       setPasswordSuccess(false);
     }

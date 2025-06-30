@@ -108,7 +108,7 @@ export const changePassword = createAsyncThunk('users/changePassword', async ({ 
     });
     return res.data;
   } catch (err) {
-    return rejectWithValue(err.response?.data?.message || err.message);
+    return rejectWithValue(err.response?.data?.detalle || err.message);
   }
 });
 
