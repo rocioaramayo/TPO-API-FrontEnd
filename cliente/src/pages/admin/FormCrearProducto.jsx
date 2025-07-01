@@ -13,6 +13,7 @@ const FormCrearProducto = ({ setMostrarCrearProducto }) => {
   const { loading } = useSelector((state) => state.products);
   const navigate = useNavigate();
   const [imagenes, setImagenes] = useState([]);
+  const [validationError, setValidationError] = useState("");
 
   const [producto, setProducto] = useState({
     nombre:"",
@@ -49,13 +50,12 @@ const FormCrearProducto = ({ setMostrarCrearProducto }) => {
 
   const handleCrearProducto = async (e) => {
     e.preventDefault();
-    // Validación rápida en frontend: Debe haber al menos una imagen
     if (imagenes.length === 0) {
-      return alert("El producto debe tener al menos una imagen.");
+      setValidationError("El producto debe tener al menos una imagen.");
+      return;
     }
-    
+    setValidationError("");
     const categoria = categorias.find(cat => cat.nombre == producto.categoria)
-    
     const formData = new FormData();
     formData.append('nombre', producto.nombre);
     formData.append('descripcion', producto.descripcion);
@@ -68,15 +68,12 @@ const FormCrearProducto = ({ setMostrarCrearProducto }) => {
     formData.append('tipoCuero', producto.tipoCuero);
     formData.append('instruccionesCuidado', producto.instrucciones)
     formData.append('categoryId', categoria.id);
-
-    // Agregar imágenes
     imagenes.forEach((imagen) => {
       formData.append('files', imagen);
     });
     try {
-      await dispatch(createProduct({token: user.token,formData}))
-      .then(()=>{
-        // Limpiar formulario
+      const result = await dispatch(createProduct({token: user.token,formData}));
+      if (result.type.endsWith('/fulfilled')) {
         setProducto({
           nombre:"",
           descripcion:"",
@@ -92,13 +89,11 @@ const FormCrearProducto = ({ setMostrarCrearProducto }) => {
           imagenes:[]
         });
         setImagenes([]);
-        
         setTimeout(() => {
           setMostrarCrearProducto(false);
           dispatch(fetchAdminProducts(user.token));
         }, 2000);
-      })
-      
+      }
     } catch(err){
       console.error('Error al crear producto:', err);
     }
@@ -124,6 +119,18 @@ const FormCrearProducto = ({ setMostrarCrearProducto }) => {
               Volver
             </button>
           </div>
+
+          {/* Mensaje de error de validación de imágenes */}
+          {validationError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 text-sm">
+              <div className="flex items-center">
+                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {validationError}
+              </div>
+            </div>
+          )}
 
           {/* Mensaje de éxito */}
           {success && (

@@ -1,10 +1,13 @@
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { addFavorito, removeFavorito } from '../store/slices/favoritosSlice';
 import ProductCard from './ProductCard';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 
 const FeaturedProducts = ({ onCartClick, onAuthRequired }) => {
   const { items: productos, loading } = useSelector((state) => state.products);
+  const favoritos = useSelector((state) => state.favoritos.ids);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   // Selecciono los 3 productos más recientes
   const featuredProducts = [...productos].sort((a, b) => b.id - a.id).slice(0, 3);
@@ -24,6 +27,15 @@ const FeaturedProducts = ({ onCartClick, onAuthRequired }) => {
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
   }, []);
+
+  // Handler para toggle de favoritos
+  const handleFavoriteClick = (id) => {
+    if (favoritos.includes(id)) {
+      dispatch(removeFavorito(id));
+    } else {
+      dispatch(addFavorito(id));
+    }
+  };
 
   return (
     <section
@@ -50,6 +62,8 @@ const FeaturedProducts = ({ onCartClick, onAuthRequired }) => {
             >
               <ProductCard 
                 product={producto}
+                isFavorite={favoritos.includes(producto.id)}
+                onFavoriteClick={handleFavoriteClick}
                 onCartClick={onCartClick}
                 onAuthRequired={onAuthRequired}
               />

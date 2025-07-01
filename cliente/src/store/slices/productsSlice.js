@@ -8,25 +8,17 @@ export const fetchProducts = createAsyncThunk(
   async (filtros = {}, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams();
-
-      // Append all filters that have a value
       Object.entries(filtros).forEach(([key, value]) => {
         if (value) {
           params.append(key, value);
         }
       });
-
-      // Always add pagination and sorting defaults if not present
       if (!params.has('page')) params.append('page', '0');
       if (!params.has('size')) params.append('size', '100');
       if (!params.has('ordenarPor')) params.append('ordenarPor', 'nombre');
       if (!params.has('orden')) params.append('orden', 'asc');
-
       const response = await axios.get(`${API_URL}/productos/filtrar`, { params });
-      
-      // The paginated response has products in `content`
       return response.data.content || [];
-
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Error al cargar productos');
     }
@@ -40,54 +32,44 @@ export const fetchAdminProducts = createAsyncThunk('products/fetchAdminProducts'
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log('Respuesta cruda de /productos/admin:', res.data);
     return res.data;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || err.message);
   }
 });
 
-// Thunk para obtener un producto por su ID
 export const fetchProductById = createAsyncThunk(
   'products/fetchProductById',
   async (id, { rejectWithValue }) => {
     try {
-      const response = await fetch(`http://localhost:8080/productos/detalle/${id}`);
-      if (!response.ok) {
-        throw new Error('No se pudo obtener el producto.');
-      }
-      const data = await response.json();
-      return data;
+      const response = await axios.get(`http://localhost:8080/productos/detalle/${id}`);
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.toString());
+      return rejectWithValue(error.response?.data?.message || error.message || 'No se pudo obtener el producto.');
     }
   }
 );
 
-// Thunk para obtener los tipos de cuero
 export const fetchTiposCuero = createAsyncThunk(
   'products/fetchTiposCuero',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch(`http://localhost:8080/productos/tipos-cuero`);
-      if (!response.ok) throw new Error('No se pudo obtener los tipos de cuero.');
-      return await response.json();
+      const response = await axios.get(`http://localhost:8080/productos/tipos-cuero`);
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.toString());
+      return rejectWithValue(error.response?.data?.message || error.message || 'No se pudo obtener los tipos de cuero.');
     }
   }
 );
 
-// Thunk para obtener los colores
 export const fetchColores = createAsyncThunk(
   'products/fetchColores',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch(`http://localhost:8080/productos/colores`);
-      if (!response.ok) throw new Error('No se pudo obtener los colores.');
-      return await response.json();
+      const response = await axios.get(`http://localhost:8080/productos/colores`);
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.toString());
+      return rejectWithValue(error.response?.data?.message || error.message || 'No se pudo obtener los colores.');
     }
   }
 );
@@ -106,7 +88,6 @@ export const createProduct = createAsyncThunk('products/createProduct', async({t
     return rejectWithValue(mensaje);
   }})
 
-// Eliminar producto
 export const deleteProduct = createAsyncThunk(
   'products/deleteProduct',
   async ({ id, token }, { dispatch, rejectWithValue }) => {
@@ -114,7 +95,6 @@ export const deleteProduct = createAsyncThunk(
       await axios.delete(`${API_URL}/productos/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Refrescar lista admin
       dispatch(fetchAdminProducts(token));
       return id;
     } catch (error) {
@@ -123,7 +103,6 @@ export const deleteProduct = createAsyncThunk(
   }
 );
 
-// Actualizar stock de producto
 export const updateProductStock = createAsyncThunk(
   'products/updateProductStock',
   async ({ id, stock, token }, { dispatch, rejectWithValue }) => {
@@ -142,7 +121,6 @@ export const updateProductStock = createAsyncThunk(
   }
 );
 
-// Activar producto
 export const activateProduct = createAsyncThunk(
   'products/activateProduct',
   async ({ id, token }, { dispatch, rejectWithValue }) => {
@@ -161,7 +139,6 @@ export const activateProduct = createAsyncThunk(
   }
 );
 
-// Eliminar foto de producto
 export const deleteProductPhoto = createAsyncThunk(
   'products/deleteProductPhoto',
   async ({ id, fotoId, token }, { dispatch, rejectWithValue }) => {
@@ -177,7 +154,6 @@ export const deleteProductPhoto = createAsyncThunk(
   }
 );
 
-// Editar producto
 export const updateProduct = createAsyncThunk(
   'products/updateProduct',
   async ({ token, formData, id }, { dispatch, rejectWithValue }) => {
@@ -196,7 +172,6 @@ export const updateProduct = createAsyncThunk(
   }
 );
 
-// Thunk para obtener productos relacionados por categoría
 export const fetchRelatedProducts = createAsyncThunk(
   'products/fetchRelatedProducts',
   async ({ categoriaId, excludeProductId }, { rejectWithValue }) => {
@@ -204,14 +179,10 @@ export const fetchRelatedProducts = createAsyncThunk(
       const params = new URLSearchParams();
       params.append('categoriaId', categoriaId);
       params.append('page', '0');
-      params.append('size', '4'); // Limitamos a 4 productos relacionados
-      
+      params.append('size', '4');
       const response = await axios.get(`${API_URL}/productos/filtrar`, { params });
       const productos = response.data.content || [];
-      
-      // Filtrar el producto actual en el frontend
       const productosFiltrados = productos.filter(producto => producto.id !== excludeProductId);
-      
       return productosFiltrados;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Error al cargar productos relacionados');
@@ -224,11 +195,11 @@ const initialState = {
   adminProducts: [],
   loading: false,
   error: null,
-  selectedProduct: null, // Nuevo estado para el producto seleccionado
-  tiposCuero: [], // Nuevo estado
-  colores: [],      // Nuevo estado
+  selectedProduct: null,
+  tiposCuero: [],
+  colores: [],
   success: false,
-  relatedProducts: [], // Nuevo estado para productos relacionados
+  relatedProducts: [],
   relatedProductsLoading: false,
   relatedProductsError: null,
 };
@@ -268,7 +239,6 @@ const productsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // Reducers para fetchProductById
       .addCase(fetchProductById.pending, (state) => {
         state.loading = true;
         state.selectedProduct = null;
@@ -284,17 +254,14 @@ const productsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // Reducers para fetchTiposCuero
       .addCase(fetchTiposCuero.fulfilled, (state, action) => {
         state.tiposCuero = action.payload;
         state.error = null;
       })
-      // Reducers para fetchColores
       .addCase(fetchColores.fulfilled, (state, action) => {
         state.colores = action.payload;
         state.error = null;
       })
-      //reducers para createProduct
       .addCase(createProduct.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -310,7 +277,6 @@ const productsSlice = createSlice({
         state.error = null;
         state.success = true;
       })
-      // reducers para deleteProduct
       .addCase(deleteProduct.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -326,7 +292,6 @@ const productsSlice = createSlice({
         state.error = action.payload;
         state.success = null;
       })
-      // reducers para updateProductStock
       .addCase(updateProductStock.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -342,7 +307,6 @@ const productsSlice = createSlice({
         state.error = action.payload;
         state.success = null;
       })
-      // reducers para activateProduct
       .addCase(activateProduct.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -358,7 +322,6 @@ const productsSlice = createSlice({
         state.error = action.payload;
         state.success = null;
       })
-      // reducers para deleteProductPhoto
       .addCase(deleteProductPhoto.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -374,7 +337,6 @@ const productsSlice = createSlice({
         state.error = action.payload;
         state.success = null;
       })
-      // reducers para updateProduct
       .addCase(updateProduct.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -390,7 +352,6 @@ const productsSlice = createSlice({
         state.error = action.payload;
         state.success = null;
       })
-      // reducers para fetchRelatedProducts
       .addCase(fetchRelatedProducts.pending, (state) => {
         state.relatedProductsLoading = true;
         state.relatedProductsError = null;
