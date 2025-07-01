@@ -36,6 +36,7 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
   const [deletePhotoSuccess, setDeletePhotoSuccess] = useState(false);
   const [fotoAEliminar, setFotoAEliminar] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [fotosAEliminar, setFotosAEliminar] = useState([]);
 
   // Cargar datos del producto desde Redux
   useEffect(() => {
@@ -84,7 +85,13 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
     console.log(producto)
   };
 
-  const handleEditarProducto = (e) => {
+  // Handler para marcar una foto actual para eliminar (no elimina en backend todavía)
+  const handleMarcarFotoParaEliminar = (fotoId) => {
+    setFotosAEliminar(prev => [...prev, fotoId]);
+    setFotosActuales(prev => prev.filter(f => f.id !== fotoId));
+  };
+
+  const handleEditarProducto = async (e) => {
     e.preventDefault();
     setSuccess(false);
 
@@ -109,7 +116,6 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
     formData.append('categoryId', categoria.id);
     // Agregar las fotos actuales (no eliminadas) como Blob
     fotosActuales.forEach(foto => {
-      // foto.file es base64, convertir a Blob
       const byteString = atob(foto.file);
       const ab = new ArrayBuffer(byteString.length);
       const ia = new Uint8Array(ab);
@@ -126,14 +132,23 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
         formData.append('files', imagen);
       });
     }
+    // Agregar los IDs de fotos a eliminar
+    if (fotosAEliminar.length > 0) {
+      fotosAEliminar.forEach(fotoId => {
+        formData.append('fotosAEliminar', fotoId);
+      });
+    }
     try {
-      dispatch(updateProduct({token: user.token, formData, id}))
-      setSuccess(true);
-      setTimeout(() => {
-        setMostrarEditarProducto(false)
-        dispatch(fetchAdminProducts(user.token))
-        setSuccess(false)
-      },3000);
+      const resultAction = await dispatch(updateProduct({token: user.token, formData, id}));
+      if (updateProduct.fulfilled.match(resultAction)) {
+        setSuccess(true);
+        setTimeout(() => {
+          setMostrarEditarProducto(false)
+          dispatch(fetchAdminProducts(user.token))
+          setSuccess(false)
+        },3000);
+      }
+      // Si fue rejected, el error se maneja por Redux y no se muestra éxito ni se cierra el modal
     } catch (error) {
       console.error('Error al crear producto:', error);
     }
@@ -149,6 +164,13 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
     // Si hay error, no mostrar nada
     // eslint-disable-next-line
   }, [productsSuccess, productsError]);
+
+  // Limpiar el estado de éxito si ocurre un error
+  useEffect(() => {
+    if (error) {
+      setSuccess(false);
+    }
+  }, [error]);
 
   // Modal visual de confirmación para eliminar foto
   const confirmDeleteModal = showConfirmModal && (
@@ -197,7 +219,7 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
                 Editar Producto
               </h1>
             </div>
-            {success && (
+            {success && !error && (
               <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6 text-sm">
                 <div className="flex items-center">
                   <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,7 +237,9 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
                   <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {error}
+                  {error.includes("ProductoSinImagenesException") || error.toLowerCase().includes("foto") || error.toLowerCase().includes("imagen")
+                    ? "Debe quedar al menos una foto en el producto."
+                    : error}
                 </div>
               </div>
             )}
@@ -441,22 +465,20 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
                     {fotosActuales.map((foto, idx) => {
                       const mimeType = guessMimeType(foto);
                       return (
-                        <div key={foto.id || idx} className="relative">
+                        <div key={foto.id} className="relative inline-block mr-2 mb-2">
+                          <img
+                            src={`data:${mimeType};base64,${foto.file}`}
+                            alt={`Foto ${idx + 1}`}
+                            className="w-24 h-24 object-cover rounded border"
+                          />
                           <button
                             type="button"
-                            onClick={() => { setFotoAEliminar(foto.id); setShowConfirmModal(true); }}
-                            className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full p-1 text-red-500 hover:bg-red-100 shadow-sm z-10"
-                            aria-label="Eliminar imagen actual"
-                            tabIndex={0}
-                            title="Eliminar imagen"
+                            onClick={() => handleMarcarFotoParaEliminar(foto.id)}
+                            className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700"
+                            title="Eliminar foto"
                           >
                             ×
                           </button>
-                          <img
-                            src={`data:${mimeType};base64,${foto.file}`}
-                            alt={`img-actual-${idx}`}
-                            className="h-20 w-20 object-cover rounded shadow border"
-                          />
                         </div>
                       );
                     })}
