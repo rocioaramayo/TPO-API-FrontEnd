@@ -243,7 +243,10 @@ const ProductDetail = ({ onCartClick, onAuthRequired }) => {
                             )}
                         </div>
                         {stockLimite ? <p className="bg-red-50 border border-red-200 text-red-700 px-2 mt-4 py-2 rounded text-xs w-fit" >¡Ups! No hay mas unidades en stock. No puedes agregar mas por el momento.</p>:null}
-                        <p className="mt-4 text-sm text-gray-500">{producto.stock > 0 ? `Disponible - ${producto.stock - quantity} unidades en stock` : 'Agotado'}</p>
+                        {/* Mostrar stock solo si el usuario no es admin */}
+                        {(!user || user.role !== "ADMIN") && (
+                          <p className="mt-4 text-sm text-gray-500">{producto.stock > 0 ? `Disponible - ${producto.stock} unidades en stock` : 'Agotado'}</p>
+                        )}
 
                         <div className="mt-10">
                             <AccordionItem title="Descripción" isOpen={openAccordion === 'descripcion'} onClick={() => setOpenAccordion('descripcion')}>
