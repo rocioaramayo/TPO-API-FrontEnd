@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { incrementQuantity, decrementQuantity, removeFromCart } from '../store/slices/cartSlice';
@@ -23,6 +23,9 @@ const CartSidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const cartItems = useSelector((state) => state.cart.items);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  // Estado para advertencia por producto
+  const [stockWarnings, setStockWarnings] = useState({});
+  const stockWarningTimeouts = useRef({});
 
   // Suma total
   const total = cartItems.reduce((acc, item) => acc + item.precio * item.quantity, 0);
@@ -77,17 +80,44 @@ const CartSidebar = ({ isOpen, onClose }) => {
                 })()}
                 <div className="flex-1">
                   <div className="font-medium text-orange-900 truncate">{item.nombre}</div>
-                  <div className="text-lg font-medium text-amber-900">${item.precio.toLocaleString()}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-medium text-amber-900">${item.precio.toLocaleString()}</span>
+                    {stockWarnings[item.id] && (
+                      <span className="text-xs text-red-600">Stock máximo alcanzado.</span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-3 mt-2">
                     <button
                       className="px-2 py-0.5 text-lg border rounded hover:bg-gray-100"
-                      onClick={() => dispatch(decrementQuantity(item.id))}
+                      onClick={() => {
+                        dispatch(decrementQuantity(item.id));
+                        setStockWarnings((prev) => ({ ...prev, [item.id]: false }));
+                        if (stockWarningTimeouts.current[item.id]) {
+                          clearTimeout(stockWarningTimeouts.current[item.id]);
+                        }
+                      }}
                     >-</button>
-                    <span className="font-medium text-base">{item.quantity}</span>
+                    <span className="font-medium text-base">{Math.min(item.quantity, item.stock !== undefined ? item.stock : 99)}</span>
                     <button
                       className="px-2 py-0.5 text-lg border rounded hover:bg-gray-100"
-                      onClick={() => dispatch(incrementQuantity(item.id))}
-                      disabled={item.quantity >= (item.stock !== undefined ? item.stock : 99)}
+                      onClick={() => {
+                        const max = item.stock !== undefined ? item.stock : 99;
+                        if (item.quantity < max) {
+                          dispatch(incrementQuantity(item.id));
+                          setStockWarnings((prev) => ({ ...prev, [item.id]: false }));
+                          if (stockWarningTimeouts.current[item.id]) {
+                            clearTimeout(stockWarningTimeouts.current[item.id]);
+                          }
+                        } else {
+                          setStockWarnings((prev) => ({ ...prev, [item.id]: true }));
+                          if (stockWarningTimeouts.current[item.id]) {
+                            clearTimeout(stockWarningTimeouts.current[item.id]);
+                          }
+                          stockWarningTimeouts.current[item.id] = setTimeout(() => {
+                            setStockWarnings((prev) => ({ ...prev, [item.id]: false }));
+                          }, 2000);
+                        }
+                      }}
                     >+</button>
                     <button
                         onClick={() => dispatch(removeFromCart(item.id))}
