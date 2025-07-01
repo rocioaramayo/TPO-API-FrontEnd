@@ -43,9 +43,6 @@ const RelatedProducts = ({ categoriaId, excludeProductId, onCartClick, onAuthReq
           <h2 className="text-3xl font-light text-orange-950 mb-4">
             Productos Relacionados
           </h2>
-          <p className="text-gray-600 font-light">
-            Descubre más productos de la misma categoría
-          </p>
         </div>
 
         {relatedProductsLoading ? (
