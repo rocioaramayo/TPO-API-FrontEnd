@@ -19,6 +19,9 @@ const FormCrearMetodoEntrega = ({setMostrarCrearMetodo }) => {
     requierePuntoRetiro: "",
     activo: true
   });
+  const metodosEntrega = useSelector(state => state.metodoEntrega.itemsAdmin);
+  // Verificar si ya existe un método con punto de retiro
+  const yaExisteMetodoConPuntoRetiro = metodosEntrega?.some(m => m.requierePuntoRetiro === true);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -184,7 +187,9 @@ const FormCrearMetodoEntrega = ({setMostrarCrearMetodo }) => {
                                         <option value={false}>No</option>
                                     </select>
                                 </div>
-                                <div>
+                                {/* Campo requiere punto de retiro: solo mostrar si NO existe uno */}
+                                {yaExisteMetodoConPuntoRetiro ? null : (
+                                  <div>
                                     <label htmlFor="requierePuntoRetiro" className="block text-sm font-medium text-gray-700 mb-2">
                                     Requiere punto de retiro *
                                     </label>
@@ -200,7 +205,8 @@ const FormCrearMetodoEntrega = ({setMostrarCrearMetodo }) => {
                                         <option value={true}>Si</option>
                                         <option value={false}>No</option>
                                     </select>
-                                </div>                                
+                                  </div>
+                                )}
                             </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {/* Botón de envío */}
