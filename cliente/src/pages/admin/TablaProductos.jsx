@@ -19,7 +19,7 @@ export default function TablaProductos({ onEditar }) {
     dispatch(fetchAdminProducts(user.token));
   }, [dispatch]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 12;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentProductos = Array.isArray(productos) ? productos.slice(startIndex, endIndex) : [];
