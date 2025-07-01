@@ -31,6 +31,14 @@ const Home = ({ logout, onCartClick, onAuthRequired }) => {
   const [heroVisible, setHeroVisible] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
 
+  // Crear refs para cada sección animada
+  const collectionRef = useRef(null);
+  const heritageRef = useRef(null);
+  const dividerRef = useRef(null);
+  const craftsmanshipRef = useRef(null);
+  const featuredRef = useRef(null);
+  const categoriesRef = useRef(null);
+
   // el effect ponerle ligca=
   useEffect(() => {
     dispatch(fetchProducts());
@@ -48,7 +56,7 @@ const Home = ({ logout, onCartClick, onAuthRequired }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Intersection Observer for animations
+  // Intersection Observer for animations (React way)
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -61,8 +69,17 @@ const Home = ({ logout, onCartClick, onAuthRequired }) => {
       { threshold: 0.1 }
     );
 
-    const sections = document.querySelectorAll('[data-animate]');
-    sections.forEach((section) => observer.observe(section));
+    const sections = [
+      collectionRef.current,
+      heritageRef.current,
+      dividerRef.current,
+      craftsmanshipRef.current,
+      featuredRef.current,
+      categoriesRef.current
+    ];
+    sections.forEach((section) => {
+      if (section) observer.observe(section);
+    });
 
     return () => observer.disconnect();
   }, []);
@@ -179,6 +196,7 @@ const Home = ({ logout, onCartClick, onAuthRequired }) => {
       <section 
         id="collection-highlight"
         data-animate
+        ref={collectionRef}
         className={`py-32 px-4 bg-white transition-all duration-1000 ${
           isVisible['collection-highlight'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
         }`}
@@ -249,6 +267,7 @@ const Home = ({ logout, onCartClick, onAuthRequired }) => {
       <section 
         id="craftsmanship"
         data-animate
+        ref={craftsmanshipRef}
         className={`py-32 px-4 bg-white transition-all duration-1000 ${
           isVisible.craftsmanship ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
         }`}
@@ -357,29 +376,32 @@ const Home = ({ logout, onCartClick, onAuthRequired }) => {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Testimonials - Versión simplificada sin animaciones complejas */}
       <section 
         id="testimonials" 
-        data-animate
-        className={`py-24 px-4 transition-all duration-1000 ${
-          isVisible.testimonials ? 'opacity-100' : 'opacity-0'
-        }`}
+        className="min-h-[400px] py-16 px-4 bg-gradient-to-br from-orange-50 to-amber-100"
         style={{
-          backgroundImage: `linear-gradient(rgba(255, 247, 237, 0.9), rgba(255, 250, 245, 0.95)), url(${cercaTextura})`,
+          backgroundImage: `linear-gradient(rgba(255, 247, 237, 0.95), rgba(255, 250, 245, 0.95)), url('/src/assets/cerca-en-la-textura-delicada.jpg')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundAttachment: 'fixed'
+          backgroundRepeat: 'no-repeat',
+          zIndex: 10,
+          position: 'relative',
+          overflow: 'visible',
         }}
       >
         <div className="max-w-7xl mx-auto">
+          {/* Título */}
           <div className="text-center mb-20">
-            <h2 className="text-5xl font-light text-orange-950 mb-8">
+            <h2 className="text-6xl font-light text-orange-950 mb-8">
               Voces de
               <span className="block font-serif italic text-amber-900">excelencia</span>
             </h2>
-            <div className="w-32 h-px bg-gradient-to-r from-orange-600 to-amber-400 mx-auto"></div>
+            <div className="w-32 h-1 bg-gradient-to-r from-orange-600 to-amber-400 mx-auto rounded-full"></div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          
+          {/* Grid de testimoniales */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
             {[
               {
                 text: "La calidad del cuero es excepcional. Después de dos años de uso diario, mi cartera se ve aún mejor que el primer día.",
@@ -388,7 +410,7 @@ const Home = ({ logout, onCartClick, onAuthRequired }) => {
               },
               {
                 text: "Cada detalle refleja el amor por el oficio. Es reconfortante saber que existen artesanos que mantienen viva la tradición.",
-                author: "Carlos Mendoza",
+                author: "Carlos Mendoza", 
                 role: "Coleccionista"
               },
               {
@@ -397,23 +419,38 @@ const Home = ({ logout, onCartClick, onAuthRequired }) => {
                 role: "Empresaria"
               }
             ].map((testimonial, index) => (
-              <div key={index} className="bg-white/60 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm border border-white/20">
+              <div 
+                key={index}
+                className="bg-white p-8 rounded-3xl shadow-xl border border-orange-100"
+                style={{
+                  opacity: 1,
+                  zIndex: 20,
+                  position: 'relative'
+                }}
+              >
+                {/* Icono de comillas */}
                 <div className="mb-6">
-                  <svg className="w-8 h-8 text-orange-700" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-12 h-12 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z"/>
                   </svg>
                 </div>
-                <p className="text-orange-800 leading-relaxed mb-6 font-light">
+                
+                {/* Texto del testimonial */}
+                <p className="text-gray-800 leading-relaxed mb-8 text-lg font-medium">
                   "{testimonial.text}"
                 </p>
+                
+                {/* Información del autor */}
                 <div className="border-t border-orange-200 pt-6">
-                  <div className="font-medium text-orange-950">{testimonial.author}</div>
-                  <div className="text-sm text-orange-700">{testimonial.role}</div>
+                  <div className="font-bold text-orange-950 text-xl">{testimonial.author}</div>
+                  <div className="text-orange-700 font-semibold text-sm uppercase tracking-wide">{testimonial.role}</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+        {/* Espaciado adicional para asegurar que se vea todo */}
+        <div className="h-20"></div>
       </section>
 
       {/* Categorías Destacadas debajo de reviews */}
