@@ -429,44 +429,55 @@ const Navigation = ({ onCartClick }) => {
                     className="w-full pl-10 pr-4 py-3 border border-leather-200 rounded-lg text-sm placeholder-leather-400 focus:outline-none focus:ring-2 focus:ring-leather-300"
                   />
                 </form>
-               
+
                 <div className="space-y-2">
                   <Link
-                    to="/productos"
-                    className="block py-2 text-leather-700 hover:text-leather-900 font-medium"
-                    onClick={() => setIsMenuOpen(false)}
+                      to="/productos"
+                      className="block py-2 text-leather-700 hover:text-leather-900 font-medium"
+                      onClick={() => setIsMenuOpen(false)}
                   >
                     Productos
                   </Link>
                   <Link
-                    to="/nosotros"
-                    className="block py-2 text-leather-700 hover:text-leather-900 font-medium"
-                    onClick={() => setIsMenuOpen(false)}
+                      to="/nosotros"
+                      className="block py-2 text-leather-700 hover:text-leather-900 font-medium"
+                      onClick={() => setIsMenuOpen(false)}
                   >
                     Nosotros
                   </Link>
                   <Link
-                    to="/contacto"
-                    className="block py-2 text-leather-700 hover:text-leather-900 font-medium"
-                    onClick={() => setIsMenuOpen(false)}
+                      to="/contacto"
+                      className="block py-2 text-leather-700 hover:text-leather-900 font-medium"
+                      onClick={() => setIsMenuOpen(false)}
                   >
                     Contacto
                   </Link>
                   <Link
-                    to="/cuidado-del-cuero"
-                    className="block py-2 text-leather-700 hover:text-leather-900 font-medium"
-                    onClick={() => setIsMenuOpen(false)}
+                      to="/cuidado-del-cuero"
+                      className="block py-2 text-leather-700 hover:text-leather-900 font-medium"
+                      onClick={() => setIsMenuOpen(false)}
                   >
                     Cuidado del Cuero
                   </Link>
                   <Link
-                    to="/garantia"
-                    className="block py-2 text-leather-700 hover:text-leather-900 font-medium"
-                    onClick={() => setIsMenuOpen(false)}
+                      to="/garantia"
+                      className="block py-2 text-leather-700 hover:text-leather-900 font-medium"
+                      onClick={() => setIsMenuOpen(false)}
                   >
                     Garantía
                   </Link>
+
+                  {user?.role?.toLowerCase() === 'admin' && (
+                      <Link
+                          to="/admin"
+                          className="block py-2 text-red-700 hover:text-red-900 font-semibold uppercase tracking-wider"
+                          onClick={() => setIsMenuOpen(false)}
+                      >
+                        Panel Admin
+                      </Link>
+                  )}
                 </div>
+
 
 
                 {!user && (

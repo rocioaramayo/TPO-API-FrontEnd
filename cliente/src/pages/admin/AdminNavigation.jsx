@@ -1,7 +1,9 @@
-// src/components/Navigation.jsx
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 
 const AdminNavigation = () => {
+    const [showMenu, setShowMenu] = useState(false);
+
     return (
         <nav className="bg-white shadow-sm border-b border-leather-200 sticky top-0 z-50" role="navigation" aria-label="Navegación de administrador">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,18 +30,45 @@ const AdminNavigation = () => {
                         </Link>
                     </div>
 
-                    {/* Botón volver */}
+                    {/* Botón volver y hamburguesa */}
                     <div className="flex items-center space-x-4">
                         <Link
                             to="/"
-                            className="bg-leather-800 text-white hover:bg-leather-900 font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+                            className="hidden lg:inline-block bg-leather-800 text-white hover:bg-leather-900 font-medium px-4 py-2 rounded-lg transition-colors duration-200"
                         >
                             Volver a inicio
                         </Link>
-                    </div>
 
+                        {/* Botón hamburguesa (mobile) */}
+                        <button
+                            onClick={() => setShowMenu(!showMenu)}
+                            className="lg:hidden p-2 rounded hover:bg-gray-100"
+                        >
+                            <svg className="w-6 h-6 text-leather-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                {showMenu ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                )}
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            {/* Menú desplegable solo visible en mobile */}
+            {showMenu && (
+                <div className="lg:hidden border-t border-leather-100 bg-white shadow-md z-40">
+                    <div className="px-4 py-4 space-y-2">
+                        <Link to="/admin" onClick={() => setShowMenu(false)} className="block text-leather-800 hover:text-leather-900">
+                            Panel Admin
+                        </Link>
+                        <Link to="/" onClick={() => setShowMenu(false)} className="block text-leather-800 hover:text-leather-900">
+                            Volver a inicio
+                        </Link>
+                    </div>
+                </div>
+            )}
         </nav>
     );
 };
