@@ -261,7 +261,7 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
                     type="text"
                     id="nombre"
                     name="nombre"
-                    value={producto?.nombre} 
+                    value={producto?.nombre}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                     placeholder="Nombre de tu producto"
@@ -282,7 +282,7 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
                     step="any"
                     id="precio"
                     name="precio"
-                    value={producto?.precio}  
+                    value={producto?.precio}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                     placeholder="10000"
@@ -304,8 +304,8 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
                   type="text"
                   id="descripcion"
                   name="descripcion"
-                  value={producto?.descripcion} 
-                  onChange={handleChange} 
+                  value={producto?.descripcion}
+                  onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                   placeholder="Tu descripcion..."
                   required
@@ -354,8 +354,7 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
                       onChange={handleChange}
                       className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                       placeholder="Nobuck"
-                      required
-                    />
+                  />
                 </div>
               {/* Grosor */}
                 <div>
@@ -373,8 +372,7 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
                       onChange={handleChange}
                       className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                       placeholder="Fino"
-                      required
-                    />
+                  />
                 </div>
               </div>
               {/* Acabado */}
@@ -394,8 +392,7 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
                       onChange={handleChange}
                       className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
                       placeholder="Vintage"
-                      required
-                    />
+                  />
                 </div>
               {/**Color y textura */}
               
@@ -415,8 +412,7 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
                       onChange={handleChange}
                       className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors`}
                       placeholder="Negro"
-                      required
-                    />
+                  />
                 </div>
               {/* Textura */}
                 <div>
@@ -433,9 +429,8 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
                       value={producto?.textura}
                       onChange={handleChange}
                       className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
-                      placeholder="Trenzado"
-                      required
-                    />
+                      placeholder="Liso"
+                  />
                 </div>
               </div>
               {/**Instrucciones */}
@@ -453,9 +448,8 @@ const FormEditarProducto = ({ setMostrarEditarProducto, id }) => {
                       value={producto?.instruccionesCuidado}
                       onChange={handleChange}
                       className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-leather-500 focus:border-leather-500 transition-colors `}
-                      placeholder="Mantener en lugar..."
-                      required
-                    />
+                      placeholder="Instrucciones de cuidado"
+                  />
                 </div>
               {/* Imágenes actuales */}
               {fotosActuales.length > 0 && (
