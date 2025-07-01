@@ -42,8 +42,17 @@ const FormCrearMetodoEntrega = ({setMostrarCrearMetodo }) => {
       return;
     }
 
+    // Convertir los campos a booleano/número real antes de enviar
+    const metodoAEnviar = {
+      ...metodo,
+      requiereDireccion: metodo.requiereDireccion === "true",
+      requierePuntoRetiro: metodo.requierePuntoRetiro === "true",
+      costoBase: Number(metodo.costoBase),
+      tiempoEstimadoDias: Number(metodo.tiempoEstimadoDias),
+    };
+
     try {
-      await dispatch(createMetodo({token: user.token, data: metodo}))
+      await dispatch(createMetodo({token: user.token, data: metodoAEnviar}))
       setLoading(false);
       setSuccess(true);
       setError(null);

@@ -210,32 +210,37 @@ const ProductDetail = ({ onCartClick, onAuthRequired }) => {
                         <p className="text-3xl font-medium text-amber-900 mt-4">{formatPrice(producto.precio)}</p>
                         
                         <div className="mt-6 flex items-center gap-4">
-                            <div className="flex items-center border border-gray-300 rounded-md">
-                                <button onClick={() => {
-                                    setQuantity(q => Math.max(1, q - 1))
-                                    setStockLimite(false)
-                                }} className="px-4 py-3 text-lg hover:bg-gray-100 rounded-l-md transition-colors">-</button>
-                                <span className="px-5 py-3 text-base font-medium">{quantity}</span>
-                                <button onClick={() => {
-                                    setQuantity(q => Math.min(producto.stock, q + 1))
-                                    if(producto.stock == quantity) setStockLimite(true)
-                                }} className="px-4 py-3 text-lg hover:bg-gray-100 rounded-r-md transition-colors">+</button>
-                            </div>
-                            <button
-                                onClick={handleAddToCart}
-                                className="flex-1 bg-orange-950 text-white py-3 px-6 rounded-md font-light tracking-wider hover:bg-orange-900 transition-colors uppercase text-sm"
-                            >
-                                Añadir al Carrito
-                            </button>
-                            <button
-                                onClick={handleFavoriteToggle}
-                                className="p-3 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
-                                title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-                            >
-                                <svg className={`w-6 h-6 transition-colors ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} viewBox="0 0 24 24">
-                                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg>
-                            </button>
+                            {/* Solo mostrar si el usuario no es admin */}
+                            {(!user || user.role !== "ADMIN") && (
+                                <>
+                                    <div className="flex items-center border border-gray-300 rounded-md">
+                                        <button onClick={() => {
+                                            setQuantity(q => Math.max(1, q - 1))
+                                            setStockLimite(false)
+                                        }} className="px-4 py-3 text-lg hover:bg-gray-100 rounded-l-md transition-colors">-</button>
+                                        <span className="px-5 py-3 text-base font-medium">{quantity}</span>
+                                        <button onClick={() => {
+                                            setQuantity(q => Math.min(producto.stock, q + 1))
+                                            if(producto.stock == quantity) setStockLimite(true)
+                                        }} className="px-4 py-3 text-lg hover:bg-gray-100 rounded-r-md transition-colors">+</button>
+                                    </div>
+                                    <button
+                                        onClick={handleAddToCart}
+                                        className="flex-1 bg-orange-950 text-white py-3 px-6 rounded-md font-light tracking-wider hover:bg-orange-900 transition-colors uppercase text-sm"
+                                    >
+                                        Añadir al Carrito
+                                    </button>
+                                    <button
+                                        onClick={handleFavoriteToggle}
+                                        className="p-3 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
+                                        title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                                    >
+                                        <svg className={`w-6 h-6 transition-colors ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} viewBox="0 0 24 24">
+                                            <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                    </button>
+                                </>
+                            )}
                         </div>
                         {stockLimite ? <p className="bg-red-50 border border-red-200 text-red-700 px-2 mt-4 py-2 rounded text-xs w-fit" >¡Ups! No hay mas unidades en stock. No puedes agregar mas por el momento.</p>:null}
                         <p className="mt-4 text-sm text-gray-500">{producto.stock > 0 ? `Disponible - ${producto.stock - quantity} unidades en stock` : 'Agotado'}</p>

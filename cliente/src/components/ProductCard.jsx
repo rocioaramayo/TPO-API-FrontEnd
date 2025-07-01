@@ -131,20 +131,22 @@ const ProductCard = ({
             )}
           </div>
           
-          <button
-            onClick={handleFavoriteClick}
-            className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300"
-            title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-          >
-            <svg
-              className={`w-5 h-5 transition-colors ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400 group-hover:text-red-400'}`}
-              viewBox="0 0 24 24"
+          {user?.role?.toLowerCase() !== 'admin' && (
+            <button
+              onClick={handleFavoriteClick}
+              className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300"
+              title={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
             >
-              <path
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-          </button>
+              <svg
+                className={`w-5 h-5 transition-colors ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400 group-hover:text-red-400'}`}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg>
+            </button>
+          )}
 
           {stock > 0 && stock < 10 && (
             <div className="absolute top-3 left-3 bg-red-800 text-white text-[10px] font-semibold px-2 py-1 rounded-full tracking-wider uppercase">
