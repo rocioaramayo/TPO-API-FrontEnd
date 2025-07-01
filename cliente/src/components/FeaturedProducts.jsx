@@ -15,7 +15,7 @@ const FeaturedProducts = ({ onCartClick, onAuthRequired }) => {
   const sectionRef = useRef(null);
 
   useEffect(() => {
-    const observer = new window.IntersectionObserver(
+    const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) setVisible(true);
       },
