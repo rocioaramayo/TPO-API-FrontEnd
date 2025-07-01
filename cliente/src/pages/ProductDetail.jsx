@@ -53,6 +53,7 @@ const ProductDetail = ({ onCartClick, onAuthRequired }) => {
     const { selectedProduct: producto, loading, error } = useSelector((state) => state.products);
     const { ids: favoritos } = useSelector((state) => state.favoritos);
     
+    const [stockLimite, setStockLimite] = useState(false)
     const [selectedPhoto, setSelectedPhoto] = useState(0);
     const [isFavorite, setIsFavorite] = useState(false);
     const [loadingFavorite, setLoadingFavorite] = useState(false);
@@ -210,9 +211,15 @@ const ProductDetail = ({ onCartClick, onAuthRequired }) => {
                         
                         <div className="mt-6 flex items-center gap-4">
                             <div className="flex items-center border border-gray-300 rounded-md">
-                                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-3 text-lg hover:bg-gray-100 rounded-l-md transition-colors">-</button>
+                                <button onClick={() => {
+                                    setQuantity(q => Math.max(1, q - 1))
+                                    setStockLimite(false)
+                                }} className="px-4 py-3 text-lg hover:bg-gray-100 rounded-l-md transition-colors">-</button>
                                 <span className="px-5 py-3 text-base font-medium">{quantity}</span>
-                                <button onClick={() => setQuantity(q => Math.min(producto.stock, q + 1))} className="px-4 py-3 text-lg hover:bg-gray-100 rounded-r-md transition-colors">+</button>
+                                <button onClick={() => {
+                                    setQuantity(q => Math.min(producto.stock, q + 1))
+                                    if(producto.stock == quantity) setStockLimite(true)
+                                }} className="px-4 py-3 text-lg hover:bg-gray-100 rounded-r-md transition-colors">+</button>
                             </div>
                             <button
                                 onClick={handleAddToCart}
@@ -230,8 +237,8 @@ const ProductDetail = ({ onCartClick, onAuthRequired }) => {
                                 </svg>
                             </button>
                         </div>
-                        
-                        <p className="mt-4 text-sm text-gray-500">{producto.stock > 0 ? `Disponible - ${producto.stock} unidades en stock` : 'Agotado'}</p>
+                        {stockLimite ? <p className="bg-red-50 border border-red-200 text-red-700 px-2 mt-4 py-2 rounded text-xs w-fit" >¡Ups! No hay mas unidades en stock. No puedes agregar mas por el momento.</p>:null}
+                        <p className="mt-4 text-sm text-gray-500">{producto.stock > 0 ? `Disponible - ${producto.stock - quantity} unidades en stock` : 'Agotado'}</p>
 
                         <div className="mt-10">
                             <AccordionItem title="Descripción" isOpen={openAccordion === 'descripcion'} onClick={() => setOpenAccordion('descripcion')}>
