@@ -36,6 +36,8 @@ const ProductCard = ({
   const [showNotification, setShowNotification] = useState(false);
   const [notificationData, setNotificationData] = useState({ isAdded: false, productName: '' });
   const [fotoIndex, setFotoIndex] = useState(0);
+  const user = useSelector((state) => state.users.user);
+
 
   const formatPrice = (price) =>
     new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(price);
@@ -163,13 +165,15 @@ const ProductCard = ({
           </div>
           <div className="mt-auto">
             <span className="text-lg font-medium text-orange-950">{formatPrice(precio)}</span>
-            <button 
-              onClick={handleAddToCart}
-              className="mt-3 w-full bg-transparent border border-orange-900 text-orange-950 py-2 text-sm font-light tracking-wider
-                         hover:bg-orange-950 hover:text-white transition-all duration-300"
-            >
-              Añadir al Carrito
-            </button>
+            {user?.role?.toLowerCase() !== 'admin' && (
+                <button
+                    onClick={handleAddToCart}
+                    className="mt-3 w-full bg-transparent border border-orange-900 text-orange-950 py-2 text-sm font-light tracking-wider
+               hover:bg-orange-950 hover:text-white transition-all duration-300"
+                >
+                  Añadir al Carrito
+                </button>
+            )}
           </div>
         </div>
       </div>
