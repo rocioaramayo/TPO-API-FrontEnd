@@ -35,22 +35,33 @@ const DireccionesPanel = () => {
 
     useEffect(() => {
         if (success) {
-                setMensaje({ tipo: "success", texto: "Dirección guardada correctamente" });
-                setNuevaDireccion({
-                    calle: "",
-                    numero: "",
-                    piso: "",
-                    departamento: "",
-                    localidad: "",
-                    provincia: "",
-                    codigoPostal: "",
-                    telefonoContacto: "",
-                });
-                setSubmitIntentado(false);
+            setMensaje({ tipo: "success", texto: "Dirección guardada correctamente" });
+            setNuevaDireccion({
+                calle: "",
+                numero: "",
+                piso: "",
+                departamento: "",
+                localidad: "",
+                provincia: "",
+                codigoPostal: "",
+                telefonoContacto: "",
+            });
+            setSubmitIntentado(false);
             dispatch(fetchDirecciones(token));
             dispatch(limpiarEstadoDireccion());
+
+            // Cerrar el mensaje automáticamente después de 2 segundos
+            const timeout = setTimeout(() => setMensaje(null), 2000);
+            return () => clearTimeout(timeout);
         }
     }, [success, dispatch, token]);
+
+    useEffect(() => {
+        if (mensaje && mensaje.tipo === "success") {
+            const timeout = setTimeout(() => setMensaje(null), 2000);
+            return () => clearTimeout(timeout);
+        }
+    }, [mensaje]);
 
     const handleBorrar = (id) => {
         setDireccionAEliminar(id);

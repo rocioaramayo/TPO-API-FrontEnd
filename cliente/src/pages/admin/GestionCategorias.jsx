@@ -107,9 +107,9 @@ const GestionCategorias = () => {
         </div>
 
         {/* Mensajes */}
-        {(error || createError || detailError) && (
+        {(error || detailError) && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-              {error || createError || detailError}
+              {error || detailError}
             </div>
         )}
         {createSuccess && (
@@ -127,6 +127,12 @@ const GestionCategorias = () => {
                 </h3>
 
                 <form onSubmit={handleCrearCategoria} className="space-y-4">
+                  {/* Error solo dentro del mini form */}
+                  {createError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded mb-2">
+                      {createError}
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
