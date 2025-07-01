@@ -148,7 +148,7 @@ const ProductCard = ({
             </button>
           )}
 
-          {stock > 0 && stock < 10 && (
+          {stock > 0 && stock <= 5 && (
             <div className="absolute top-3 left-3 bg-red-800 text-white text-[10px] font-semibold px-2 py-1 rounded-full tracking-wider uppercase">
               Poco Stock
             </div>
