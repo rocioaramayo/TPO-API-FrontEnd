@@ -25,6 +25,7 @@ const CategoryGrid = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { items: fetchedCategories, loading } = useSelector((state) => state.categories);
+  const { items: products } = useSelector((state) => state.products);
 
   useEffect(() => {
     if (fetchedCategories.length === 0) {
@@ -46,10 +47,36 @@ const CategoryGrid = () => {
       key: cat.id || cat.key
     }));
 
-  // Garantizar imagen válida
+  // Buscar la foto del primer producto de cada categoría
+  function getCategoryImg(cat, i) {
+    if (cat.id && products && products.length > 0) {
+      const prod = products.find(p => p.categoriaId === cat.id && p.fotos && p.fotos.length > 0);
+      if (prod) {
+        // Usar la primera foto del producto
+        const foto = prod.fotos[0];
+        // guessMimeType inline (copiado de ProductCard)
+        let mimeType = 'image/jpeg';
+        if (foto?.nombre) {
+          const ext = foto.nombre.split('.').pop().toLowerCase();
+          if (ext === 'png') mimeType = 'image/png';
+          if (ext === 'jpg' || ext === 'jpeg') mimeType = 'image/jpeg';
+          if (ext === 'gif') mimeType = 'image/gif';
+          if (ext === 'webp') mimeType = 'image/webp';
+        } else if (foto?.file && foto.file.startsWith('/9j/')) {
+          mimeType = 'image/jpeg';
+        }
+        if (foto.file || foto.contenidoBase64) {
+          return `data:${mimeType};base64,${foto.file || foto.contenidoBase64}`;
+        }
+      }
+    }
+    // Si no hay producto con foto, usar la imagen por defecto
+    return cat.img || placeholderImgs[i % placeholderImgs.length];
+  }
+
   const catsWithImg = baseCategories.map((cat, i) => ({
     ...cat,
-    img: cat.img || placeholderImgs[i % placeholderImgs.length]
+    img: getCategoryImg(cat, i)
   }));
 
   return (
